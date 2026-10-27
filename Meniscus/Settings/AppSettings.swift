@@ -23,6 +23,7 @@ nonisolated enum SettingsKey {
     static let displayPreference = "displayPreference"
     static let expandOnHover = "expandOnHover"
     static let hapticsEnabled = "hapticsEnabled"
+    static let showCalendar = "showCalendar"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
     static let forceVirtualNotch = "developer.forceVirtualNotch"
@@ -45,6 +46,9 @@ final class AppSettings {
     var hapticsEnabled: Bool {
         didSet { defaults.set(hapticsEnabled, forKey: SettingsKey.hapticsEnabled) }
     }
+    var showCalendar: Bool {
+        didSet { defaults.set(showCalendar, forKey: SettingsKey.showCalendar) }
+    }
     var slowAnimations: Bool {
         didSet { defaults.set(slowAnimations, forKey: SettingsKey.slowAnimations) }
     }
@@ -61,11 +65,13 @@ final class AppSettings {
             SettingsKey.showMenuBarIcon: true,
             SettingsKey.expandOnHover: true,
             SettingsKey.hapticsEnabled: true,
+            SettingsKey.showCalendar: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
             .flatMap(DisplayPreference.init) ?? .notched
         expandOnHover = defaults.bool(forKey: SettingsKey.expandOnHover)
         hapticsEnabled = defaults.bool(forKey: SettingsKey.hapticsEnabled)
+        showCalendar = defaults.bool(forKey: SettingsKey.showCalendar)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)
         forceVirtualNotch = defaults.bool(forKey: SettingsKey.forceVirtualNotch)

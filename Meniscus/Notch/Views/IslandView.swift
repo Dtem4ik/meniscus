@@ -28,7 +28,7 @@ struct IslandView: View {
     }
 }
 
-/// Stand-in content until the activities of stage 1 arrive.
+/// The expanded content: time, date, next event and the island's controls.
 struct IslandPlaceholderContent: View {
     var actions: NotchActions
 
@@ -36,13 +36,10 @@ struct IslandPlaceholderContent: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Meniscus")
-                    .font(.system(.title3, design: .rounded, weight: .semibold))
-                Text("Nothing here yet")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+            HomeContent(
+                calendar: ActivityServices.shared.calendar,
+                showCalendar: AppSettings.shared.showCalendar
+            )
             Spacer(minLength: 0)
             controls
         }

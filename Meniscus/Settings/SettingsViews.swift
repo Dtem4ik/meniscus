@@ -12,6 +12,16 @@ struct GeneralSettingsView: View {
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             }
             Section {
+                Toggle("Show the next calendar event", isOn: $settings.showCalendar)
+                    .onChange(of: settings.showCalendar) { _, isOn in
+                        let calendar = ActivityServices.shared.calendar
+                        if isOn { calendar.start() } else { calendar.stop() }
+                    }
+            } footer: {
+                Text("Calendar access is requested the first time you open the island with this on.")
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Picker("Show on", selection: $settings.displayPreference) {
                     ForEach(DisplayPreference.allCases) { Text($0.title).tag($0) }
                 }
