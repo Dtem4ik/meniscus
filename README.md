@@ -126,6 +126,8 @@ for its name.
 
 Modes live in `~/Library/Application Support/Meniscus/config.json`, outside the repository.
 Edit them in **Settings → Modes** or by hand; changes to the file are picked up immediately.
+The island shows the first five, left to right in the order of the list; drag the ≡ handle or
+use Move Up and Move Down in a mode's context menu to change it.
 [`config.example.json`](config.example.json) has three one-action examples (Settings → Modes →
 **Add Example Modes** installs them). The action types:
 
@@ -135,6 +137,7 @@ Edit them in **Settings → Modes** or by hand; changes to the file are picked u
 | `app` | `bundleId` | `{ "type": "app", "bundleId": "com.apple.Notes" }` |
 | `file` | `path` (`~` allowed) | `{ "type": "file", "path": "~/Documents" }` |
 | `shortcut` | `name`, optional `input` | `{ "type": "shortcut", "name": "Start Focus Session" }` |
+| `capture` | none | `{ "type": "capture" }` opens the quick capture field |
 
 Each mode has a `name`, an optional `id` (made from the name if missing) and an optional SF
 Symbol name in `symbol`. In Settings you pick the app, the file or folder, the shortcut (from
@@ -151,6 +154,23 @@ Links open in the app that owns them. The Claude desktop app
 | `claude://claude.ai/project/ID` | A project; the ID is the end of the project's claude.ai address |
 | `claude://claude.ai/chat/ID` | A chat, the same way |
 | `claude://code/new?folder=/path` | A new Claude Code session in a folder (the app asks to confirm it) |
+
+## Quick capture into Obsidian
+
+Press **⌃⌥Space** (change it in Settings → Capture), choose **Quick Capture** in the menu bar or
+use a mode with the Quick Capture action. Type a thought and press Return: a short "Saved" shows
+and the island closes. Escape or a click elsewhere closes the field and keeps what you typed.
+
+By default each capture becomes a note of its own in a folder you choose, named after the date,
+the time and its first words, such as `2026-10-27 21-45 Call the bank.md`, with your text inside.
+Choose the folder in **Settings → Capture**. It can be anywhere, including an Obsidian vault in
+iCloud Drive; paths with spaces or non-Latin letters are fine. Alternatively, captures can be
+added to the end of one note as `- 21:45 your thought`, with a `## yyyy-MM-dd` heading for each
+new day if you want one.
+
+Meniscus writes the Markdown files directly; no Obsidian plugin is needed. The chosen folder or
+note is remembered with a bookmark, so it is followed when moved or renamed, and nothing about
+it is stored in this repository.
 
 ## Languages
 
@@ -172,7 +192,7 @@ Meniscus asks for a permission only when you turn on a feature that needs it.
 1. Clock, date, next calendar event; charging live activity.
 2. Now Playing for any app, with artwork and controls.
 3. Modes: one button that opens a named set of links, apps, files and Shortcuts.
-4. Quick capture into an Obsidian inbox note.
+4. Quick capture into Obsidian: a note per thought in an inbox folder, or a line in one note.
 5. File shelf: drop files on the notch, drag them out, Quick Look, AirDrop.
 
 ## Project layout

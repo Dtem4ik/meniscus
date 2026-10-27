@@ -36,6 +36,8 @@ struct ModesSettingsView: View {
 
     @State private var draft: [EditableMode] = []
     @State private var saveError: String?
+    @State private var selectedID: String?
+    @State private var draggedID: String?
 
     var body: some View {
         Form {
@@ -49,19 +51,43 @@ struct ModesSettingsView: View {
                 }
             }
 
-            ForEach($draft) { $mode in
+            if !draft.isEmpty {
                 Section {
-                    ModeEditor(mode: $mode) {
-                        draft.removeAll { $0.id == mode.id }
-                    }
-                } header: {
-                    Label {
-                        Text(mode.name.isEmpty ? String(localized: "New Mode") : mode.name)
-                    } icon: {
-                        Image(systemName: SymbolImage.name(mode.symbol))
+                    ForEach(draft) { mode in
+                        ModeRow(
+                            mode: mode,
+                            isSelected: mode.id == selectedID,
+                            isInIsland: (draft.firstIndex { $0.id == mode.id } ?? 0) < ModesBar.maximumVisible,
+                            onDragStart: { draggedID = mode.id }
+                        )
+                        .onTapGesture { selectedID = mode.id }
+                        .onDrop(of: [.text], delegate: ModeDropDelegate(targetID: mode.id, draft: $draft, draggedID: $draggedID))
+                        .contextMenu {
+                            Button("Move Up") { withAnimation { draft.move(id: mode.id, by: -1) } }
+                                .disabled(draft.first?.id == mode.id)
+                            Button("Move Down") { withAnimation { draft.move(id: mode.id, by: 1) } }
+                                .disabled(draft.last?.id == mode.id)
+                            Divider()
+                            Button("Delete Mode", role: .destructive) { delete(mode.id) }
+                        }
                     }
                 } footer: {
-                    if mode.actions.contains(where: { $0.kind == .url }) {
+                    Text("The island shows the first five modes, left to right in this order. Drag ≡ to change it, or use Move Up and Move Down in a mode's context menu.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if let selected = draft.first(where: { $0.id == selectedID }) {
+                Section {
+                    ModeEditor(mode: binding(for: selected)) { delete(selected.id) }
+                } header: {
+                    Label {
+                        Text(selected.name.isEmpty ? String(localized: "New Mode") : selected.name)
+                    } icon: {
+                        Image(systemName: SymbolImage.name(selected.symbol))
+                    }
+                } footer: {
+                    if selected.actions.contains(where: { $0.kind == .url }) {
                         Text(ModeAction.Kind.urlHint)
                             .foregroundStyle(.secondary)
                     }
@@ -71,7 +97,9 @@ struct ModesSettingsView: View {
             Section {
                 HStack {
                     Button("Add Mode") {
-                        draft.append(EditableMode(newModeNamed: String(localized: "New Mode"), existingIDs: Set(draft.map(\.id))))
+                        let mode = EditableMode(newModeNamed: String(localized: "New Mode"), existingIDs: Set(draft.map(\.id)))
+                        draft.append(mode)
+                        selectedID = mode.id
                     }
                     if store.modes.isEmpty && draft.isEmpty {
                         Button("Add Example Modes") {
@@ -115,7 +143,27 @@ struct ModesSettingsView: View {
 
     private func loadDraft() {
         draft = store.modes.map(EditableMode.init)
+        if !draft.contains(where: { $0.id == selectedID }) { selectedID = draft.first?.id }
         saveError = nil
+    }
+
+    /// Looks the mode up by id on every access, so moving or deleting modes never leaves the
+    /// editor pointing at the wrong one.
+    private func binding(for mode: EditableMode) -> Binding<EditableMode> {
+        Binding {
+            draft.first { $0.id == mode.id } ?? mode
+        } set: { newValue in
+            guard let index = draft.firstIndex(where: { $0.id == mode.id }) else { return }
+            draft[index] = newValue
+        }
+    }
+
+    private func delete(_ id: String) {
+        let index = draft.firstIndex { $0.id == id }
+        draft.removeAll { $0.id == id }
+        if selectedID == id, let index {
+            selectedID = draft.isEmpty ? nil : draft[min(index, draft.count - 1)].id
+        }
     }
 
     private func save() {
@@ -125,6 +173,62 @@ struct ModesSettingsView: View {
         } catch {
             saveError = error.description
         }
+    }
+}
+
+/// A mode in the list: symbol, name and the ≡ handle that drags it to a new place.
+private struct ModeRow: View {
+    let mode: EditableMode
+    let isSelected: Bool
+    /// Only the first few modes fit in the island.
+    let isInIsland: Bool
+    var onDragStart: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: SymbolImage.name(mode.symbol))
+                .frame(width: 20)
+            Text(mode.name.isEmpty ? String(localized: "New Mode") : mode.name)
+                .lineLimit(1)
+            if !isInIsland {
+                Text("Not in the island")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "line.3.horizontal")
+                .foregroundStyle(.secondary)
+                .frame(width: 24, height: 20)
+                .contentShape(.rect)
+                .onDrag {
+                    onDragStart()
+                    return NSItemProvider(object: mode.id as NSString)
+                }
+                .help("Drag to change the order")
+                .accessibilityLabel(Text("Drag to change the order"))
+        }
+        .padding(.vertical, 2)
+        .contentShape(.rect)
+        .listRowBackground(isSelected ? Color.accentColor.opacity(0.15) : nil)
+    }
+}
+
+/// Moves the dragged mode to where the pointer is, live, like system lists.
+private struct ModeDropDelegate: DropDelegate {
+    let targetID: String
+    @Binding var draft: [EditableMode]
+    @Binding var draggedID: String?
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedID, draggedID != targetID else { return }
+        withAnimation(.smooth(duration: 0.2)) { draft.move(id: draggedID, to: targetID) }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation: .move) }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedID = nil
+        return true
     }
 }
 
@@ -206,6 +310,9 @@ private struct ActionEditor: View {
                     }
                 }
             }
+        case .capture:
+            Text("Opens the capture field, the same as its keyboard shortcut. Where it saves is set in Settings → Capture.")
+                .foregroundStyle(.secondary)
         case .shortcut:
             ShortcutPicker(name: $action.value, library: .shared)
             TextField("Input", text: $action.input, prompt: Text("Optional"))

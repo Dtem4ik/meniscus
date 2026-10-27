@@ -31,6 +31,26 @@
         }
       }
     },
+    "A line in one note": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Строкой в одну заметку"
+          }
+        }
+      }
+    },
+    "A new note for each capture": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отдельной заметкой на каждую запись"
+          }
+        }
+      }
+    },
     "Acknowledgements": {
       "localizations": {
         "ru": {
@@ -101,6 +121,16 @@
         }
       }
     },
+    "Add a date heading for each new day": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавлять заголовок с датой для каждого нового дня"
+          }
+        }
+      }
+    },
     "All day": {
       "localizations": {
         "ru": {
@@ -161,6 +191,26 @@
         }
       }
     },
+    "Capture": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запись"
+          }
+        }
+      }
+    },
+    "Capture a thought…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запишите мысль…"
+          }
+        }
+      }
+    },
     "Charging": {
       "localizations": {
         "ru": {
@@ -191,12 +241,52 @@
         }
       }
     },
+    "Choose a Folder for Captures": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите папку для записей"
+          }
+        }
+      }
+    },
+    "Choose a Note for Captures": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите заметку для записей"
+          }
+        }
+      }
+    },
     "Choose a Shortcut": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Выберите быструю команду"
+          }
+        }
+      }
+    },
+    "Choose a folder in Settings → Capture.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите папку в «Настройки → Запись»."
+          }
+        }
+      }
+    },
+    "Choose a note in Settings → Capture.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите заметку в «Настройки → Запись»."
           }
         }
       }
@@ -211,12 +301,32 @@
         }
       }
     },
+    "Choose where captures go in Settings → Capture": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите, куда сохранять записи, в «Настройки → Запись»"
+          }
+        }
+      }
+    },
     "Choose…": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Выбрать…"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить"
           }
         }
       }
@@ -261,12 +371,62 @@
         }
       }
     },
+    "Drag to change the order": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетащите, чтобы изменить порядок"
+          }
+        }
+      }
+    },
+    "Each capture becomes a new note in this folder, for example your Obsidian inbox.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Каждая запись станет новой заметкой в этой папке — например, во входящих Obsidian."
+          }
+        }
+      }
+    },
+    "Each capture becomes a note like “2026-10-27 21-45 First words.md” with your text inside. Works with any folder, such as an Obsidian inbox in iCloud Drive; no plugin is needed.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Каждая запись становится заметкой вида «2026-10-27 21-45 Первые слова.md» с вашим текстом внутри. Подойдёт любая папка, например входящие Obsidian в iCloud Drive; плагин не нужен."
+          }
+        }
+      }
+    },
+    "Each capture is added to the end of the note as “- 21:45 your text”. No plugin is needed.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Каждая запись добавляется в конец заметки строкой «- 21:45 ваш текст». Плагин не нужен."
+          }
+        }
+      }
+    },
     "File or Folder": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Файл или папка"
+          }
+        }
+      }
+    },
+    "Folder": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папка"
           }
         }
       }
@@ -307,16 +467,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Входные данные"
-          }
-        }
-      }
-    },
-    "Input (optional)": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Входные данные (необязательно)"
           }
         }
       }
@@ -431,6 +581,26 @@
         }
       }
     },
+    "Move Down": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вниз"
+          }
+        }
+      }
+    },
+    "Move Up": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вверх"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "ru": {
@@ -481,6 +651,26 @@
         }
       }
     },
+    "None": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не задано"
+          }
+        }
+      }
+    },
+    "Not chosen": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не выбрано"
+          }
+        }
+      }
+    },
     "Not found: %@": {
       "localizations": {
         "ru": {
@@ -491,12 +681,32 @@
         }
       }
     },
+    "Not in the island": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не в острове"
+          }
+        }
+      }
+    },
     "Not valid JSON: %@": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Некорректный JSON: %@"
+          }
+        }
+      }
+    },
+    "Note": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметка"
           }
         }
       }
@@ -571,6 +781,26 @@
         }
       }
     },
+    "Opens the capture field from any app. Works without Accessibility access.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открывает поле для заметки из любого приложения. Работает без доступа к Универсальному доступу."
+          }
+        }
+      }
+    },
+    "Opens the capture field, the same as its keyboard shortcut. Where it saves is set in Settings → Capture.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открывает поле быстрой записи, как и сочетание клавиш. Куда сохранять, задаётся в «Настройки → Запись»."
+          }
+        }
+      }
+    },
     "Optional": {
       "localizations": {
         "ru": {
@@ -641,6 +871,16 @@
         }
       }
     },
+    "Quick Capture": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрая запись"
+          }
+        }
+      }
+    },
     "Quit Meniscus": {
       "localizations": {
         "ru": {
@@ -701,22 +941,32 @@
         }
       }
     },
-    "SF Symbol name. Pick one or type any name in config.json.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Имя символа SF Symbols. Выберите из списка или впишите любое в config.json."
-          }
-        }
-      }
-    },
     "Save": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Сохранить"
+          }
+        }
+      }
+    },
+    "Save as": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранять"
+          }
+        }
+      }
+    },
+    "Saved": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранено"
           }
         }
       }
@@ -901,6 +1151,16 @@
         }
       }
     },
+    "Space": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пробел"
+          }
+        }
+      }
+    },
     "Stored in config.json. Edits made in a text editor show up here automatically.": {
       "localizations": {
         "ru": {
@@ -937,6 +1197,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "У файла не указан путь."
+          }
+        }
+      }
+    },
+    "The island shows the first five modes, left to right in this order. Drag ≡ to change it, or use Move Up and Move Down in a mode's context menu.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Остров показывает первые пять режимов слева направо в этом порядке. Чтобы изменить порядок, перетащите ≡ или выберите «Вверх» и «Вниз» в контекстном меню режима."
           }
         }
       }
@@ -1007,6 +1277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Тонкая настройка"
+          }
+        }
+      }
+    },
+    "Type a shortcut…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажмите сочетание…"
           }
         }
       }

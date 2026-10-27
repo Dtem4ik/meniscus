@@ -22,6 +22,10 @@ final class SettingsWindowController: NSWindowController {
             view: ModesSettingsView(store: .shared)
         ))
         tabs.addTabViewItem(SettingsWindowController.tab(
+            String(localized: "Capture"), symbol: "square.and.pencil", id: "capture",
+            view: CaptureSettingsView(settings: .shared)
+        ))
+        tabs.addTabViewItem(SettingsWindowController.tab(
             String(localized: "Developer"), symbol: "hammer", id: "developer",
             view: DeveloperSettingsView(settings: settings, copyGeometry: {
                 SettingsWindowController.shared.notchController?.geometryReport()

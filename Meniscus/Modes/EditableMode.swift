@@ -59,6 +59,7 @@ nonisolated struct EditableAction: Identifiable, Equatable, Sendable {
         case .openApp(let bundleID): self.init(kind: .app, value: bundleID)
         case .openFile(let path): self.init(kind: .file, value: path)
         case .runShortcut(let name, let input): self.init(kind: .shortcut, value: name, input: input ?? "")
+        case .quickCapture: self.init(kind: .capture)
         }
     }
 
@@ -69,7 +70,28 @@ nonisolated struct EditableAction: Identifiable, Equatable, Sendable {
         case .app: return .openApp(bundleID: value)
         case .file: return .openFile(path: value)
         case .shortcut: return .runShortcut(name: value, input: input.isEmpty ? nil : input)
+        case .capture: return .quickCapture
         }
+    }
+}
+
+extension Array where Element: Identifiable {
+    /// Moves an element `offset` places (−1 is up); stays put at either end.
+    nonisolated mutating func move(id: Element.ID, by offset: Int) {
+        guard let from = firstIndex(where: { $0.id == id }) else { return }
+        let to = from + offset
+        guard indices.contains(to) else { return }
+        insert(remove(at: from), at: to)
+    }
+
+    /// Moves an element into the place of another, as when dragging it there: the others shift
+    /// toward where it came from.
+    nonisolated mutating func move(id: Element.ID, to targetID: Element.ID) {
+        guard let from = firstIndex(where: { $0.id == id }),
+              let to = firstIndex(where: { $0.id == targetID }),
+              from != to
+        else { return }
+        insert(remove(at: from), at: to)
     }
 }
 
@@ -80,6 +102,7 @@ extension ModeAction.Kind {
         case .app: String(localized: "Open App")
         case .file: String(localized: "Open File or Folder")
         case .shortcut: String(localized: "Run Shortcut")
+        case .capture: String(localized: "Quick Capture")
         }
     }
 
@@ -94,6 +117,7 @@ extension ModeAction.Kind {
         case .app: String(localized: "Bundle id, e.g. com.apple.Notes")
         case .file: "~/Documents/Plan.md"
         case .shortcut: String(localized: "Shortcut name")
+        case .capture: ""
         }
     }
 }

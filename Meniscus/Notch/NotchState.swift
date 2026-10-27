@@ -28,4 +28,6 @@ final class NotchState {
 /// What views inside the island can ask the controller to do.
 struct NotchActions {
     var expand: () -> Void = {}
+    /// Closes the capture field and the island.
+    var endCapture: () -> Void = {}
 }

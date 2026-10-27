@@ -195,6 +195,54 @@ struct ModesStoreTests {
     }
 }
 
+struct ModeOrderTests {
+    private struct Item: Identifiable, Equatable { var id: String }
+    private func items(_ ids: String...) -> [Item] { ids.map(Item.init) }
+
+    @Test func moveUpAndDownStopAtTheEnds() {
+        var list = items("a", "b", "c")
+        list.move(id: "b", by: -1)
+        #expect(list == items("b", "a", "c"))
+        list.move(id: "b", by: -1)
+        #expect(list == items("b", "a", "c"))
+        list.move(id: "c", by: 1)
+        #expect(list == items("b", "a", "c"))
+        list.move(id: "b", by: 1)
+        #expect(list == items("a", "b", "c"))
+    }
+
+    @Test func draggingTakesTheTargetsPlace() {
+        var list = items("a", "b", "c", "d")
+        list.move(id: "a", to: "c")
+        #expect(list == items("b", "c", "a", "d"))
+        list.move(id: "d", to: "b")
+        #expect(list == items("d", "b", "c", "a"))
+        list.move(id: "x", to: "a")
+        #expect(list == items("d", "b", "c", "a"))
+    }
+
+    @Test func savedOrderIsTheIslandOrder() throws {
+        let config = ModesConfig(modes: ["One", "Two", "Three"].map { Mode(id: $0.lowercased(), name: $0) })
+        var draft = config.modes.map(EditableMode.init)
+        draft.move(id: "three", by: -2)
+        let reordered = ModesConfig(modes: draft.map(\.mode))
+        let decoded = try ModesConfigCoder.decode(ModesConfigCoder.encode(reordered))
+        #expect(decoded.modes.map(\.id) == ["three", "one", "two"])
+    }
+}
+
+struct QuickCaptureActionTests {
+    @Test func captureActionRoundTrips() throws {
+        let config = try ModesConfigCoder.decode(Data(#"{ "modes": [ { "name": "Note", "actions": [ { "type": "capture" } ] } ] }"#.utf8))
+        #expect(config.modes.first?.actions == [.quickCapture])
+        let encoded = String(decoding: try ModesConfigCoder.encode(config), as: UTF8.self)
+        #expect(encoded.contains(#""type" : "capture""#))
+        #expect(ModeActionResolver.resolve(.quickCapture) == .quickCapture)
+        #expect(ModeActionResolver.problem(with: .quickCapture) == nil)
+        #expect(EditableAction(.quickCapture).action == .quickCapture)
+    }
+}
+
 struct ModesSettingsHelperTests {
     @Test func shortcutsListIsParsedSortedAndDeduplicated() {
         let output = "Start Focus\n\nbeta\nAlpha  \nStart Focus\r\n"

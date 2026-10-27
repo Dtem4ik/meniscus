@@ -25,8 +25,10 @@ final class NotchPanel: NSPanel {
         becomesKeyOnlyIfNeeded = true
     }
 
-    // Nothing in the island takes keyboard input yet, so it never becomes key.
-    override var canBecomeKey: Bool { false }
+    /// Only while the capture field is open; otherwise the panel never takes keyboard focus.
+    var allowsKey = false
+
+    override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }
 
     // The panel deliberately overlaps the menu bar; don't let AppKit push it down.

@@ -49,6 +49,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private func makeMenu() -> NSMenu {
         let menu = NSMenu()
         menu.delegate = self
+        menu.addItem(item(String(localized: "Quick Capture")) { [weak self] in
+            self?.notchController()?.beginCapture()
+        })
         menu.addItem(item(String(localized: "Settings…"), key: ",") {
             SettingsWindowController.shared.show()
         })
