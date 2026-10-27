@@ -93,11 +93,6 @@ xcodebuild test -project Meniscus.xcodeproj -scheme Meniscus -destination 'platf
 Meniscus is pre-1.0, so the tuning tools are in every build (menu bar icon → Developer, or
 Settings → Developer):
 
-- **Island Style**: three experiments for the transition from the black notch to glass.
-  - *A · Obsidian*: the whole island is black, like Dynamic Island; controls inside are glass.
-  - *B · Meniscus*: a glass panel rises to the top of the screen; only the notch stays black,
-    sitting in the glass like a drop.
-  - *C · Droplet*: the notch stays put; a glass drop flows out from under it.
 - **Slow Animations**: plays every transition at one fifth of the speed.
 - **Outline Computed Notch**: draws a red line 1 pt outside the computed notch. On a correct
   geometry it hugs the hardware notch evenly on all three sides.
@@ -121,7 +116,7 @@ Meniscus asks for a permission only when you turn on a feature that needs it.
 
 ## Roadmap
 
-0. ✅ Skeleton: notch-perfect black shape, spring morph into a glass panel.
+0. ✅ Skeleton: notch-perfect black island with a spring morph and Liquid Glass controls.
 1. Clock, date, next calendar event; charging live activity.
 2. Now Playing for Music and Spotify.
 3. Modes: one button that opens a named set of links, apps, files and Shortcuts.

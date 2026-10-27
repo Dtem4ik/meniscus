@@ -52,11 +52,7 @@ struct NotchRootView: View {
             reduceMotion: reduceMotion,
             actions: actions
         )
-        switch settings.islandStyle {
-        case .obsidian: ObsidianIsland(context: context)
-        case .meniscus: MeniscusIsland(context: context)
-        case .droplet: DropletIsland(context: context)
-        }
+        IslandView(context: context)
     }
 }
 

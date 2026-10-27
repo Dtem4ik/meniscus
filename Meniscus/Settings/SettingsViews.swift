@@ -38,12 +38,6 @@ struct DeveloperSettingsView: View {
 
     var body: some View {
         Form {
-            Section("Island style") {
-                Picker("Style", selection: $settings.islandStyle) {
-                    ForEach(IslandStyle.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.radioGroup)
-            }
             Section("Tuning") {
                 Toggle("Slow animations (×\(Int((1 / Motion.slowMotionFactor).rounded())))", isOn: $settings.slowAnimations)
                 Toggle("Outline the computed notch in red", isOn: $settings.showGeometryOverlay)

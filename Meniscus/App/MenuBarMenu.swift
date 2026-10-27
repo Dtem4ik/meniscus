@@ -14,11 +14,6 @@ struct MenuBarMenu: View {
         Menu("Developer") {
             Button("Open or Close Island") { appDelegate.notchController?.toggleFromMenu() }
             Divider()
-            Picker("Island Style", selection: $settings.islandStyle) {
-                ForEach(IslandStyle.allCases) { Text($0.title).tag($0) }
-            }
-            .pickerStyle(.inline)
-            Divider()
             Toggle("Slow Animations", isOn: $settings.slowAnimations)
             Toggle("Outline Computed Notch", isOn: $settings.showGeometryOverlay)
             Toggle("Use Virtual Notch", isOn: $settings.forceVirtualNotch)

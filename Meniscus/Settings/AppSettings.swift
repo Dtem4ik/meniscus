@@ -1,27 +1,6 @@
 import Foundation
 import Observation
 
-/// How the expanded island turns from the black notch into Liquid Glass.
-/// Three experiments to compare on a real screen; pick one in the Developer menu.
-nonisolated enum IslandStyle: String, CaseIterable, Identifiable, Sendable {
-    /// The whole island stays black like Dynamic Island; only controls inside are glass.
-    case obsidian
-    /// Glass rises to the top of the screen; only the notch itself stays black.
-    case meniscus
-    /// The notch stays as is; a separate glass drop flows out from under it.
-    case droplet
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .obsidian: "A · Obsidian"
-        case .meniscus: "B · Meniscus"
-        case .droplet: "C · Droplet"
-        }
-    }
-}
-
 /// Which display shows the island.
 nonisolated enum DisplayPreference: String, CaseIterable, Identifiable, Sendable {
     /// The screen with a camera housing, falling back to the built-in, then the main display.
@@ -41,7 +20,6 @@ nonisolated enum DisplayPreference: String, CaseIterable, Identifiable, Sendable
 
 nonisolated enum SettingsKey {
     static let showMenuBarIcon = "showMenuBarIcon"
-    static let islandStyle = "islandStyle"
     static let displayPreference = "displayPreference"
     static let expandOnHover = "expandOnHover"
     static let hapticsEnabled = "hapticsEnabled"
@@ -58,9 +36,6 @@ final class AppSettings {
 
     @ObservationIgnored private let defaults: UserDefaults
 
-    var islandStyle: IslandStyle {
-        didSet { defaults.set(islandStyle.rawValue, forKey: SettingsKey.islandStyle) }
-    }
     var displayPreference: DisplayPreference {
         didSet { defaults.set(displayPreference.rawValue, forKey: SettingsKey.displayPreference) }
     }
@@ -87,7 +62,6 @@ final class AppSettings {
             SettingsKey.expandOnHover: true,
             SettingsKey.hapticsEnabled: true,
         ])
-        islandStyle = defaults.string(forKey: SettingsKey.islandStyle).flatMap(IslandStyle.init) ?? .meniscus
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
             .flatMap(DisplayPreference.init) ?? .notched
         expandOnHover = defaults.bool(forKey: SettingsKey.expandOnHover)

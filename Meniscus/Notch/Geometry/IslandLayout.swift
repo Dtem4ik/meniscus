@@ -30,10 +30,6 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var expandedBottomRadius: CGFloat = 30
     var expandedShoulderRadius: CGFloat = 12
 
-    /// Gap between the notch and the glass panel in the Droplet style.
-    var dropletGap: CGFloat = 6
-    var dropletCornerRadius: CGFloat = 28
-
     /// Transparent room around the expanded island for spring overshoot and the shadow.
     var windowMargin: CGFloat = 28
 
