@@ -16,7 +16,8 @@ concurrency:
 jobs:
   build:
     name: Build, test, package
-    runs-on: macos-26
+    # Xcode 27 toolchain on macOS 27, Apple silicon. The macos-26 image only has Xcode 26.
+    runs-on: xcode-27
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -26,14 +27,18 @@ jobs:
           set -euo pipefail
           echo "Installed Xcode versions:"
           ls -d /Applications/Xcode*.app || true
-          candidates=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V || true)
-          if [ -z "$candidates" ]; then
-            echo "::error::Xcode 27 is not installed on this runner image"
-            exit 1
+          if xcodebuild -version | head -1 | grep -q '^Xcode 27'; then
+            echo "Default Xcode is already 27"
+          else
+            candidates=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V || true)
+            if [ -z "$candidates" ]; then
+              echo "::error::Xcode 27 is not installed on this runner image"
+              exit 1
+            fi
+            stable=$(echo "$candidates" | grep -v -i -E 'beta|rc' | tail -1 || true)
+            xcode=${stable:-$(echo "$candidates" | tail -1)}
+            sudo xcode-select -s "$xcode/Contents/Developer"
           fi
-          stable=$(echo "$candidates" | grep -v -i -E 'beta|rc' | tail -1 || true)
-          xcode=${stable:-$(echo "$candidates" | tail -1)}
-          sudo xcode-select -s "$xcode/Contents/Developer"
           xcodebuild -version
           swift --version
 
