@@ -137,7 +137,10 @@ Edit them in **Settings → Modes** or by hand; changes to the file are picked u
 | `shortcut` | `name`, optional `input` | `{ "type": "shortcut", "name": "Start Focus Session" }` |
 
 Each mode has a `name`, an optional `id` (made from the name if missing) and an optional SF
-Symbol name in `symbol`. To find an app's bundle id, run `osascript -e 'id of app "Notes"'`.
+Symbol name in `symbol`. In Settings you pick the app, the file or folder, the shortcut (from
+your Shortcuts library) and the symbol (a searchable grid) instead of typing them; files in your
+home folder are stored with `~`. By hand, run `osascript -e 'id of app "Notes"'` to find an
+app's bundle id.
 
 Links open in the app that owns them. The Claude desktop app
 [handles `claude://` links](https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link):

@@ -194,3 +194,39 @@ struct ModesStoreTests {
         }
     }
 }
+
+struct ModesSettingsHelperTests {
+    @Test func shortcutsListIsParsedSortedAndDeduplicated() {
+        let output = "Start Focus\n\nbeta\nAlpha  \nStart Focus\r\n"
+        #expect(ShortcutsLibrary.parse(output) == ["Alpha", "beta", "Start Focus"])
+    }
+
+    @Test func chosenPathsInHomeUseTilde() {
+        let home = URL(filePath: "/tmp/home", directoryHint: .isDirectory)
+        #expect(ModeActionResolver.configPath(for: URL(filePath: "/tmp/home/Documents/Plan.md"), homeDirectory: home) == "~/Documents/Plan.md")
+        #expect(ModeActionResolver.configPath(for: URL(filePath: "/tmp/home/Downloads/", directoryHint: .isDirectory), homeDirectory: home) == "~/Downloads")
+        #expect(ModeActionResolver.configPath(for: home, homeDirectory: home) == "~")
+        #expect(ModeActionResolver.configPath(for: URL(filePath: "/Applications"), homeDirectory: home) == "/Applications")
+        #expect(ModeActionResolver.configPath(for: URL(filePath: "/tmp/homework"), homeDirectory: home) == "/tmp/homework")
+    }
+
+    @Test func symbolSearchMatchesEveryWord() {
+        let results = SymbolCatalog.search("arrow down", isValid: { _ in false })
+        #expect(results.contains("arrow.down.circle"))
+        #expect(!results.contains("arrow.up.circle"))
+        #expect(SymbolCatalog.search("", isValid: { _ in false }) == SymbolCatalog.symbols)
+    }
+
+    @Test func typedSymbolNameOutsideCatalogComesFirst() {
+        let results = SymbolCatalog.search("swift", isValid: { $0 == "swift" })
+        #expect(results.first == "swift")
+    }
+
+    @MainActor
+    @Test func catalogHasOnlyRealSymbols() {
+        #expect(Set(SymbolCatalog.symbols).count == SymbolCatalog.symbols.count)
+        for name in SymbolCatalog.symbols {
+            #expect(SymbolImage.exists(name), "\(name) is not an SF Symbol")
+        }
+    }
+}

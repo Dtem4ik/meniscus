@@ -51,6 +51,16 @@
         }
       }
     },
+    "Action %lld": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Действие %lld"
+          }
+        }
+      }
+    },
     "Add Action": {
       "localizations": {
         "ru": {
@@ -111,6 +121,16 @@
         }
       }
     },
+    "App": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приложение"
+          }
+        }
+      }
+    },
     "Built-in display with notch": {
       "localizations": {
         "ru": {
@@ -161,6 +181,46 @@
         }
       }
     },
+    "Choose": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать"
+          }
+        }
+      }
+    },
+    "Choose a Shortcut": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите быструю команду"
+          }
+        }
+      }
+    },
+    "Choose a symbol": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать символ"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать…"
+          }
+        }
+      }
+    },
     "Copied": {
       "localizations": {
         "ru": {
@@ -201,6 +261,16 @@
         }
       }
     },
+    "File or Folder": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл или папка"
+          }
+        }
+      }
+    },
     "General": {
       "localizations": {
         "ru": {
@@ -221,6 +291,26 @@
         }
       }
     },
+    "Icon": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Иконка"
+          }
+        }
+      }
+    },
+    "Input": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Входные данные"
+          }
+        }
+      }
+    },
     "Input (optional)": {
       "localizations": {
         "ru": {
@@ -237,6 +327,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Лицензия"
+          }
+        }
+      }
+    },
+    "Link": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылка"
           }
         }
       }
@@ -301,6 +401,16 @@
         }
       }
     },
+    "Mode name": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название режима"
+          }
+        }
+      }
+    },
     "Mode “%@”": {
       "localizations": {
         "ru": {
@@ -357,6 +467,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сегодня событий больше нет"
+          }
+        }
+      }
+    },
+    "No symbols match": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет подходящих символов"
+          }
+        }
+      }
+    },
+    "Not found: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не найдено: %@"
           }
         }
       }
@@ -437,6 +567,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Открывать, когда указатель задерживается на вырезе"
+          }
+        }
+      }
+    },
+    "Optional": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Необязательно"
           }
         }
       }
@@ -591,6 +731,26 @@
         }
       }
     },
+    "Search": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск"
+          }
+        }
+      }
+    },
+    "Search symbols": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск символов"
+          }
+        }
+      }
+    },
     "Settings": {
       "localizations": {
         "ru": {
@@ -607,6 +767,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Настройки…"
+          }
+        }
+      }
+    },
+    "Shortcut": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрая команда"
           }
         }
       }

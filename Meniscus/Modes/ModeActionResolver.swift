@@ -57,6 +57,23 @@ nonisolated enum ModeActionResolver {
         return URL(filePath: trimmed)
     }
 
+    /// The inverse of `fileURL(from:)`: a path inside the home folder is written with `~`, so a
+    /// chosen file keeps working for another user and the config doesn't contain the user name.
+    static func configPath(for url: URL, homeDirectory: URL = URL(filePath: NSHomeDirectory())) -> String {
+        let path = url.standardizedFileURL.path(percentEncoded: false)
+        var home = homeDirectory.standardizedFileURL.path(percentEncoded: false)
+        if home.hasSuffix("/") { home.removeLast() }
+        var result = path
+        if path == home || path == home + "/" {
+            result = "~"
+        } else if path.hasPrefix(home + "/") {
+            result = "~/" + path.dropFirst(home.count + 1)
+        }
+        // Folders come back with a trailing slash; the config doesn't need it.
+        if result.count > 1, result.hasSuffix("/") { result.removeLast() }
+        return result
+    }
+
     /// `shortcuts://run-shortcut?name=…&input=text&text=…`, the URL scheme documented by
     /// the Shortcuts app.
     static func shortcutURL(name: String, input: String?) -> URL? {
