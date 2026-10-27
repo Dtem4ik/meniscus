@@ -1,0 +1,46 @@
+name: Probe perl and mediaremote-adapter
+
+on:
+  push:
+    branches: [claude/probe-perl]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: xcode-27
+    timeout-minutes: 20
+    steps:
+      - name: System
+        run: |
+          sw_vers
+          uname -m
+      - name: Perl
+        run: |
+          ls -l /usr/bin/perl /usr/bin/perl5* 2>&1 || true
+          /usr/bin/perl -e 'print "perl $^V\n"' 2>&1
+          echo "--- stderr of a no-op run (deprecation warnings would show here):"
+          /usr/bin/perl -e 1 2>&1 || true
+          echo "--- code signature"
+          codesign -dv --verbose=4 /usr/bin/perl 2>&1 | grep -E "Identifier|Format|flags|Authority|Platform|TeamIdentifier" || true
+          echo "--- versioned binary behind the shim"
+          ls /System/Library/Perl 2>&1 || true
+      - name: Build mediaremote-adapter v0.7.7
+        run: |
+          cmake --version || brew install cmake
+          git clone --depth 1 --branch v0.7.7 https://github.com/ungive/mediaremote-adapter.git adapter
+          cd adapter
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+          find build -maxdepth 3 -name "*.framework" -o -maxdepth 3 -name "*.pl" | head
+          ls bin 2>/dev/null || true
+      - name: Run adapter self-test
+        run: |
+          cd adapter
+          framework=$(find "$PWD/build" -maxdepth 3 -name "MediaRemoteAdapter.framework" | head -1)
+          script=$(find "$PWD" -maxdepth 2 -name "mediaremote-adapter.pl" | head -1)
+          echo "framework=$framework script=$script"
+          set +e
+          /usr/bin/perl "$script" "$framework" test; echo "test exit=$?"
+          /usr/bin/perl "$script" "$framework" get; echo "get exit=$?"
