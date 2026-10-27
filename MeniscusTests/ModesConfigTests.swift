@@ -55,7 +55,7 @@ struct ModesConfigTests {
 
     @Test func missingFieldNamesTheField() throws {
         let message = try #require(decodingMessage(#"{ "modes": [ { "name": "A", "actions": [ { "type": "url" } ] } ] }"#))
-        #expect(message.contains("\"url\""))
+        #expect(message.contains("“url”"))
     }
 
     @Test func brokenJSONIsReported() {

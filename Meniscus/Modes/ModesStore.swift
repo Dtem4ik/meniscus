@@ -90,7 +90,7 @@ final class ModesStore {
         guard !FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false)) else { return }
         guard let exampleURL = Bundle.main.url(forResource: "config.example", withExtension: "json"),
               let data = try? Data(contentsOf: exampleURL)
-        else { throw .io("The example config is missing from the app bundle.") }
+        else { throw .io(String(localized: "The example config is missing from the app bundle.")) }
         try save(ModesConfigCoder.decode(data))
     }
 

@@ -50,7 +50,7 @@ struct ModesSettingsView: View {
             Section {
                 HStack {
                     Button("Add Mode") {
-                        draft.append(EditableMode(newModeNamed: "New Mode", existingIDs: Set(draft.map(\.id))))
+                        draft.append(EditableMode(newModeNamed: String(localized: "New Mode"), existingIDs: Set(draft.map(\.id))))
                     }
                     if store.modes.isEmpty && draft.isEmpty {
                         Button("Add Example Modes") {

@@ -106,7 +106,7 @@ nonisolated enum ModeAction: Codable, Equatable, Sendable {
             let allowed = Kind.allCases.map(\.rawValue).joined(separator: ", ")
             throw DecodingError.dataCorruptedError(
                 forKey: .type, in: container,
-                debugDescription: "Unknown action type \"\(type)\". Use one of: \(allowed)."
+                debugDescription: String(localized: "Unknown action type “\(type)”. Use one of: \(allowed).")
             )
         }
     }
@@ -165,17 +165,18 @@ nonisolated enum ModesConfigCoder {
         }
         switch error {
         case .keyNotFound(let key, let context):
-            let location = context.codingPath.isEmpty ? "" : " in \(path(context))"
-            return "Missing \"\(key.stringValue)\"\(location)."
+            return context.codingPath.isEmpty
+                ? String(localized: "Missing “\(key.stringValue)”.")
+                : String(localized: "Missing “\(key.stringValue)” in \(path(context)).")
         case .typeMismatch(_, let context), .valueNotFound(_, let context):
-            return "Wrong value at \(path(context)): \(context.debugDescription)"
+            return String(localized: "Wrong value at \(path(context)): \(context.debugDescription)")
         case .dataCorrupted(let context):
             if let underlying = context.underlyingError as NSError?,
                let detail = underlying.userInfo[NSDebugDescriptionErrorKey] as? String {
-                return "Not valid JSON: \(detail)"
+                return String(localized: "Not valid JSON: \(detail)")
             }
             return context.codingPath.isEmpty
-                ? "Not valid JSON: \(context.debugDescription)"
+                ? String(localized: "Not valid JSON: \(context.debugDescription)")
                 : "\(path(context)): \(context.debugDescription)"
         @unknown default:
             return error.localizedDescription
@@ -193,7 +194,7 @@ nonisolated enum ModesConfigError: Error, Equatable, Sendable, CustomStringConve
         switch self {
         case .invalidJSON(let message): message
         case .unsupportedVersion(let version):
-            "This config is version \(version); this Meniscus understands up to \(ModesConfig.currentVersion). Update Meniscus."
+            String(localized: "This config is version \(version); this Meniscus understands up to \(ModesConfig.currentVersion). Update Meniscus.")
         case .invalidContent(let issues): issues.joined(separator: "\n")
         case .io(let message): message
         }
@@ -205,12 +206,18 @@ nonisolated enum ModesConfigValidator {
         var issues: [String] = []
         var seen = Set<String>()
         for (index, mode) in config.modes.enumerated() {
-            let label = mode.name.isEmpty ? "Mode \(index + 1)" : "Mode \"\(mode.name)\""
-            if mode.name.trimmingCharacters(in: .whitespaces).isEmpty { issues.append("\(label) has no name.") }
-            if !seen.insert(mode.id).inserted { issues.append("\(label) reuses the id \"\(mode.id)\".") }
+            let label = mode.name.isEmpty
+                ? String(localized: "Mode \(index + 1)")
+                : String(localized: "Mode “\(mode.name)”")
+            if mode.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                issues.append(String(localized: "\(label) has no name."))
+            }
+            if !seen.insert(mode.id).inserted {
+                issues.append(String(localized: "\(label) reuses the id “\(mode.id)”."))
+            }
             for (actionIndex, action) in mode.actions.enumerated() {
                 if let problem = ModeActionResolver.problem(with: action) {
-                    issues.append("\(label), action \(actionIndex + 1): \(problem)")
+                    issues.append(String(localized: "\(label), action \(actionIndex + 1): \(problem)"))
                 }
             }
         }

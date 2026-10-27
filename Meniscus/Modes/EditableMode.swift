@@ -75,19 +75,19 @@ nonisolated struct EditableAction: Identifiable, Equatable, Sendable {
 extension ModeAction.Kind {
     var title: String {
         switch self {
-        case .url: "Open URL"
-        case .app: "Open App"
-        case .file: "Open File or Folder"
-        case .shortcut: "Run Shortcut"
+        case .url: String(localized: "Open URL")
+        case .app: String(localized: "Open App")
+        case .file: String(localized: "Open File or Folder")
+        case .shortcut: String(localized: "Run Shortcut")
         }
     }
 
     var placeholder: String {
         switch self {
-        case .url: "https://… or obsidian://…"
-        case .app: "Bundle id, e.g. com.apple.Notes"
+        case .url: String(localized: "https://… or obsidian://…")
+        case .app: String(localized: "Bundle id, e.g. com.apple.Notes")
         case .file: "~/Documents/Plan.md"
-        case .shortcut: "Shortcut name"
+        case .shortcut: String(localized: "Shortcut name")
         }
     }
 }

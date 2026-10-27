@@ -27,13 +27,15 @@ nonisolated enum ModeActionResolver {
     static func problem(with action: ModeAction) -> String? {
         switch action {
         case .openURL(let string):
-            url(from: string) == nil ? "\"\(string)\" is not a URL with a scheme (like https:// or obsidian://)." : nil
+            url(from: string) == nil
+                ? String(localized: "“\(string)” is not a URL with a scheme (like https:// or obsidian://).")
+                : nil
         case .openApp(let bundleID):
-            bundleID.trimmingCharacters(in: .whitespaces).isEmpty ? "The app has no bundle id." : nil
+            bundleID.trimmingCharacters(in: .whitespaces).isEmpty ? String(localized: "The app has no bundle id.") : nil
         case .openFile(let path):
-            path.trimmingCharacters(in: .whitespaces).isEmpty ? "The file has no path." : nil
+            path.trimmingCharacters(in: .whitespaces).isEmpty ? String(localized: "The file has no path.") : nil
         case .runShortcut(let name, _):
-            name.trimmingCharacters(in: .whitespaces).isEmpty ? "The shortcut has no name." : nil
+            name.trimmingCharacters(in: .whitespaces).isEmpty ? String(localized: "The shortcut has no name.") : nil
         }
     }
 
