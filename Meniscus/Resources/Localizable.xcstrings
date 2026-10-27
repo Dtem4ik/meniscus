@@ -131,6 +131,26 @@
         }
       }
     },
+    "AirDrop": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AirDrop"
+          }
+        }
+      }
+    },
+    "AirDrop All": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отправить всё по AirDrop"
+          }
+        }
+      }
+    },
     "All day": {
       "localizations": {
         "ru": {
@@ -331,6 +351,16 @@
         }
       }
     },
+    "Clear Shelf": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить полку"
+          }
+        }
+      }
+    },
     "Copied": {
       "localizations": {
         "ru": {
@@ -347,6 +377,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Скопировать отчёт о геометрии"
+          }
+        }
+      }
+    },
+    "Copy Path": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать путь"
           }
         }
       }
@@ -377,6 +417,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Перетащите, чтобы изменить порядок"
+          }
+        }
+      }
+    },
+    "Drop files to keep them here": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетащите сюда файлы, чтобы положить их на полку"
           }
         }
       }
@@ -731,6 +781,16 @@
         }
       }
     },
+    "Open": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть"
+          }
+        }
+      }
+    },
     "Open App": {
       "localizations": {
         "ru": {
@@ -881,6 +941,16 @@
         }
       }
     },
+    "Quick Look": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрый просмотр"
+          }
+        }
+      }
+    },
     "Quit Meniscus": {
       "localizations": {
         "ru": {
@@ -917,6 +987,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Удалить действие"
+          }
+        }
+      }
+    },
+    "Remove from Shelf": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Убрать с полки"
           }
         }
       }
