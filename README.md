@@ -116,6 +116,26 @@ All motion parameters (springs, delays, the content reveal) are in
 [`Meniscus/Notch/Motion.swift`](Meniscus/Notch/Motion.swift); sizes are in
 [`Meniscus/Notch/Geometry/IslandLayout.swift`](Meniscus/Notch/Geometry/IslandLayout.swift).
 
+## Modes
+
+A mode is a named set of actions started with one button in the island: open URLs (including
+deep links such as `obsidian://…` or `https://claude.ai/…`), apps, files or folders, and run
+Shortcuts.
+
+Modes live in `~/Library/Application Support/Meniscus/config.json`, outside the repository.
+Edit them in **Settings → Modes** or by hand; changes to the file are picked up immediately.
+[`config.example.json`](config.example.json) shows every action type:
+
+| `type` | Fields | Example |
+| --- | --- | --- |
+| `url` | `url` | `{ "type": "url", "url": "https://claude.ai/new" }` |
+| `app` | `bundleId` | `{ "type": "app", "bundleId": "com.apple.Notes" }` |
+| `file` | `path` (`~` allowed) | `{ "type": "file", "path": "~/Documents" }` |
+| `shortcut` | `name`, optional `input` | `{ "type": "shortcut", "name": "Start Focus Session" }` |
+
+Each mode has a `name`, an optional `id` (made from the name if missing) and an optional SF
+Symbol name in `symbol`. To find an app's bundle id, run `osascript -e 'id of app "Notes"'`.
+
 ## Languages
 
 English and Russian, following the system language. Strings live in
