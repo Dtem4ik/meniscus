@@ -40,7 +40,7 @@ struct GeneralSettingsView: View {
                 Toggle("Show icon in the menu bar", isOn: $showMenuBarIcon)
             } footer: {
                 if !showMenuBarIcon {
-                    Text("Settings stay available from the gear button inside the notch.")
+                    Text("To open Settings, open Meniscus again from the Applications folder or Spotlight.")
                         .foregroundStyle(.secondary)
                 }
             }

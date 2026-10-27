@@ -31,6 +31,11 @@ final class NowPlayingService {
     @ObservationIgnored private var streamID = UUID()
     @ObservationIgnored private var state = NowPlayingStreamState()
     @ObservationIgnored private var restartTask: Task<Void, Never>?
+    @ObservationIgnored private var dropoutTask: Task<Void, Never>?
+    @ObservationIgnored private var artworkDropoutTask: Task<Void, Never>?
+
+    /// How long a track stays after the system stops reporting it, to ride out track changes.
+    static let dropoutGrace: Duration = .seconds(2)
     @ObservationIgnored private var consecutiveFailures = 0
     @ObservationIgnored private var isRunning = false
     @ObservationIgnored private let logger = Logger(subsystem: "io.github.dtem4ik.meniscus", category: "now-playing")
@@ -75,7 +80,7 @@ final class NowPlayingService {
         stream?.stop()
         stream = nil
         availability = .off
-        update(NowPlayingStreamState())
+        update(NowPlayingStreamState(), immediately: true)
     }
 
     // MARK: Controls
@@ -165,20 +170,59 @@ final class NowPlayingService {
         stream?.stop()
         stream = nil
         availability = .unavailable(reason)
-        update(NowPlayingStreamState())
+        update(NowPlayingStreamState(), immediately: true)
     }
 
-    private func update(_ next: NowPlayingStreamState) {
-        let artworkChanged = next.artworkData != state.artworkData
+    /// Applies a new stream state.
+    ///
+    /// Players briefly report nothing while switching tracks. Unless `immediately`, the last track
+    /// (and its artwork) is kept for `dropoutGrace`, so the island doesn't flash back to the home
+    /// content; if nothing comes back, it clears then.
+    private func update(_ next: NowPlayingStreamState, immediately: Bool = false) {
+        let previousArtworkData = state.artworkData
         state = next
-        if artworkChanged {
-            artwork = next.artworkData.flatMap(NSImage.init(data:))
-            artworkTint = artwork.flatMap(ArtworkTint.color(of:))
+
+        if next.artworkData != previousArtworkData {
+            artworkDropoutTask?.cancel()
+            artworkDropoutTask = nil
+            if let data = next.artworkData {
+                setArtwork(NSImage(data: data))
+            } else if immediately {
+                setArtwork(nil)
+            } else {
+                // A new track often arrives a moment before its artwork; keep the old one meanwhile.
+                artworkDropoutTask = Task { [weak self] in
+                    try? await Task.sleep(for: Self.dropoutGrace)
+                    guard !Task.isCancelled, let self, self.state.artworkData == nil else { return }
+                    self.setArtwork(nil)
+                }
+            }
         }
+
         let info = next.info
-        if info != current {
-            current = info
-            onChange?(info)
+        if info == nil, current != nil, !immediately {
+            guard dropoutTask == nil else { return }
+            dropoutTask = Task { [weak self] in
+                try? await Task.sleep(for: Self.dropoutGrace)
+                guard !Task.isCancelled, let self else { return }
+                self.dropoutTask = nil
+                if self.state.info == nil { self.publish(nil) }
+            }
+            return
         }
+        dropoutTask?.cancel()
+        dropoutTask = nil
+        publish(info)
+    }
+
+    private func publish(_ info: NowPlayingInfo?) {
+        guard info != current else { return }
+        current = info
+        onChange?(info)
+    }
+
+    private func setArtwork(_ image: NSImage?) {
+        artwork = image
+        artworkTint = image.flatMap(ArtworkTint.color(of:))
     }
 }

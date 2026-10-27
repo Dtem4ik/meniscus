@@ -1,92 +1,147 @@
 import AppKit
 import SwiftUI
 
-/// Expanded Now Playing: artwork, title, artist, progress, controls and the playing app.
-/// Functional layout; visual polish comes with the rest of the island content.
+/// Expanded Now Playing, dense like the system's own player: artwork, title and artist with the
+/// playing app's icon in the corner, then the progress, then the controls.
 struct NowPlayingView: View {
     let service: NowPlayingService
 
     var body: some View {
         if let info = service.current {
-            HStack(spacing: 14) {
-                artwork
-                    .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 12) {
+                    PlayerArtwork(image: service.artwork)
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(info.title)
-                        .font(.headline)
-                        .lineLimit(1)
-                    if let artist = info.artist {
-                        Text(artist)
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(info.title)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.white)
+                        Text(info.artist ?? "")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.white.opacity(0.6))
                     }
-                    PlaybackProgress(info: info)
+                    .lineLimit(1)
+                    .contentTransition(.opacity)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+
+                    sourceApplication
                 }
-                .frame(maxWidth: 240, alignment: .leading)
+                .animation(Motion.trackChange, value: info.title)
+                .animation(Motion.trackChange, value: info.artist)
+
+                PlaybackProgress(info: info)
+                    .padding(.top, 10)
 
                 controls(isPlaying: info.isPlaying)
-                sourceApplication
+                    .padding(.top, 2)
             }
-        }
-    }
-
-    @ViewBuilder
-    private var artwork: some View {
-        if let image = service.artwork {
-            Image(nsImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-        } else {
-            Image(systemName: "music.note")
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.fill.tertiary)
+            .padding(.horizontal, 18)
+            .padding(.top, 6)
+            .frame(maxHeight: .infinity, alignment: .top)
         }
     }
 
     private func controls(isPlaying: Bool) -> some View {
-        GlassEffectContainer(spacing: 8) {
-            HStack(spacing: 8) {
-                Button(action: service.previousTrack) {
-                    Label("Previous", systemImage: "backward.fill")
-                }
-                .islandControl()
-                Button(action: service.togglePlayPause) {
-                    Label(
-                        isPlaying ? String(localized: "Pause") : String(localized: "Play"),
-                        systemImage: isPlaying ? "pause.fill" : "play.fill"
-                    )
-                        .contentTransition(.symbolEffect(.replace))
-                }
-                .islandControl()
-                Button(action: service.nextTrack) {
-                    Label("Next", systemImage: "forward.fill")
-                }
-                .islandControl()
+        HStack(spacing: 18) {
+            Button(action: service.previousTrack) {
+                Label("Previous", systemImage: "backward.fill")
             }
+            .buttonStyle(PlayerControlStyle(size: 15))
+
+            Button(action: service.togglePlayPause) {
+                Label(
+                    isPlaying ? String(localized: "Pause") : String(localized: "Play"),
+                    systemImage: isPlaying ? "pause.fill" : "play.fill"
+                )
+                .contentTransition(.symbolEffect(.replace))
+            }
+            .buttonStyle(PlayerControlStyle(size: 22))
+
+            Button(action: service.nextTrack) {
+                Label("Next", systemImage: "forward.fill")
+            }
+            .buttonStyle(PlayerControlStyle(size: 15))
         }
     }
 
-    /// The playing app's own icon; clicking it brings the app forward.
+    /// The playing app's own icon, small in the corner; clicking it brings the app forward.
     @ViewBuilder
     private var sourceApplication: some View {
         if let url = service.sourceApplicationURL {
+            let path = url.path(percentEncoded: false)
             Button(action: service.openSourceApplication) {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: url.path(percentEncoded: false)))
+                Image(nsImage: NSWorkspace.shared.icon(forFile: path))
                     .resizable()
-                    .frame(width: 26, height: 26)
+                    .frame(width: 16, height: 16)
             }
             .buttonStyle(.plain)
-            .help(FileManager.default.displayName(atPath: url.path(percentEncoded: false)))
+            .help(FileManager.default.displayName(atPath: path))
+            .transition(.opacity)
         }
     }
 }
 
-/// Moves once a second while playing and the island is open; static otherwise.
+/// The artwork, cross-fading when the track changes.
+private struct PlayerArtwork: View {
+    let image: NSImage?
+
+    var body: some View {
+        ZStack {
+            if let image {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .id(ObjectIdentifier(image))
+                    .transition(.opacity)
+            } else {
+                Image(systemName: "music.note")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.white.opacity(0.1))
+                    .transition(.opacity)
+            }
+        }
+        .animation(Motion.trackChange, value: image.map(ObjectIdentifier.init))
+    }
+}
+
+/// White symbols with no background; a soft circle shows only on hover and press.
+private struct PlayerControlStyle: ButtonStyle {
+    var size: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        PlayerControl(configuration: configuration, size: size)
+    }
+
+    private struct PlayerControl: View {
+        let configuration: Configuration
+        let size: CGFloat
+        @State private var isHovered = false
+
+        var body: some View {
+            configuration.label
+                .labelStyle(.iconOnly)
+                .font(.system(size: size, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: size + 18, height: size + 18)
+                .background {
+                    Circle()
+                        .fill(.white.opacity(configuration.isPressed ? 0.2 : isHovered ? 0.1 : 0))
+                        .animation(Motion.controlHover, value: isHovered)
+                }
+                .contentShape(.circle)
+                .scaleEffect(configuration.isPressed ? Motion.controlPressScale : 1)
+                .animation(Motion.controlPress, value: configuration.isPressed)
+                .onHover { isHovered = $0 }
+        }
+    }
+}
+
+/// Elapsed time, the bar and the time left. Moves once a second while playing and the island is
+/// open; static otherwise.
 private struct PlaybackProgress: View {
     let info: NowPlayingInfo
 
@@ -103,12 +158,46 @@ private struct PlaybackProgress: View {
     }
 
     private func row(at date: Date) -> some View {
-        HStack(spacing: 6) {
-            ProgressView(value: info.progress(at: date) ?? 0)
-                .progressViewStyle(.linear)
-            Text(Duration.seconds(info.elapsed(at: date) ?? 0), format: .time(pattern: .minuteSecond))
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+        let elapsed = info.elapsed(at: date) ?? 0
+        return HStack(spacing: 8) {
+            Text(PlaybackTime.elapsed(elapsed))
+                .frame(minWidth: 34, alignment: .leading)
+            ProgressBar(value: info.progress(at: date) ?? 0)
+            Text(PlaybackTime.remaining(duration: info.duration ?? 0, elapsed: elapsed))
+                .frame(minWidth: 34, alignment: .trailing)
         }
+        .font(.system(size: 10, weight: .medium).monospacedDigit())
+        .foregroundStyle(.white.opacity(0.6))
+    }
+}
+
+private struct ProgressBar: View {
+    var value: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(0.2))
+                Capsule().fill(.white)
+                    .frame(width: proxy.size.width * min(max(value, 0), 1))
+            }
+        }
+        .frame(height: 4)
+    }
+}
+
+/// "1:23" and "−2:05", through the system's duration formatter.
+nonisolated enum PlaybackTime {
+    static func elapsed(_ seconds: TimeInterval) -> String {
+        format(seconds)
+    }
+
+    /// Time left, with a minus sign (U+2212) like the system player.
+    static func remaining(duration: TimeInterval, elapsed: TimeInterval) -> String {
+        "\u{2212}" + format(duration - elapsed)
+    }
+
+    private static func format(_ seconds: TimeInterval) -> String {
+        Duration.seconds(max(seconds, 0).rounded(.down)).formatted(.time(pattern: .minuteSecond))
     }
 }

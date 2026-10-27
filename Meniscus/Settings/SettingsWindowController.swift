@@ -1,8 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// The Settings window, managed by AppKit so it opens the same way from the menu bar and from
-/// inside the island (SwiftUI's `openSettings` is only available inside SwiftUI scenes).
+/// The Settings window, managed by AppKit so the menu bar icon and reopening the app can show it
+/// (SwiftUI's `openSettings` is only available inside SwiftUI scenes).
 /// A toolbar-style tab view gives it the standard macOS settings look.
 final class SettingsWindowController: NSWindowController {
     static let shared = SettingsWindowController(settings: .shared)

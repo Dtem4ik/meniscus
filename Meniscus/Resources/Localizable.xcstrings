@@ -321,16 +321,6 @@
         }
       }
     },
-    "Settings stay available from the gear button inside the notch.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Настройки остаются доступны по кнопке с шестерёнкой внутри выреза."
-          }
-        }
-      }
-    },
     "Settings…": {
       "localizations": {
         "ru": {
@@ -441,16 +431,6 @@
         }
       }
     },
-    "Sparkle": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Блеск"
-          }
-        }
-      }
-    },
     "This build of Meniscus was made without its Now Playing component. Build it with CMake installed.": {
       "localizations": {
         "ru": {
@@ -477,6 +457,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "В этой версии macOS больше нет системного компонента, через который Meniscus узнаёт, что играет."
+          }
+        }
+      }
+    },
+    "To open Settings, open Meniscus again from the Applications folder or Spotlight.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Чтобы открыть настройки, снова откройте Meniscus из папки «Программы» или через Spotlight."
           }
         }
       }

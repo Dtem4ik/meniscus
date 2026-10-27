@@ -33,6 +33,16 @@ struct IslandLayoutTests {
         #expect(window.contains(island))
     }
 
+    @Test func playerIsSmallerThanHomeAndFitsTheWindow() {
+        let layout = layout()
+        let home = layout.shape(for: .expanded, content: .home)
+        let player = layout.shape(for: .expanded, content: .nowPlaying)
+        #expect(player.width < home.width)
+        #expect(player.height <= home.height)
+        #expect(player.width > layout.geometry.notchRect.width)
+        #expect(layout.windowFrame(for: .expanded).contains(layout.interactiveScreenRect(for: .expanded, content: .nowPlaying)))
+    }
+
     @Test func collapsedIslandCoversNotchExactly() {
         let layout = layout()
         let spec = layout.shape(for: .collapsed)

@@ -7,6 +7,14 @@ nonisolated enum IslandPhase: Equatable, Sendable {
     case expanded
 }
 
+/// What the expanded island shows; each has its own size.
+nonisolated enum IslandContent: Equatable, Sendable {
+    /// Time, date and the next event.
+    case home
+    /// The player: denser, sized to its content like the system's own.
+    case nowPlaying
+}
+
 /// The animatable parameters of `NotchShape`.
 nonisolated struct IslandShapeSpec: Equatable, Sendable {
     /// Width of the body, without the shoulders.
@@ -32,6 +40,10 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var expandedBottomRadius: CGFloat = 30
     var expandedShoulderRadius: CGFloat = 12
 
+    /// The player's area below the notch.
+    var nowPlayingContentWidth: CGFloat = 344
+    var nowPlayingContentHeight: CGFloat = 120
+
     /// Width of each side of the compact island, left and right of the notch.
     var compactWingWidth: CGFloat = 64
 
@@ -52,7 +64,21 @@ nonisolated struct IslandLayout: Equatable, Sendable {
         max(metrics.expandedWidth, geometry.notchRect.width + 2 * metrics.expandedBottomRadius)
     }
 
-    func shape(for phase: IslandPhase) -> IslandShapeSpec {
+    /// Size of the expanded area below the notch for the given content. The panel is sized for the
+    /// largest content, so switching content only animates the shape.
+    func contentSize(for content: IslandContent) -> CGSize {
+        switch content {
+        case .home:
+            CGSize(width: expandedWidth, height: contentHeight)
+        case .nowPlaying:
+            CGSize(
+                width: min(max(metrics.nowPlayingContentWidth, geometry.notchRect.width + 2 * metrics.expandedBottomRadius), expandedWidth),
+                height: min(metrics.nowPlayingContentHeight, contentHeight)
+            )
+        }
+    }
+
+    func shape(for phase: IslandPhase, content: IslandContent = .home) -> IslandShapeSpec {
         switch phase {
         case .collapsed:
             IslandShapeSpec(
@@ -70,8 +96,8 @@ nonisolated struct IslandLayout: Equatable, Sendable {
             )
         case .expanded:
             IslandShapeSpec(
-                width: expandedWidth,
-                height: notchHeight + contentHeight,
+                width: contentSize(for: content).width,
+                height: notchHeight + contentSize(for: content).height,
                 bottomRadius: metrics.expandedBottomRadius,
                 shoulderRadius: metrics.expandedShoulderRadius
             )
@@ -99,8 +125,8 @@ nonisolated struct IslandLayout: Equatable, Sendable {
     }
 
     /// The area that reacts to the pointer, in screen coordinates.
-    func interactiveScreenRect(for phase: IslandPhase) -> CGRect {
-        let spec = shape(for: phase)
+    func interactiveScreenRect(for phase: IslandPhase, content: IslandContent = .home) -> CGRect {
+        let spec = shape(for: phase, content: content)
         return CGRect(
             x: geometry.notchRect.midX - spec.totalWidth / 2,
             y: geometry.screenFrame.maxY - spec.height,

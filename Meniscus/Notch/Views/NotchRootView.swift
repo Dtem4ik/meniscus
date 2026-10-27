@@ -7,10 +7,14 @@ struct IslandContext {
     var isContentVisible: Bool
     var reduceMotion: Bool
     var compactActivity: LiveActivity?
+    var content: IslandContent
     var actions: NotchActions
 
     var isExpanded: Bool { phase == .expanded }
-    var shape: NotchShape { NotchShape(layout.shape(for: phase), centerOffset: layout.centerOffset) }
+    var contentSize: CGSize { layout.contentSize(for: content) }
+    var shape: NotchShape {
+        NotchShape(layout.shape(for: phase, content: content), centerOffset: layout.centerOffset)
+    }
 }
 
 /// Fills the whole panel. The island is drawn top-centered; the rest stays transparent.
@@ -52,6 +56,7 @@ struct NotchRootView: View {
             isContentVisible: isContentVisible,
             reduceMotion: reduceMotion,
             compactActivity: state.compactActivity,
+            content: state.content,
             actions: actions
         )
         IslandView(context: context)
@@ -70,7 +75,7 @@ struct IslandContentLayer<Content: View>: View {
         ZStack(alignment: .top) {
             if context.isContentVisible {
                 content
-                    .frame(width: context.layout.expandedWidth, height: height)
+                    .frame(width: context.contentSize.width, height: height)
                     .padding(.top, topInset)
                     .offset(x: horizontalOffset)
                     .transition(context.reduceMotion ? .opacity : .contentReveal)

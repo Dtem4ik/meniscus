@@ -177,3 +177,15 @@ struct EqualizerTests {
         }
     }
 }
+
+struct PlaybackTimeTests {
+    @Test func elapsedIsMinutesAndSeconds() {
+        #expect(PlaybackTime.elapsed(83.9) == "1:23")
+        #expect(PlaybackTime.elapsed(-1) == "0:00")
+    }
+
+    @Test func remainingHasAMinusSign() {
+        #expect(PlaybackTime.remaining(duration: 208, elapsed: 83) == "\u{2212}2:05")
+        #expect(PlaybackTime.remaining(duration: 60, elapsed: 90) == "\u{2212}0:00")
+    }
+}
