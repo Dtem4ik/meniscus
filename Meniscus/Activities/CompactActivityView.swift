@@ -27,7 +27,7 @@ struct CompactActivityView: View {
         case .charging:
             ChargingBolt()
         case .nowPlaying:
-            EmptyView()
+            CompactArtwork(service: ActivityServices.shared.nowPlaying)
         }
     }
 
@@ -42,7 +42,11 @@ struct CompactActivityView: View {
                     .foregroundStyle(.green)
             }
         case .nowPlaying:
-            EmptyView()
+            let nowPlaying = ActivityServices.shared.nowPlaying
+            Equalizer(
+                isPlaying: nowPlaying.current?.isPlaying ?? false,
+                tint: nowPlaying.artworkTint.map(Color.init(nsColor:)) ?? .primary
+            )
         }
     }
 }
