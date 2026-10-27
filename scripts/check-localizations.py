@@ -14,17 +14,19 @@ import xml.etree.ElementTree as ElementTree
 NS = {"x": "urn:oasis:names:tc:xliff:document:1.2"}
 
 
-def missing_translations(xliff: pathlib.Path) -> list[str]:
+def missing_translations(xliff: pathlib.Path) -> tuple[int, list[str]]:
     missing = []
+    checked = 0
     for unit in ElementTree.parse(xliff).getroot().iterfind(".//x:trans-unit", NS):
         if unit.get("translate") == "no":
             continue
+        checked += 1
         source = unit.findtext("x:source", default="", namespaces=NS)
         target = unit.find("x:target", NS)
         state = target.get("state") if target is not None else None
         if target is None or not (target.text or "").strip() or state in ("new", "needs-translation"):
             missing.append(f"{unit.get('id')!r} (source: {source!r})")
-    return missing
+    return checked, missing
 
 
 def main() -> int:
@@ -36,14 +38,18 @@ def main() -> int:
             print(f"error: no XLIFF exported for {language}")
             return 1
         for xliff in xliffs:
-            missing = missing_translations(xliff)
+            checked, missing = missing_translations(xliff)
+            if checked == 0:
+                failed = True
+                print(f"error: {xliff.name} contains no strings; the export didn't pick up the code")
+                continue
             if missing:
                 failed = True
                 print(f"error: {len(missing)} string(s) without a {language} translation in {xliff.name}:")
                 for item in missing:
                     print(f"  - {item}")
             else:
-                print(f"{xliff.name}: every string has a {language} translation")
+                print(f"{xliff.name}: all {checked} strings have a {language} translation")
     return 1 if failed else 0
 
 
