@@ -2,23 +2,27 @@
   "version": 1,
   "modes": [
     {
-      "id": "work",
-      "name": "Work",
-      "symbol": "briefcase",
+      "id": "notes",
+      "name": "Notes",
+      "symbol": "note.text",
       "actions": [
-        { "type": "url", "url": "https://claude.ai/new" },
-        { "type": "url", "url": "obsidian://open?vault=Notes&file=Today" },
-        { "type": "app", "bundleId": "com.apple.mail" },
-        { "type": "url", "url": "https://github.com" }
+        { "type": "app", "bundleId": "com.apple.Notes" }
       ]
     },
     {
-      "id": "focus",
-      "name": "Focus",
-      "symbol": "moon",
+      "id": "claude",
+      "name": "Claude",
+      "symbol": "bubble.left.and.text.bubble.right",
       "actions": [
-        { "type": "shortcut", "name": "Start Focus Session" },
-        { "type": "file", "path": "~/Documents" }
+        { "type": "url", "url": "https://claude.ai/new" }
+      ]
+    },
+    {
+      "id": "downloads",
+      "name": "Downloads",
+      "symbol": "arrow.down.circle",
+      "actions": [
+        { "type": "file", "path": "~/Downloads" }
       ]
     }
   ]

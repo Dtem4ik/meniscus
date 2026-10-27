@@ -61,6 +61,16 @@
         }
       }
     },
+    "Add Another Action": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить ещё действие"
+          }
+        }
+      }
+    },
     "Add Example Modes": {
       "localizations": {
         "ru": {
@@ -227,6 +237,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Лицензия"
+          }
+        }
+      }
+    },
+    "Links can open apps directly. Claude app: claude://claude.ai/new starts a chat (add ?q= with URL-encoded text to prefill it), claude://claude.ai/project/ID opens a project and claude://claude.ai/chat/ID a chat. The ID is the end of the project's or chat's claude.ai address.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылки могут сразу открывать приложения. Приложение Claude: claude://claude.ai/new начинает чат (добавьте ?q= с текстом в URL-кодировке, чтобы заполнить запрос), claude://claude.ai/project/ID открывает проект, а claude://claude.ai/chat/ID — чат. ID — это конец адреса проекта или чата на claude.ai."
           }
         }
       }
@@ -871,12 +891,12 @@
         }
       }
     },
-    "https://… or obsidian://…": {
+    "https://…, claude://… or obsidian://…": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "https://… или obsidian://…"
+            "value": "https://…, claude://… или obsidian://…"
           }
         }
       }

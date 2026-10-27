@@ -27,7 +27,8 @@ struct ModesBar: View {
     }
 }
 
-/// Settings → Modes. Functional editor; visual polish comes later.
+/// Settings → Modes. Built for the common case, one button that opens one thing: a name, a
+/// symbol and what to open. More actions can be chained with "Add Another Action".
 struct ModesSettingsView: View {
     let store: ModesStore
 
@@ -50,6 +51,11 @@ struct ModesSettingsView: View {
                 Section {
                     ModeEditor(mode: $mode) {
                         draft.removeAll { $0.id == mode.id }
+                    }
+                } footer: {
+                    if mode.actions.contains(where: { $0.kind == .url }) {
+                        Text(ModeAction.Kind.urlHint)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -120,11 +126,8 @@ private struct ModeEditor: View {
 
     var body: some View {
         HStack {
-            Image(systemName: NSImage(systemSymbolName: mode.symbol, accessibilityDescription: nil) == nil
-                ? "questionmark.square.dashed" : mode.symbol)
-                .frame(width: 24)
-            TextField("Name", text: $mode.name)
             SymbolMenu(symbol: $mode.symbol)
+            TextField("Name", text: $mode.name)
             Button(role: .destructive, action: onDelete) {
                 Label("Delete Mode", systemImage: "trash")
             }
@@ -143,18 +146,23 @@ private struct ModeEditor: View {
                 if action.kind == .shortcut {
                     TextField("Input (optional)", text: $action.input)
                 }
-                Button {
-                    mode.actions.removeAll { $0.id == action.id }
-                } label: {
-                    Label("Remove Action", systemImage: "minus.circle")
+                // A single action is the mode itself; only chains show a way to drop one.
+                if mode.actions.count > 1 {
+                    Button {
+                        mode.actions.removeAll { $0.id == action.id }
+                    } label: {
+                        Label("Remove Action", systemImage: "minus.circle")
+                    }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
                 }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.borderless)
             }
         }
 
-        Button("Add Action") { mode.actions.append(EditableAction()) }
-            .buttonStyle(.borderless)
+        Button(mode.actions.isEmpty ? String(localized: "Add Action") : String(localized: "Add Another Action")) {
+            mode.actions.append(EditableAction())
+        }
+        .buttonStyle(.borderless)
     }
 }
 
@@ -164,6 +172,7 @@ private struct SymbolMenu: View {
     private static let suggestions = [
         "briefcase", "house", "moon", "sun.max", "book", "pencil", "terminal", "chevron.left.forwardslash.chevron.right",
         "paintbrush", "music.note", "gamecontroller", "cart", "airplane", "figure.run", "brain", "sparkles",
+        "note.text", "bubble.left.and.text.bubble.right", "arrow.down.circle", "folder", "globe",
     ]
 
     var body: some View {
@@ -176,8 +185,11 @@ private struct SymbolMenu: View {
                 }
             }
         } label: {
-            Text(symbol)
+            Image(systemName: NSImage(systemSymbolName: symbol, accessibilityDescription: nil) == nil
+                ? "questionmark.square.dashed" : symbol)
+                .frame(width: 20)
         }
+        .menuIndicator(.hidden)
         .fixedSize()
         .help("SF Symbol name. Pick one or type any name in config.json.")
     }

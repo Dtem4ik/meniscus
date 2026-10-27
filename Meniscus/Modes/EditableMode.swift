@@ -25,7 +25,8 @@ nonisolated struct EditableMode: Identifiable, Equatable, Sendable {
         self.id = id
         self.name = name
         symbol = Mode.defaultSymbol
-        actions = []
+        // One button, one action is the common case, so a new mode starts with one to fill in.
+        actions = [EditableAction()]
     }
 
     var mode: Mode {
@@ -82,9 +83,14 @@ extension ModeAction.Kind {
         }
     }
 
+    /// How to open things in other apps with a link, shown under URL actions.
+    static var urlHint: String {
+        String(localized: "Links can open apps directly. Claude app: claude://claude.ai/new starts a chat (add ?q= with URL-encoded text to prefill it), claude://claude.ai/project/ID opens a project and claude://claude.ai/chat/ID a chat. The ID is the end of the project's or chat's claude.ai address.")
+    }
+
     var placeholder: String {
         switch self {
-        case .url: String(localized: "https://… or obsidian://…")
+        case .url: String(localized: "https://…, claude://… or obsidian://…")
         case .app: String(localized: "Bundle id, e.g. com.apple.Notes")
         case .file: "~/Documents/Plan.md"
         case .shortcut: String(localized: "Shortcut name")

@@ -91,7 +91,9 @@ struct ModesConfigTests {
     @Test func bundledExampleIsValid() throws {
         let url = try #require(Bundle.main.url(forResource: "config.example", withExtension: "json"))
         let config = try ModesConfigCoder.decode(Data(contentsOf: url))
-        #expect(!config.modes.isEmpty)
+        // A few simple modes, one action each: the common case, nothing that opens a pile of things.
+        #expect((2...3).contains(config.modes.count))
+        #expect(config.modes.allSatisfy { $0.actions.count == 1 })
     }
 }
 
@@ -140,6 +142,11 @@ struct ModeActionResolverTests {
     @Test func newModeIdsAreUnique() {
         let mode = EditableMode(newModeNamed: "New Mode", existingIDs: ["new-mode", "new-mode-2"])
         #expect(mode.id == "new-mode-3")
+    }
+
+    @Test func newModeStartsWithOneActionToFillIn() {
+        let mode = EditableMode(newModeNamed: "New Mode", existingIDs: [])
+        #expect(mode.actions.count == 1)
     }
 }
 
