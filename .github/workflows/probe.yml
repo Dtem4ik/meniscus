@@ -42,5 +42,7 @@ jobs:
           script=$(find "$PWD" -maxdepth 2 -name "mediaremote-adapter.pl" | head -1)
           echo "framework=$framework script=$script"
           set +e
-          /usr/bin/perl "$script" "$framework" test; echo "test exit=$?"
+          client=$(find "$PWD/build" -maxdepth 2 -name "MediaRemoteAdapterTestClient" -type f | head -1)
+          echo "client=$client"
+          time /usr/bin/perl "$script" "$framework" "$client" test; echo "test exit=$?"
           /usr/bin/perl "$script" "$framework" get; echo "get exit=$?"
