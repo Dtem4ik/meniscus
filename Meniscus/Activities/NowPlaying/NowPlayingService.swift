@@ -51,9 +51,12 @@ final class NowPlayingService {
         case .success(let adapter):
             self.adapter = adapter
             Task {
-                let permitted = await adapter.selfTest()
+                let report = await adapter.selfTestReport()
                 guard isRunning else { return }
-                if permitted {
+                if !report.passed {
+                    logger.error("Adapter self-test failed: \(report.output, privacy: .public)")
+                }
+                if report.passed {
                     availability = .available
                     launchStream()
                 } else {

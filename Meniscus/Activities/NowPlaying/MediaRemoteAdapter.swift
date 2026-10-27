@@ -73,12 +73,30 @@ nonisolated struct MediaRemoteAdapter: Sendable {
     /// second; run once at start and after repeated stream failures.
     @concurrent
     func selfTest() async -> Bool {
-        await Self.run(arguments(["test"], withTestClient: true), timeout: 10) == 0
+        await selfTestReport().passed
+    }
+
+    /// The self-test with the adapter's output, for logs and tests.
+    @concurrent
+    func selfTestReport() async -> (passed: Bool, output: String) {
+        let result = await Self.run(arguments(["test"], withTestClient: true), timeout: 10)
+        return (result.status == 0, result.output)
     }
 
     @concurrent
     func send(_ command: Command) async {
         _ = await Self.run(arguments(["send", String(command.rawValue)]), timeout: 5)
+    }
+
+    /// Children get a minimal environment: nothing of Meniscus's own environment (for example
+    /// `DYLD_*` variables injected by a debugger or test runner) leaks into the adapter.
+    static var childEnvironment: [String: String] {
+        [
+            "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+            "HOME": NSHomeDirectory(),
+            "TMPDIR": NSTemporaryDirectory(),
+            "LANG": "en_US.UTF-8",
+        ]
     }
 
     /// Arguments for the long-running stream: full payloads with microsecond times, diffs for
@@ -87,8 +105,8 @@ nonisolated struct MediaRemoteAdapter: Sendable {
         arguments(["stream", "--micros", "--debounce=50"])
     }
 
-    /// Runs perl and returns its exit status, or `nil` if it couldn't start or timed out.
-    private static func run(_ arguments: [String], timeout: TimeInterval) async -> Int32? {
+    /// Runs perl and returns its exit status (`nil` if it couldn't start or timed out) and output.
+    private static func run(_ arguments: [String], timeout: TimeInterval) async -> (status: Int32?, output: String) {
         await OneShotProcess(executable: perlURL, arguments: arguments).run(timeout: timeout)
     }
 }
@@ -97,17 +115,33 @@ nonisolated struct MediaRemoteAdapter: Sendable {
 /// comes first.
 private nonisolated final class OneShotProcess: @unchecked Sendable {
     private let process = Process()
+    private let pipe = Pipe()
     private let lock = NSLock()
-    private var continuation: CheckedContinuation<Int32?, Never>?
+    private var continuation: CheckedContinuation<(status: Int32?, output: String), Never>?
+    private var output = Data()
+    /// Keeps logs small; the adapter's messages are short.
+    private static let outputLimit = 16 * 1024
 
     init(executable: URL, arguments: [String]) {
         process.executableURL = executable
         process.arguments = arguments
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
+        process.environment = MediaRemoteAdapter.childEnvironment
+        process.standardOutput = pipe
+        process.standardError = pipe
+        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
+            let data = handle.availableData
+            guard let self else { return }
+            if data.isEmpty {
+                handle.readabilityHandler = nil
+                return
+            }
+            self.lock.withLock {
+                if self.output.count < Self.outputLimit { self.output.append(data) }
+            }
+        }
     }
 
-    func run(timeout: TimeInterval) async -> Int32? {
+    func run(timeout: TimeInterval) async -> (status: Int32?, output: String) {
         await withCheckedContinuation { continuation in
             lock.withLock { self.continuation = continuation }
             process.terminationHandler = { [self] finished in finish(finished.terminationStatus) }
@@ -125,12 +159,12 @@ private nonisolated final class OneShotProcess: @unchecked Sendable {
     }
 
     private func finish(_ status: Int32?) {
-        let continuation = lock.withLock {
+        let (continuation, output) = lock.withLock {
             let continuation = self.continuation
             self.continuation = nil
-            return continuation
+            return (continuation, String(decoding: self.output, as: UTF8.self))
         }
-        continuation?.resume(returning: status)
+        continuation?.resume(returning: (status, output))
     }
 }
 
@@ -148,6 +182,7 @@ nonisolated final class AdapterStream: @unchecked Sendable {
     ) {
         process.executableURL = MediaRemoteAdapter.perlURL
         process.arguments = adapter.streamArguments
+        process.environment = MediaRemoteAdapter.childEnvironment
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
         process.terminationHandler = { onExit($0.terminationStatus) }

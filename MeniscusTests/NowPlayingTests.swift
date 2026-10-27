@@ -115,6 +115,7 @@ struct MediaRemoteAdapterIntegrationTests {
     @Test(.timeLimit(.minutes(1)))
     func adapterSelfTestPasses() async throws {
         let adapter = try MediaRemoteAdapter.bundled().get()
-        #expect(await adapter.selfTest())
+        let report = await adapter.selfTestReport()
+        #expect(report.passed, "Adapter output: \(report.output)")
     }
 }
