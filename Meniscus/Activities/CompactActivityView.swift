@@ -6,7 +6,7 @@ struct CompactActivityView: View {
     let layout: IslandLayout
 
     var body: some View {
-        let wing = layout.compactWingWidth(for: activity.kind)
+        let wing = layout.metrics.compactWingWidth
         HStack(spacing: 0) {
             leading
                 .frame(width: wing)
@@ -73,22 +73,14 @@ struct CompactActivityView: View {
     }
 }
 
-/// "Drop here" with an arrow toward the notch, while a file is dragged anywhere.
+/// An arrow toward the notch, gently bouncing while a file is dragged anywhere: drop it here.
 private struct DropHint: View {
-    @State private var didAppear = false
-
     var body: some View {
-        HStack(spacing: 3) {
-            Image(systemName: "arrow.up")
-                .font(.system(size: 10, weight: .bold))
-                .symbolEffect(.bounce.up, value: didAppear)
-            Text("Drop here")
-                .font(.system(size: 11, weight: .semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .foregroundStyle(.white)
-        .onAppear { didAppear = true }
+        Image(systemName: "arrow.up")
+            .font(.system(size: 13, weight: .bold))
+            .foregroundStyle(.white)
+            .symbolEffect(.bounce.up, options: .repeating)
+            .accessibilityLabel(Text("Drop here"))
     }
 }
 

@@ -174,8 +174,8 @@ it is stored in this repository.
 
 ## File shelf
 
-As soon as you start dragging a file anywhere, the notch widens with a paperclip and "Drop here"
-↑. Once the pointer gets near the top of the screen, the island opens as a large drop target,
+As soon as you start dragging a file anywhere, the notch widens a little: a paperclip on the left
+and a gently bouncing arrow up on the right. Once the pointer gets near the top of the screen, the island opens as a large drop target,
 before macOS would open Mission Control at the edge. Everything goes back to normal if the drag
 moves away or ends without a drop (including a cancelled drag).
 
@@ -189,7 +189,8 @@ While files are on the shelf, the closed notch shows a paperclip and how many th
 music plays, the music comes first and a small paperclip with the count sits next to the
 equalizer.
 
-The shelf only keeps references; files are never copied or moved. A file drag is noticed with a
+Dragging a file off the shelf never opens the drop target. The shelf only keeps references;
+files are never copied or moved. A file drag is noticed with a
 global monitor for mouse presses, which needs no permission: while the button is held, Meniscus
 briefly checks the pointer and the drag pasteboard, and stops as soon as it is released.
 

@@ -108,21 +108,33 @@ final class NotchContainerView: NSView {
         registerForDraggedTypes([.fileURL])
     }
 
+    /// Whether the current drag was reported as over this view.
+    private var isTargeted = false
+
     override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
-        guard !fileURLs(in: sender).isEmpty else { return [] }
+        guard accepts(sender) else { return [] }
+        isTargeted = true
         onFileDragChange?(true)
         return .copy
     }
 
     override func draggingExited(_ sender: (any NSDraggingInfo)?) {
+        guard isTargeted else { return }
+        isTargeted = false
         onFileDragChange?(false)
     }
 
     override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
-        let urls = fileURLs(in: sender)
-        guard !urls.isEmpty else { return false }
-        onFileDrop?(urls)
+        guard accepts(sender) else { return false }
+        isTargeted = false
+        onFileDrop?(fileURLs(in: sender))
         return true
+    }
+
+    /// File drags from other apps. A drag from inside Meniscus (a file pulled off the shelf)
+    /// has a dragging source and is left alone, so the shelf doesn't offer itself as a target.
+    private func accepts(_ info: any NSDraggingInfo) -> Bool {
+        info.draggingSource == nil && !fileURLs(in: info).isEmpty
     }
 
     private func fileURLs(in info: any NSDraggingInfo) -> [URL] {

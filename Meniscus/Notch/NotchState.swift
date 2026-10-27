@@ -22,7 +22,7 @@ final class NotchState {
     var isExpanded: Bool { phase == .expanded }
     /// Where the island returns when it isn't expanded.
     var restingPhase: IslandPhase { compactActivity == nil ? .collapsed : .compact }
-    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content, activity: compactActivity?.kind) }
+    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content) }
 }
 
 /// What views inside the island can ask the controller to do.
@@ -30,6 +30,4 @@ struct NotchActions {
     var expand: () -> Void = {}
     /// Closes the capture field and the island.
     var endCapture: () -> Void = {}
-    /// A file drag entered (`true`) or left (`false`) the island.
-    var fileDragChanged: (Bool) -> Void = { _ in }
 }

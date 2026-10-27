@@ -46,8 +46,7 @@ final class NotchWindowController {
     func start() {
         let actions = NotchActions(
             expand: { [weak self] in self?.expand() },
-            endCapture: { [weak self] in self?.collapse() },
-            fileDragChanged: { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
+            endCapture: { [weak self] in self?.collapse() }
         )
         let hostingView = NotchHostingView(rootView: NotchRootView(state: state, settings: settings, actions: actions))
         // The controller sizes the panel; SwiftUI must not resize it to fit its content.
@@ -63,7 +62,8 @@ final class NotchWindowController {
         hotZoneView.acceptFileDrops()
         hotZoneView.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
         hotZoneView.onFileDrop = { [weak self] urls in self?.dropFiles(urls) }
-        // The whole panel takes drops too, not only the parts SwiftUI draws.
+        // The whole panel takes drops. AppKit rather than SwiftUI, so drags that start on the
+        // shelf itself can be told apart and ignored.
         container.acceptFileDrops()
         container.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
         container.onFileDrop = hotZoneView.onFileDrop
