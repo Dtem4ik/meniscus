@@ -65,6 +65,13 @@ xcodegen generate
 open Meniscus.xcodeproj
 ```
 
+For day-to-day development, one command pulls the latest commits, builds and relaunches the app
+(about a minute, and no Gatekeeper prompt because the build never leaves your Mac):
+
+```sh
+scripts/run.sh            # current branch; see scripts/run.sh --help
+```
+
 The Xcode project is generated from `project.yml` and is not checked in. Run `xcodegen generate`
 again after pulling changes that add or remove files.
 
