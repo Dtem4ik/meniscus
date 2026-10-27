@@ -57,7 +57,6 @@ final class PowerSourceMonitor {
 /// main thread.
 private nonisolated func powerSourcesDidChange(_ context: UnsafeMutableRawPointer?) {
     guard let context else { return }
-    MainActor.assumeIsolated {
-        Unmanaged<PowerSourceMonitor>.fromOpaque(context).takeUnretainedValue().refresh()
-    }
+    let monitor = Unmanaged<PowerSourceMonitor>.fromOpaque(context).takeUnretainedValue()
+    MainActor.assumeIsolated { monitor.refresh() }
 }
