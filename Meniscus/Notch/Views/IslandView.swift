@@ -55,18 +55,54 @@ struct IslandContentView: View {
     }
 }
 
-/// Time, date and the next event with their padding. The same view is measured off screen
+/// Time, date and the next event, the modes below them, with their padding. The same view is measured off screen
 /// (`NotchRootView`) to size the island, so the two always agree.
 struct HomeIslandContent: View {
     let metrics: IslandMetrics
 
     var body: some View {
-        HomeContent(
-            calendar: ActivityServices.shared.calendar,
-            showCalendar: AppSettings.shared.showCalendar
-        )
+        VStack(alignment: .leading, spacing: 8) {
+            HomeContent(
+                calendar: ActivityServices.shared.calendar,
+                showCalendar: AppSettings.shared.showCalendar
+            )
+            ModesBar(store: .shared)
+        }
         .padding(.horizontal, metrics.homeHorizontalPadding)
         .padding(.top, metrics.homeTopPadding)
         .padding(.bottom, metrics.homeBottomPadding)
+    }
+}
+
+/// Buttons inside the island (player controls, modes): white symbols with no background; a soft
+/// circle shows only on hover and press.
+struct IslandControlStyle: ButtonStyle {
+    var size: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        IslandControl(configuration: configuration, size: size)
+    }
+
+    private struct IslandControl: View {
+        let configuration: Configuration
+        let size: CGFloat
+        @State private var isHovered = false
+
+        var body: some View {
+            configuration.label
+                .labelStyle(.iconOnly)
+                .font(.system(size: size, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: size + 18, height: size + 18)
+                .background {
+                    Circle()
+                        .fill(.white.opacity(configuration.isPressed ? 0.2 : isHovered ? 0.1 : 0))
+                        .animation(Motion.controlHover, value: isHovered)
+                }
+                .contentShape(.circle)
+                .scaleEffect(configuration.isPressed ? Motion.controlPressScale : 1)
+                .animation(Motion.controlPress, value: configuration.isPressed)
+                .onHover { isHovered = $0 }
+        }
     }
 }

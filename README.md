@@ -86,8 +86,8 @@ xcodebuild test -project Meniscus.xcodeproj -scheme Meniscus -destination 'platf
 
 - Rest the pointer on the notch for a moment, or click it, to open the island. Move the pointer
   away to close it.
-- The menu bar icon (a drop) opens Settings and the Developer menu. You can hide the icon in
-  Settings; the gear button inside the island still opens Settings.
+- The menu bar icon (a drop) opens Settings and the Developer menu, with a left or a right click.
+  You can hide the icon in Settings; opening Meniscus again then shows Settings.
 
 ### Developer menu
 
@@ -115,6 +115,42 @@ log stream --predicate 'subsystem == "io.github.dtem4ik.meniscus"' --level info
 All motion parameters (springs, delays, the content reveal) are in
 [`Meniscus/Notch/Motion.swift`](Meniscus/Notch/Motion.swift); sizes are in
 [`Meniscus/Notch/Geometry/IslandLayout.swift`](Meniscus/Notch/Geometry/IslandLayout.swift).
+
+## Modes
+
+A mode is a button in the island that opens one thing: a link (including deep links such as
+`obsidian://…` or `claude://…`), an app, a file or folder, or a Shortcut. A mode can also chain
+several actions; **Add Another Action** in Settings adds one.
+The first five modes show as a row of symbols under the time and the next event; hover over one
+for its name.
+
+Modes live in `~/Library/Application Support/Meniscus/config.json`, outside the repository.
+Edit them in **Settings → Modes** or by hand; changes to the file are picked up immediately.
+[`config.example.json`](config.example.json) has three one-action examples (Settings → Modes →
+**Add Example Modes** installs them). The action types:
+
+| `type` | Fields | Example |
+| --- | --- | --- |
+| `url` | `url` | `{ "type": "url", "url": "https://claude.ai/new" }` |
+| `app` | `bundleId` | `{ "type": "app", "bundleId": "com.apple.Notes" }` |
+| `file` | `path` (`~` allowed) | `{ "type": "file", "path": "~/Documents" }` |
+| `shortcut` | `name`, optional `input` | `{ "type": "shortcut", "name": "Start Focus Session" }` |
+
+Each mode has a `name`, an optional `id` (made from the name if missing) and an optional SF
+Symbol name in `symbol`. In Settings you pick the app, the file or folder, the shortcut (from
+your Shortcuts library) and the symbol (a searchable grid) instead of typing them; files in your
+home folder are stored with `~`. By hand, run `osascript -e 'id of app "Notes"'` to find an
+app's bundle id.
+
+Links open in the app that owns them. The Claude desktop app
+[handles `claude://` links](https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link):
+
+| Link | Opens |
+| --- | --- |
+| `claude://claude.ai/new` | A new chat; add `?q=` with URL-encoded text to prefill the prompt |
+| `claude://claude.ai/project/ID` | A project; the ID is the end of the project's claude.ai address |
+| `claude://claude.ai/chat/ID` | A chat, the same way |
+| `claude://code/new?folder=/path` | A new Claude Code session in a folder (the app asks to confirm it) |
 
 ## Languages
 

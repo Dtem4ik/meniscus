@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "modes": [
+    {
+      "id": "notes",
+      "name": "Notes",
+      "symbol": "note.text",
+      "actions": [
+        { "type": "app", "bundleId": "com.apple.Notes" }
+      ]
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "symbol": "bubble.left.and.text.bubble.right",
+      "actions": [
+        { "type": "url", "url": "https://claude.ai/new" }
+      ]
+    },
+    {
+      "id": "downloads",
+      "name": "Downloads",
+      "symbol": "arrow.down.circle",
+      "actions": [
+        { "type": "file", "path": "~/Downloads" }
+      ]
+    }
+  ]
+}

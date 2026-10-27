@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !RuntimeEnvironment.isRunningTests else { return }
 
         ActivityServices.shared.start(settings: .shared)
+        ModesStore.shared.start()
 
         let controller = NotchWindowController(settings: .shared)
         controller.start()

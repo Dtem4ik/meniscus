@@ -32,6 +32,8 @@ targets:
     platform: macOS
     sources:
       - path: Meniscus
+      - path: config.example.json
+        buildPhase: resources
     info:
       path: Meniscus/Resources/Info.plist
       properties:

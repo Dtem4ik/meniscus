@@ -1,12 +1,102 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ has no name.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: не указано название."
+          }
+        }
+      }
+    },
+    "%@ reuses the id “%@”.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: идентификатор «%@» уже занят."
+          }
+        }
+      }
+    },
+    "%@, action %lld: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, действие %lld: %@"
+          }
+        }
+      }
+    },
     "Acknowledgements": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Благодарности"
+          }
+        }
+      }
+    },
+    "Action": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Действие"
+          }
+        }
+      }
+    },
+    "Action %lld": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Действие %lld"
+          }
+        }
+      }
+    },
+    "Add Action": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить действие"
+          }
+        }
+      }
+    },
+    "Add Another Action": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить ещё действие"
+          }
+        }
+      }
+    },
+    "Add Example Modes": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить примеры режимов"
+          }
+        }
+      }
+    },
+    "Add Mode": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить режим"
           }
         }
       }
@@ -31,12 +121,32 @@
         }
       }
     },
+    "App": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приложение"
+          }
+        }
+      }
+    },
     "Built-in display with notch": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Встроенный дисплей с вырезом"
+          }
+        }
+      }
+    },
+    "Bundle id, e.g. com.apple.Notes": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bundle ID, например com.apple.Notes"
           }
         }
       }
@@ -71,6 +181,46 @@
         }
       }
     },
+    "Choose": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать"
+          }
+        }
+      }
+    },
+    "Choose a Shortcut": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите быструю команду"
+          }
+        }
+      }
+    },
+    "Choose a symbol": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать символ"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать…"
+          }
+        }
+      }
+    },
     "Copied": {
       "localizations": {
         "ru": {
@@ -91,12 +241,32 @@
         }
       }
     },
+    "Delete Mode": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить режим"
+          }
+        }
+      }
+    },
     "Developer": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Разработка"
+          }
+        }
+      }
+    },
+    "File or Folder": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл или папка"
           }
         }
       }
@@ -121,12 +291,62 @@
         }
       }
     },
+    "Icon": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Иконка"
+          }
+        }
+      }
+    },
+    "Input": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Входные данные"
+          }
+        }
+      }
+    },
+    "Input (optional)": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Входные данные (необязательно)"
+          }
+        }
+      }
+    },
     "License": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Лицензия"
+          }
+        }
+      }
+    },
+    "Link": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылка"
+          }
+        }
+      }
+    },
+    "Links can open apps directly. Claude app: claude://claude.ai/new starts a chat (add ?q= with URL-encoded text to prefill it), claude://claude.ai/project/ID opens a project and claude://claude.ai/chat/ID a chat. The ID is the end of the project's or chat's claude.ai address.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылки могут сразу открывать приложения. Приложение Claude: claude://claude.ai/new начинает чат (добавьте ?q= с текстом в URL-кодировке, чтобы заполнить запрос), claude://claude.ai/project/ID открывает проект, а claude://claude.ai/chat/ID — чат. ID — это конец адреса проекта или чата на claude.ai."
           }
         }
       }
@@ -151,6 +371,86 @@
         }
       }
     },
+    "Missing “%@” in %@.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не указано «%@» в %@."
+          }
+        }
+      }
+    },
+    "Missing “%@”.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не указано «%@»."
+          }
+        }
+      }
+    },
+    "Mode %lld": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режим %lld"
+          }
+        }
+      }
+    },
+    "Mode name": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название режима"
+          }
+        }
+      }
+    },
+    "Mode “%@”": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режим «%@»"
+          }
+        }
+      }
+    },
+    "Modes": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режимы"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название"
+          }
+        }
+      }
+    },
+    "New Mode": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новый режим"
+          }
+        }
+      }
+    },
     "Next": {
       "localizations": {
         "ru": {
@@ -167,6 +467,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сегодня событий больше нет"
+          }
+        }
+      }
+    },
+    "No symbols match": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет подходящих символов"
+          }
+        }
+      }
+    },
+    "Not found: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не найдено: %@"
+          }
+        }
+      }
+    },
+    "Not valid JSON: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Некорректный JSON: %@"
           }
         }
       }
@@ -191,6 +521,36 @@
         }
       }
     },
+    "Open App": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть приложение"
+          }
+        }
+      }
+    },
+    "Open File or Folder": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть файл или папку"
+          }
+        }
+      }
+    },
+    "Open URL": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть ссылку"
+          }
+        }
+      }
+    },
     "Open or Close Island": {
       "localizations": {
         "ru": {
@@ -207,6 +567,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Открывать, когда указатель задерживается на вырезе"
+          }
+        }
+      }
+    },
+    "Optional": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Необязательно"
           }
         }
       }
@@ -301,12 +671,82 @@
         }
       }
     },
+    "Remove Action": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить действие"
+          }
+        }
+      }
+    },
+    "Revert": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменить изменения"
+          }
+        }
+      }
+    },
+    "Run Shortcut": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запустить быструю команду"
+          }
+        }
+      }
+    },
+    "SF Symbol name. Pick one or type any name in config.json.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имя символа SF Symbols. Выберите из списка или впишите любое в config.json."
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить"
+          }
+        }
+      }
+    },
     "Screen numbers behind the notch outline. Paste them into a bug report.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Параметры экрана, по которым строится вырез. Вставьте их в отчёт об ошибке."
+          }
+        }
+      }
+    },
+    "Search": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск"
+          }
+        }
+      }
+    },
+    "Search symbols": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск символов"
           }
         }
       }
@@ -331,6 +771,26 @@
         }
       }
     },
+    "Shortcut": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрая команда"
+          }
+        }
+      }
+    },
+    "Shortcut name": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название быстрой команды"
+          }
+        }
+      }
+    },
     "Show Calendar": {
       "localizations": {
         "ru": {
@@ -347,6 +807,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показывать значок в строке меню"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать в Finder"
           }
         }
       }
@@ -431,12 +901,72 @@
         }
       }
     },
+    "Stored in config.json. Edits made in a text editor show up here automatically.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Хранится в config.json. Изменения, сделанные в текстовом редакторе, появляются здесь автоматически."
+          }
+        }
+      }
+    },
+    "The app has no bundle id.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У приложения не указан bundle ID."
+          }
+        }
+      }
+    },
+    "The example config is missing from the app bundle.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пример конфигурации отсутствует в приложении."
+          }
+        }
+      }
+    },
+    "The file has no path.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У файла не указан путь."
+          }
+        }
+      }
+    },
+    "The shortcut has no name.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У быстрой команды не указано название."
+          }
+        }
+      }
+    },
     "This build of Meniscus was made without its Now Playing component. Build it with CMake installed.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Эта сборка Meniscus сделана без компонента «Сейчас играет». Соберите её с установленным CMake."
+          }
+        }
+      }
+    },
+    "This config is version %lld; this Meniscus understands up to %lld. Update Meniscus.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это конфигурация версии %lld, а эта версия Meniscus понимает только до %lld. Обновите Meniscus."
           }
         }
       }
@@ -481,6 +1011,16 @@
         }
       }
     },
+    "Unknown action type “%@”. Use one of: %@.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неизвестный тип действия «%@». Используйте один из: %@."
+          }
+        }
+      }
+    },
     "Use Virtual Notch": {
       "localizations": {
         "ru": {
@@ -497,6 +1037,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Использовать виртуальный вырез на этом экране"
+          }
+        }
+      }
+    },
+    "Wrong value at %@: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неверное значение в %@: %@"
+          }
+        }
+      }
+    },
+    "config.json has a problem, so the last working modes are in use:\n%@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В config.json ошибка, поэтому используются последние рабочие режимы:\n%@"
+          }
+        }
+      }
+    },
+    "https://…, claude://… or obsidian://…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https://…, claude://… или obsidian://…"
+          }
+        }
+      }
+    },
+    "“%@” is not a URL with a scheme (like https:// or obsidian://).": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%@» — не ссылка со схемой (например, https:// или obsidian://)."
           }
         }
       }
