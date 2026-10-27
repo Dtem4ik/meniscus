@@ -7,6 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Unit tests run inside the app; they don't need a panel over the menu bar.
         guard !RuntimeEnvironment.isRunningTests else { return }
 
+        ActivityServices.shared.start(settings: .shared)
+
         let controller = NotchWindowController(settings: .shared)
         controller.start()
         notchController = controller

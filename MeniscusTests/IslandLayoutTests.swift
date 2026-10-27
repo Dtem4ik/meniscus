@@ -14,7 +14,7 @@ struct IslandLayoutTests {
         return IslandLayout(geometry: geometry)
     }
 
-    @Test(arguments: [IslandPhase.collapsed, .expanded])
+    @Test(arguments: [IslandPhase.collapsed, .compact, .expanded])
     func windowFrameIsWholePointsAndTouchesTopOfScreen(phase: IslandPhase) {
         // A notch on a half point, to check the window still lands on whole points.
         let layout = layout(notchMinX: 661.5, notchWidth: 189.5)
@@ -25,7 +25,7 @@ struct IslandLayoutTests {
         #expect(frame.maxY == layout.geometry.screenFrame.maxY)
     }
 
-    @Test(arguments: [IslandPhase.collapsed, .expanded])
+    @Test(arguments: [IslandPhase.collapsed, .compact, .expanded])
     func windowContainsIslandWithShoulders(phase: IslandPhase) {
         let layout = layout(notchMinX: 661.5, notchWidth: 189.5)
         let window = layout.windowFrame(for: phase)
@@ -39,6 +39,16 @@ struct IslandLayoutTests {
         #expect(spec.width == layout.geometry.notchRect.width + 2 * layout.metrics.collapsedOutset)
         #expect(spec.height == layout.geometry.notchRect.height + layout.metrics.collapsedOutset)
         #expect(layout.interactiveScreenRect(for: .collapsed).midX == layout.geometry.notchRect.midX)
+    }
+
+    @Test func compactIslandWidensTheNotchSymmetrically() {
+        let layout = layout()
+        let notch = layout.geometry.notchRect
+        let compact = layout.interactiveScreenRect(for: .compact)
+        #expect(compact.midX == notch.midX)
+        #expect(compact.height == notch.height)
+        #expect(compact.width > notch.width + 2 * layout.metrics.compactWingWidth - 0.01)
+        #expect(layout.windowFrame(for: .expanded).contains(compact))
     }
 
     @Test func expandedIslandIsNeverNarrowerThanNotch() {

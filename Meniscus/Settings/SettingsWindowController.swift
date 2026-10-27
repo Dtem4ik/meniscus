@@ -14,11 +14,11 @@ final class SettingsWindowController: NSWindowController {
         let tabs = NSTabViewController()
         tabs.tabStyle = .toolbar
         tabs.addTabViewItem(SettingsWindowController.tab(
-            "General", symbol: "gearshape", id: "general",
+            String(localized: "General"), symbol: "gearshape", id: "general",
             view: GeneralSettingsView(settings: settings)
         ))
         tabs.addTabViewItem(SettingsWindowController.tab(
-            "Developer", symbol: "hammer", id: "developer",
+            String(localized: "Developer"), symbol: "hammer", id: "developer",
             view: DeveloperSettingsView(settings: settings, copyGeometry: {
                 SettingsWindowController.shared.notchController?.geometryReport()
             })
@@ -27,7 +27,7 @@ final class SettingsWindowController: NSWindowController {
         let window = NSWindow(contentViewController: tabs)
         window.styleMask = [.titled, .closable]
         window.toolbarStyle = .preference
-        window.title = tabs.tabViewItems.first?.label ?? "Settings"
+        window.title = tabs.tabViewItems.first?.label ?? String(localized: "Settings")
         window.isReleasedWhenClosed = false
         super.init(window: window)
     }

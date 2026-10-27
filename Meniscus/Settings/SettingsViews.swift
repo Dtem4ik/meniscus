@@ -12,6 +12,19 @@ struct GeneralSettingsView: View {
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             }
             Section {
+                Toggle("Show the next calendar event", isOn: $settings.showCalendar)
+                    .onChange(of: settings.showCalendar) { _, isOn in
+                        let calendar = ActivityServices.shared.calendar
+                        if isOn { calendar.start() } else { calendar.stop() }
+                    }
+            } footer: {
+                Text("Calendar access is requested the first time you open the island with this on.")
+                    .foregroundStyle(.secondary)
+            }
+            if settings.showCalendar {
+                CalendarSelectionSection(settings: settings, calendar: ActivityServices.shared.calendar)
+            }
+            Section {
                 Picker("Show on", selection: $settings.displayPreference) {
                     ForEach(DisplayPreference.allCases) { Text($0.title).tag($0) }
                 }
@@ -42,13 +55,16 @@ struct DeveloperSettingsView: View {
                 Toggle("Slow animations (×\(Int((1 / Motion.slowMotionFactor).rounded())))", isOn: $settings.slowAnimations)
                 Toggle("Outline the computed notch in red", isOn: $settings.showGeometryOverlay)
                 Toggle("Use a virtual notch on this screen", isOn: $settings.forceVirtualNotch)
+                Button("Simulate Charging") { ActivityServices.shared.simulateCharging() }
             }
             Section {
-                Button(didCopy ? "Copied" : "Copy Geometry Report") {
+                Button {
                     guard let report = copyGeometry() else { return }
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(report, forType: .string)
                     didCopy = true
+                } label: {
+                    didCopy ? Text("Copied") : Text("Copy Geometry Report")
                 }
             } footer: {
                 Text("Screen numbers behind the notch outline. Paste them into a bug report.")
@@ -58,5 +74,43 @@ struct DeveloperSettingsView: View {
         .formStyle(.grouped)
         .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// Which calendars the island shows, grouped by account.
+private struct CalendarSelectionSection: View {
+    @Bindable var settings: AppSettings
+    let calendar: CalendarService
+
+    var body: some View {
+        if calendar.access == .granted {
+            ForEach(CalendarGrouping.bySource(calendar.calendars), id: \.source) { group in
+                Section(group.source.isEmpty ? String(localized: "Other") : group.source) {
+                    ForEach(group.calendars) { info in
+                        Toggle(isOn: binding(for: info.id)) {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(info.color.map { Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue) } ?? .accentColor)
+                                    .frame(width: 8, height: 8)
+                                Text(info.title)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func binding(for id: String) -> Binding<Bool> {
+        Binding {
+            !settings.hiddenCalendarIDs.contains(id)
+        } set: { isShown in
+            if isShown {
+                settings.hiddenCalendarIDs.remove(id)
+            } else {
+                settings.hiddenCalendarIDs.insert(id)
+            }
+            calendar.refresh()
+        }
     }
 }
