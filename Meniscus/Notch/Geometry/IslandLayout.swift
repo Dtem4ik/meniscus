@@ -2,6 +2,8 @@ import CoreGraphics
 
 nonisolated enum IslandPhase: Equatable, Sendable {
     case collapsed
+    /// A live activity (like charging) widens the notch with content left and right of it.
+    case compact
     case expanded
 }
 
@@ -30,6 +32,9 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var expandedBottomRadius: CGFloat = 30
     var expandedShoulderRadius: CGFloat = 12
 
+    /// Width of each side of the compact island, left and right of the notch.
+    var compactWingWidth: CGFloat = 64
+
     /// Transparent room around the expanded island for spring overshoot and the shadow.
     var windowMargin: CGFloat = 28
 
@@ -54,6 +59,13 @@ nonisolated struct IslandLayout: Equatable, Sendable {
                 width: geometry.notchRect.width + 2 * metrics.collapsedOutset,
                 height: notchHeight + metrics.collapsedOutset,
                 bottomRadius: metrics.collapsedBottomRadius,
+                shoulderRadius: metrics.collapsedShoulderRadius
+            )
+        case .compact:
+            IslandShapeSpec(
+                width: geometry.notchRect.width + 2 * metrics.compactWingWidth,
+                height: notchHeight + metrics.collapsedOutset,
+                bottomRadius: metrics.collapsedBottomRadius + 4,
                 shoulderRadius: metrics.collapsedShoulderRadius
             )
         case .expanded:

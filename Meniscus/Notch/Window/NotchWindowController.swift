@@ -68,6 +68,7 @@ final class NotchWindowController {
             MainActor.assumeIsolated { self?.refreshGeometry() }
         }
         observeSettings()
+        observeActivities()
         refreshGeometry()
     }
 
@@ -111,7 +112,7 @@ final class NotchWindowController {
         let motion = currentMotion()
         withAnimation(motion.contentOut) { state.isContentVisible = false }
         withAnimation(motion.collapse, completionCriteria: .removed) {
-            state.phase = .collapsed
+            state.phase = state.restingPhase
         } completion: { [weak self] in
             MainActor.assumeIsolated {
                 guard let self, self.transitionID == id else { return }
@@ -180,7 +181,7 @@ final class NotchWindowController {
             pointerTask?.cancel()
             isPinned = false
             state.isContentVisible = false
-            state.phase = .collapsed
+            state.phase = state.restingPhase
             state.layout = layout
             panel.ignoresMouseEvents = true
         }
@@ -197,6 +198,25 @@ final class NotchWindowController {
         // The island panel goes above the hot zone so it gets the mouse while expanded.
         hotZone.orderFrontRegardless()
         panel.orderFrontRegardless()
+    }
+
+    // MARK: Live activities
+
+    /// Follows the activity center: a live activity turns the resting notch into the compact
+    /// island, and the island returns to the plain notch when it ends.
+    private func observeActivities() {
+        let activity = withObservationTracking {
+            ActivityServices.shared.center.current
+        } onChange: { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in self.observeActivities() }
+        }
+        guard activity != state.compactActivity else { return }
+        let motion = currentMotion()
+        withAnimation(activity == nil ? motion.collapse : motion.expand) {
+            state.compactActivity = activity
+            if !state.isExpanded { state.phase = state.restingPhase }
+        }
     }
 
     private func observeSettings() {

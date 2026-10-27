@@ -22,6 +22,12 @@ struct IslandView: View {
                 IslandPlaceholderContent(actions: context.actions)
             }
             .mask { shape }
+
+            if context.phase == .compact, let activity = context.compactActivity {
+                CompactActivityView(activity: activity, layout: layout)
+                    .transition(context.reduceMotion ? .opacity : .contentReveal)
+                    .mask { shape }
+            }
         }
         // Black stays black in Light Mode, so the content must use dark-appearance colors.
         .environment(\.colorScheme, .dark)

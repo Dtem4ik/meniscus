@@ -6,6 +6,7 @@ struct IslandContext {
     var phase: IslandPhase
     var isContentVisible: Bool
     var reduceMotion: Bool
+    var compactActivity: LiveActivity?
     var actions: NotchActions
 
     var isExpanded: Bool { phase == .expanded }
@@ -23,10 +24,10 @@ struct NotchRootView: View {
     var body: some View {
         ZStack(alignment: .top) {
             if reduceMotion {
-                // No morphing: the expanded island cross-fades over the notch.
+                // No morphing: the compact or expanded island cross-fades over the notch.
                 island(phase: .collapsed, isContentVisible: false)
-                if state.isExpanded {
-                    island(phase: .expanded, isContentVisible: state.isContentVisible)
+                if state.phase != .collapsed {
+                    island(phase: state.phase, isContentVisible: state.isContentVisible)
                         .transition(.opacity)
                 }
             } else {
@@ -50,6 +51,7 @@ struct NotchRootView: View {
             phase: phase,
             isContentVisible: isContentVisible,
             reduceMotion: reduceMotion,
+            compactActivity: state.compactActivity,
             actions: actions
         )
         IslandView(context: context)
