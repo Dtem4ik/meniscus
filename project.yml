@@ -38,6 +38,7 @@ targets:
         LSApplicationCategoryType: public.app-category.utilities
         LSUIElement: true
         NSHumanReadableCopyright: Copyright © 2026 Meniscus contributors. MIT License.
+        NSCalendarsFullAccessUsageDescription: Meniscus shows your next calendar event in the notch. Events stay on your Mac.
     settings:
       base:
         PRODUCT_NAME: Meniscus
