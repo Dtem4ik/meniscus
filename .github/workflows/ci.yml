@@ -20,14 +20,15 @@ jobs:
     runs-on: xcode-27
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Select Xcode 27
         run: |
           set -euo pipefail
           echo "Installed Xcode versions:"
           ls -d /Applications/Xcode*.app || true
-          if xcodebuild -version | head -1 | grep -q '^Xcode 27'; then
+          default_version=$(xcodebuild -version)
+          if [[ "$default_version" == "Xcode 27"* ]]; then
             echo "Default Xcode is already 27"
           else
             candidates=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V || true)
@@ -53,8 +54,15 @@ jobs:
           xcodebuild test -quiet \
             -project Meniscus.xcodeproj \
             -scheme Meniscus \
-            -destination 'platform=macOS' \
-            -derivedDataPath build/DerivedData
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath build/DerivedData \
+            -resultBundlePath build/TestResults.xcresult
+
+      - name: Test summary
+        if: ${{ !cancelled() }}
+        run: |
+          xcrun xcresulttool get test-results summary --path build/TestResults.xcresult --compact \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); print("Tests: {} total, {} passed, {} failed, {} skipped".format(d["totalTestCount"], d["passedTests"], d["failedTests"], d["skippedTests"])); [print("FAILED:", f.get("testName"), f.get("failureText")) for f in d.get("testFailures", [])]'
 
       - name: Build Release app
         run: |
@@ -75,7 +83,7 @@ jobs:
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
 
       - name: Upload app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Meniscus-${{ env.SHORT_SHA }}
           path: build/artifact/Meniscus.zip
