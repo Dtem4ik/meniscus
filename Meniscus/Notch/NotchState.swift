@@ -8,7 +8,9 @@ final class NotchState {
     var isContentVisible = false
     var layout: IslandLayout
     /// What the expanded island shows; decides its size.
-    var content: IslandContent = .home
+    var content: IslandContent = .home(nil)
+    /// The home content's own size, measured off screen so the island can open to it directly.
+    var homeContentSize: CGSize?
     /// The live activity shown while not expanded; `nil` leaves the plain notch.
     var compactActivity: LiveActivity?
 

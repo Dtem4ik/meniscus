@@ -25,6 +25,19 @@ struct NotchRootView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// The home content at its own size, never shown. The island opens straight to this size
+    /// instead of measuring the visible content, which only appears once the shape is open.
+    private var homeContentMeasure: some View {
+        HomeIslandContent(metrics: state.layout.metrics)
+            .fixedSize()
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+                state.homeContentSize = CGSize(width: size.width.rounded(.up), height: size.height.rounded(.up))
+            }
+            .hidden()
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             if reduceMotion {
@@ -44,6 +57,7 @@ struct NotchRootView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(alignment: .top) { homeContentMeasure }
         // The panel is never the key window; keep glass in its active look anyway.
         .environment(\.materialActiveAppearance, .active)
     }

@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// The default expanded content: time, date and the next calendar event.
-/// Functional layout only; visual polish comes after the island style is chosen.
+/// The default expanded content: time and date on the left, the next calendar event on the right.
+/// Sized by its content; if the island is wider, the gap between the two grows.
 struct HomeContent: View {
     let calendar: CalendarService
     let showCalendar: Bool
 
     var body: some View {
-        HStack(alignment: .center, spacing: 18) {
+        HStack(alignment: .center, spacing: 0) {
             // Redraws once a minute, and only while the island is open.
             TimelineView(.everyMinute) { context in
                 VStack(alignment: .leading, spacing: 2) {
@@ -22,8 +22,10 @@ struct HomeContent: View {
             }
 
             if showCalendar {
+                Spacer(minLength: 18)
                 Divider().frame(height: 40)
                 UpcomingEventView(calendar: calendar)
+                    .padding(.leading, 18)
             }
         }
     }

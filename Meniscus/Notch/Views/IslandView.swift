@@ -19,7 +19,7 @@ struct IslandView: View {
                 height: context.contentSize.height,
                 horizontalOffset: layout.centerOffset
             ) {
-                IslandContentView(content: context.content)
+                IslandContentView(content: context.content, metrics: layout.metrics)
             }
             .mask { shape }
 
@@ -37,23 +37,36 @@ struct IslandView: View {
 /// The expanded content. Nothing but the content itself: Settings live in the menu bar.
 struct IslandContentView: View {
     let content: IslandContent
+    let metrics: IslandMetrics
 
     var body: some View {
         ZStack {
             switch content {
             case .home:
-                HomeContent(
-                    calendar: ActivityServices.shared.calendar,
-                    showCalendar: AppSettings.shared.showCalendar
-                )
-                .padding(.horizontal, 28)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .transition(.opacity)
+                HomeIslandContent(metrics: metrics)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .transition(.opacity)
             case .nowPlaying:
                 NowPlayingView(service: ActivityServices.shared.nowPlaying)
                     .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// Time, date and the next event with their padding. The same view is measured off screen
+/// (`NotchRootView`) to size the island, so the two always agree.
+struct HomeIslandContent: View {
+    let metrics: IslandMetrics
+
+    var body: some View {
+        HomeContent(
+            calendar: ActivityServices.shared.calendar,
+            showCalendar: AppSettings.shared.showCalendar
+        )
+        .padding(.horizontal, metrics.homeHorizontalPadding)
+        .padding(.top, metrics.homeTopPadding)
+        .padding(.bottom, metrics.homeBottomPadding)
     }
 }

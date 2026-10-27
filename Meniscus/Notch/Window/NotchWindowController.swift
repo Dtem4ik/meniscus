@@ -202,10 +202,11 @@ final class NotchWindowController {
     // MARK: Content
 
     /// The player replaces the home content while something plays. Now Playing itself rides out
-    /// short gaps (like a track change), so this doesn't flicker between the two.
+    /// short gaps (like a track change), so this doesn't flicker between the two. The home content
+    /// also changes size with the date and the next event.
     private func observeContent() {
         let content: IslandContent = withObservationTracking {
-            ActivityServices.shared.nowPlaying.current == nil ? .home : .nowPlaying
+            ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
         } onChange: { [weak self] in
             guard let self else { return }
             Task { @MainActor in self.observeContent() }

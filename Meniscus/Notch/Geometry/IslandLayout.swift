@@ -9,8 +9,9 @@ nonisolated enum IslandPhase: Equatable, Sendable {
 
 /// What the expanded island shows; each has its own size.
 nonisolated enum IslandContent: Equatable, Sendable {
-    /// Time, date and the next event.
-    case home
+    /// Time, date and the next event, at the size they measure (padding included); `nil` until
+    /// measured.
+    case home(CGSize?)
     /// The player: denser, sized to its content like the system's own.
     case nowPlaying
 }
@@ -34,18 +35,30 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var collapsedBottomRadius: CGFloat = 9
     var collapsedShoulderRadius: CGFloat = 4
 
-    var expandedWidth: CGFloat = 560
-    /// Height of the area below the notch when expanded.
-    var expandedContentHeight: CGFloat = 132
+    /// Width of each side of the compact island, left and right of the notch.
+    var compactWingWidth: CGFloat = 64
+
+    /// The expanded island is always wider than the compact one, so opening grows it sideways as
+    /// well as down: by this share of the compact width…
+    var expansionRatio: CGFloat = 0.18
+    /// …but by at least this much on each side.
+    var minimumExpansionPerSide: CGFloat = 40
+
+    /// Upper bounds of the expanded island; the window is sized for them.
+    var maximumExpandedWidth: CGFloat = 560
+    /// Height of the area below the notch.
+    var maximumContentHeight: CGFloat = 132
     var expandedBottomRadius: CGFloat = 30
     var expandedShoulderRadius: CGFloat = 12
 
-    /// The player's area below the notch.
-    var nowPlayingContentWidth: CGFloat = 344
+    /// The player's area below the notch. Its width follows the rule above.
     var nowPlayingContentHeight: CGFloat = 120
-
-    /// Width of each side of the compact island, left and right of the notch.
-    var compactWingWidth: CGFloat = 64
+    /// Home content before it has been measured.
+    var homeFallbackSize = CGSize(width: 420, height: 80)
+    /// Room around the home content (time, date, event).
+    var homeHorizontalPadding: CGFloat = 24
+    var homeTopPadding: CGFloat = 6
+    var homeBottomPadding: CGFloat = 18
 
     /// Transparent room around the expanded island for spring overshoot and the shadow.
     var windowMargin: CGFloat = 28
@@ -59,26 +72,32 @@ nonisolated struct IslandLayout: Equatable, Sendable {
     var metrics: IslandMetrics = .standard
 
     var notchHeight: CGFloat { geometry.notchRect.height }
-    var contentHeight: CGFloat { metrics.expandedContentHeight }
-    var expandedWidth: CGFloat {
-        max(metrics.expandedWidth, geometry.notchRect.width + 2 * metrics.expandedBottomRadius)
+
+    var compactWidth: CGFloat { geometry.notchRect.width + 2 * metrics.compactWingWidth }
+
+    /// The narrowest expanded island: the compact width plus `expansionRatio`, at least
+    /// `minimumExpansionPerSide` on each side.
+    var minimumExpandedWidth: CGFloat {
+        let extra = max(compactWidth * metrics.expansionRatio, 2 * metrics.minimumExpansionPerSide)
+        return max(compactWidth + extra, geometry.notchRect.width + 2 * metrics.expandedBottomRadius)
     }
 
-    /// Size of the expanded area below the notch for the given content. The panel is sized for the
-    /// largest content, so switching content only animates the shape.
+    var maximumExpandedWidth: CGFloat { max(metrics.maximumExpandedWidth, minimumExpandedWidth) }
+
+    /// Size of the expanded area below the notch: the content's own size, at least
+    /// `minimumExpandedWidth` wide and within the maximums.
     func contentSize(for content: IslandContent) -> CGSize {
-        switch content {
-        case .home:
-            CGSize(width: expandedWidth, height: contentHeight)
-        case .nowPlaying:
-            CGSize(
-                width: min(max(metrics.nowPlayingContentWidth, geometry.notchRect.width + 2 * metrics.expandedBottomRadius), expandedWidth),
-                height: min(metrics.nowPlayingContentHeight, contentHeight)
-            )
+        let natural = switch content {
+        case .home(let measured): measured ?? metrics.homeFallbackSize
+        case .nowPlaying: CGSize(width: 0, height: metrics.nowPlayingContentHeight)
         }
+        return CGSize(
+            width: min(max(natural.width.rounded(.up), minimumExpandedWidth), maximumExpandedWidth),
+            height: min(natural.height.rounded(.up), metrics.maximumContentHeight)
+        )
     }
 
-    func shape(for phase: IslandPhase, content: IslandContent = .home) -> IslandShapeSpec {
+    func shape(for phase: IslandPhase, content: IslandContent = .home(nil)) -> IslandShapeSpec {
         switch phase {
         case .collapsed:
             IslandShapeSpec(
@@ -89,19 +108,23 @@ nonisolated struct IslandLayout: Equatable, Sendable {
             )
         case .compact:
             IslandShapeSpec(
-                width: geometry.notchRect.width + 2 * metrics.compactWingWidth,
+                width: compactWidth,
                 height: notchHeight + metrics.collapsedOutset,
                 bottomRadius: metrics.collapsedBottomRadius + 4,
                 shoulderRadius: metrics.collapsedShoulderRadius
             )
         case .expanded:
-            IslandShapeSpec(
-                width: contentSize(for: content).width,
-                height: notchHeight + contentSize(for: content).height,
-                bottomRadius: metrics.expandedBottomRadius,
-                shoulderRadius: metrics.expandedShoulderRadius
-            )
+            expandedShape(contentSize(for: content))
         }
+    }
+
+    private func expandedShape(_ contentSize: CGSize) -> IslandShapeSpec {
+        IslandShapeSpec(
+            width: contentSize.width,
+            height: notchHeight + contentSize.height,
+            bottomRadius: metrics.expandedBottomRadius,
+            shoulderRadius: metrics.expandedShoulderRadius
+        )
     }
 
     /// The window is centered on a whole point so its frame stays pixel aligned. The notch can sit
@@ -110,9 +133,12 @@ nonisolated struct IslandLayout: Equatable, Sendable {
 
     private var windowCenterX: CGFloat { geometry.notchRect.midX.rounded(.down) }
 
-    /// Frame of the panel in screen coordinates. Its top edge is the top of the screen.
+    /// Frame of the panel in screen coordinates. Its top edge is the top of the screen. Expanded,
+    /// it fits the largest island, so switching content only animates the shape.
     func windowFrame(for phase: IslandPhase) -> CGRect {
-        let spec = shape(for: phase)
+        let spec = phase == .expanded
+            ? expandedShape(CGSize(width: maximumExpandedWidth, height: metrics.maximumContentHeight))
+            : shape(for: phase)
         let margin = phase == .expanded ? metrics.windowMargin : 1
         let halfWidth = (spec.totalWidth / 2 + abs(centerOffset) + margin).rounded(.up)
         let height = (spec.height + margin).rounded(.up)
@@ -125,7 +151,7 @@ nonisolated struct IslandLayout: Equatable, Sendable {
     }
 
     /// The area that reacts to the pointer, in screen coordinates.
-    func interactiveScreenRect(for phase: IslandPhase, content: IslandContent = .home) -> CGRect {
+    func interactiveScreenRect(for phase: IslandPhase, content: IslandContent = .home(nil)) -> CGRect {
         let spec = shape(for: phase, content: content)
         return CGRect(
             x: geometry.notchRect.midX - spec.totalWidth / 2,
