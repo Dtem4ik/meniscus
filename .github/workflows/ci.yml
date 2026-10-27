@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, test, package
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 27
+        run: |
+          set -euo pipefail
+          echo "Installed Xcode versions:"
+          ls -d /Applications/Xcode*.app || true
+          candidates=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V || true)
+          if [ -z "$candidates" ]; then
+            echo "::error::Xcode 27 is not installed on this runner image"
+            exit 1
+          fi
+          stable=$(echo "$candidates" | grep -v -i -E 'beta|rc' | tail -1 || true)
+          xcode=${stable:-$(echo "$candidates" | tail -1)}
+          sudo xcode-select -s "$xcode/Contents/Developer"
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build and run unit tests
+        run: |
+          xcodebuild test -quiet \
+            -project Meniscus.xcodeproj \
+            -scheme Meniscus \
+            -destination 'platform=macOS' \
+            -derivedDataPath build/DerivedData
+
+      - name: Build Release app
+        run: |
+          xcodebuild build -quiet \
+            -project Meniscus.xcodeproj \
+            -scheme Meniscus \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build/DerivedData
+
+      - name: Package app
+        run: |
+          set -euo pipefail
+          mkdir -p build/artifact
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/DerivedData/Build/Products/Release/Meniscus.app \
+            build/artifact/Meniscus.zip
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Meniscus-${{ env.SHORT_SHA }}
+          path: build/artifact/Meniscus.zip
+          if-no-files-found: error
+          retention-days: 30
