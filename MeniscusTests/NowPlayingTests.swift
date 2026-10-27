@@ -119,3 +119,61 @@ struct MediaRemoteAdapterIntegrationTests {
         #expect(report.passed, "Adapter output: \(report.output)")
     }
 }
+
+struct SourceApplicationTests {
+    private func info(bundle: String?, parent: String? = nil, pid: Int32? = 42) -> NowPlayingInfo {
+        NowPlayingInfo(
+            processIdentifier: pid, bundleIdentifier: bundle, parentBundleIdentifier: parent,
+            title: "Song", artist: nil, album: nil, isPlaying: true,
+            duration: nil, elapsed: nil, timestamp: nil, playbackRate: nil
+        )
+    }
+
+    private let apps: [String: URL] = [
+        "com.example.browser": URL(filePath: "/Applications/Browser.app", directoryHint: .isDirectory),
+        "com.example.player": URL(filePath: "/Applications/Player.app", directoryHint: .isDirectory),
+    ]
+
+    private var lookup: SourceApplication.Lookup {
+        SourceApplication.Lookup(
+            urlForBundleIdentifier: { apps[$0] },
+            bundleURLForProcess: { pid in
+                pid == 42 ? URL(filePath: "/Applications/Electron Player.app/Contents/Frameworks/Player Helper.app") : nil
+            }
+        )
+    }
+
+    @Test func browserTabsShowTheBrowser() {
+        let url = SourceApplication.url(for: info(bundle: "com.example.webkit.gpu", parent: "com.example.browser"), lookup: lookup)
+        #expect(url?.lastPathComponent == "Browser.app")
+    }
+
+    @Test func playersShowThemselves() {
+        #expect(SourceApplication.url(for: info(bundle: "com.example.player"), lookup: lookup)?.lastPathComponent == "Player.app")
+    }
+
+    @Test func helperProcessesShowTheirOuterApp() {
+        let url = SourceApplication.url(for: info(bundle: "com.example.unknown.helper"), lookup: lookup)
+        #expect(url?.path(percentEncoded: false).hasSuffix("/Applications/Electron Player.app/") == true)
+    }
+
+    @Test func unknownSourceHasNoApp() {
+        #expect(SourceApplication.url(for: info(bundle: "com.example.unknown", pid: 7), lookup: lookup) == nil)
+    }
+
+    @Test func outermostApplicationOfPlainApp() {
+        let url = URL(filePath: "/Applications/Player.app", directoryHint: .isDirectory)
+        #expect(SourceApplication.outermostApplication(url).lastPathComponent == "Player.app")
+    }
+}
+
+struct EqualizerTests {
+    @Test func barHeightsStayInRange() {
+        for tick in 0..<500 {
+            for bar in 0..<4 {
+                let height = Equalizer.height(bar: bar, tick: tick)
+                #expect(height >= 4 && height <= 16)
+            }
+        }
+    }
+}

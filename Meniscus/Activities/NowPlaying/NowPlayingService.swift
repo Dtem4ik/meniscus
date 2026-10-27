@@ -19,6 +19,8 @@ final class NowPlayingService {
     private(set) var availability: Availability = .off
     private(set) var current: NowPlayingInfo?
     private(set) var artwork: NSImage?
+    /// The artwork's color, for the equalizer; `nil` without artwork.
+    private(set) var artworkTint: NSColor?
 
     /// Called whenever `current` changes, to drive the live activity.
     @ObservationIgnored var onChange: ((NowPlayingInfo?) -> Void)?
@@ -89,8 +91,8 @@ final class NowPlayingService {
 
     /// The playing app, to show its icon and bring it forward on click.
     var sourceApplicationURL: URL? {
-        guard let bundleID = current?.sourceBundleIdentifier else { return nil }
-        return NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
+        guard let current else { return nil }
+        return SourceApplication.url(for: current, lookup: .system)
     }
 
     func openSourceApplication() {
@@ -171,6 +173,7 @@ final class NowPlayingService {
         state = next
         if artworkChanged {
             artwork = next.artworkData.flatMap(NSImage.init(data:))
+            artworkTint = artwork.flatMap(ArtworkTint.color(of:))
         }
         let info = next.info
         if info != current {
