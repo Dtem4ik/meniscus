@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let controller = NotchWindowController(settings: .shared)
         controller.start()
         notchController = controller
+        CaptureController.shared.bindHotKey { [weak controller] in controller?.beginCapture() }
         SettingsWindowController.shared.notchController = controller
 
         let statusItem = StatusItemController(settings: .shared) { [weak self] in self?.notchController }
