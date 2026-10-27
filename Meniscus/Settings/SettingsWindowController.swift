@@ -27,6 +27,7 @@ final class SettingsWindowController: NSWindowController {
         let window = NSWindow(contentViewController: tabs)
         window.styleMask = [.titled, .closable]
         window.toolbarStyle = .preference
+        window.title = tabs.tabViewItems.first?.label ?? "Settings"
         window.isReleasedWhenClosed = false
         super.init(window: window)
     }
@@ -45,6 +46,9 @@ final class SettingsWindowController: NSWindowController {
     private static func tab(_ label: String, symbol: String, id: String, view: some View) -> NSTabViewItem {
         let controller = NSHostingController(rootView: view)
         controller.sizingOptions = [.preferredContentSize]
+        // NSTabViewController shows the selected tab's title in the window title, the standard
+        // look of macOS settings windows.
+        controller.title = label
         let item = NSTabViewItem(viewController: controller)
         item.label = label
         item.identifier = id
