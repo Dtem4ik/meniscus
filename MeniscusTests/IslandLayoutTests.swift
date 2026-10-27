@@ -33,6 +33,42 @@ struct IslandLayoutTests {
         #expect(window.contains(island))
     }
 
+    @Test(arguments: [
+        IslandContent.nowPlaying,
+        .home(nil),
+        .home(CGSize(width: 120, height: 60)),
+        .home(CGSize(width: 2000, height: 500)),
+    ])
+    func expandedIsWiderThanCompactOnBothSides(content: IslandContent) {
+        for notchWidth: CGFloat in [160, 190, 260] {
+            let layout = layout(notchWidth: notchWidth)
+            let extra = layout.shape(for: .expanded, content: content).width - layout.compactWidth
+            #expect(extra >= 2 * layout.metrics.minimumExpansionPerSide)
+            #expect(extra >= layout.compactWidth * layout.metrics.expansionRatio - 0.01)
+            #expect(layout.windowFrame(for: .expanded).contains(layout.interactiveScreenRect(for: .expanded, content: content)))
+        }
+    }
+
+    @Test func playerIsAsNarrowAsTheRuleAllows() {
+        let layout = layout()
+        let player = layout.contentSize(for: .nowPlaying)
+        #expect(player.width == layout.minimumExpandedWidth)
+        #expect(player.height == layout.metrics.nowPlayingContentHeight)
+    }
+
+    @Test func homeTakesItsMeasuredSize() {
+        let layout = layout()
+        let size = layout.contentSize(for: .home(CGSize(width: 480.3, height: 77.2)))
+        #expect(size == CGSize(width: 481, height: 78))
+    }
+
+    @Test func homeStaysWithinTheMaximums() {
+        let layout = layout()
+        let size = layout.contentSize(for: .home(CGSize(width: 2000, height: 500)))
+        #expect(size.width == layout.maximumExpandedWidth)
+        #expect(size.height == layout.metrics.maximumContentHeight)
+    }
+
     @Test func collapsedIslandCoversNotchExactly() {
         let layout = layout()
         let spec = layout.shape(for: .collapsed)
@@ -53,7 +89,8 @@ struct IslandLayoutTests {
 
     @Test func expandedIslandIsNeverNarrowerThanNotch() {
         let layout = layout(notchMinX: 400, notchWidth: 700)
-        #expect(layout.expandedWidth >= 700 + 2 * layout.metrics.expandedBottomRadius)
+        #expect(layout.minimumExpandedWidth >= 700 + 2 * layout.metrics.expandedBottomRadius)
+        #expect(layout.maximumExpandedWidth >= layout.minimumExpandedWidth)
     }
 
     @Test func centerOffsetIsTheSubPointRemainder() {

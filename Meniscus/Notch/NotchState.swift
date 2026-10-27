@@ -1,3 +1,4 @@
+import CoreGraphics
 import Observation
 
 /// What the island views render. Owned and mutated by `NotchWindowController`.
@@ -7,6 +8,10 @@ final class NotchState {
     /// Content is shown after the shape opens and hidden before it closes, so it has its own flag.
     var isContentVisible = false
     var layout: IslandLayout
+    /// What the expanded island shows; decides its size.
+    var content: IslandContent = .home(nil)
+    /// The home content's own size, measured off screen so the island can open to it directly.
+    var homeContentSize: CGSize?
     /// The live activity shown while not expanded; `nil` leaves the plain notch.
     var compactActivity: LiveActivity?
 
@@ -17,11 +22,10 @@ final class NotchState {
     var isExpanded: Bool { phase == .expanded }
     /// Where the island returns when it isn't expanded.
     var restingPhase: IslandPhase { compactActivity == nil ? .collapsed : .compact }
-    var currentShape: IslandShapeSpec { layout.shape(for: phase) }
+    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content) }
 }
 
 /// What views inside the island can ask the controller to do.
 struct NotchActions {
     var expand: () -> Void = {}
-    var openSettings: () -> Void = {}
 }

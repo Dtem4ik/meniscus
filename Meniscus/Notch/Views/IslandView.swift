@@ -16,10 +16,10 @@ struct IslandView: View {
             IslandContentLayer(
                 context: context,
                 topInset: layout.notchHeight,
-                height: layout.contentHeight,
+                height: context.contentSize.height,
                 horizontalOffset: layout.centerOffset
             ) {
-                IslandPlaceholderContent(actions: context.actions)
+                IslandContentView(content: context.content, metrics: layout.metrics)
             }
             .mask { shape }
 
@@ -34,56 +34,39 @@ struct IslandView: View {
     }
 }
 
-/// The expanded content: time, date, next event and the island's controls.
-struct IslandPlaceholderContent: View {
-    var actions: NotchActions
-
-    @State private var sparkleCount = 0
+/// The expanded content. Nothing but the content itself: Settings live in the menu bar.
+struct IslandContentView: View {
+    let content: IslandContent
+    let metrics: IslandMetrics
 
     var body: some View {
-        HStack(spacing: 14) {
-            HomeContent(
-                calendar: ActivityServices.shared.calendar,
-                showCalendar: AppSettings.shared.showCalendar
-            )
-            Spacer(minLength: 0)
-            controls
-        }
-        .padding(.horizontal, 28)
-        .frame(maxHeight: .infinity)
-    }
-
-    private var controls: some View {
-        GlassEffectContainer(spacing: 10) {
-            HStack(spacing: 10) {
-                Button {
-                    sparkleCount += 1
-                } label: {
-                    Label("Sparkle", systemImage: "sparkles")
-                        .symbolEffect(.bounce, value: sparkleCount)
-                }
-                .islandControl()
-                Button(action: actions.openSettings) {
-                    Label("Settings", systemImage: "gearshape")
-                }
-                .islandControl()
+        ZStack {
+            switch content {
+            case .home:
+                HomeIslandContent(metrics: metrics)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .transition(.opacity)
+            case .nowPlaying:
+                NowPlayingView(service: ActivityServices.shared.nowPlaying)
+                    .transition(.opacity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-extension View {
-    /// A round Liquid Glass button that stays legible on the black island. Glass refracts what is
-    /// behind it, and behind it there is only black, so it gets a system fill to refract and a
-    /// full-strength label.
-    func islandControl() -> some View {
-        self
-            .labelStyle(.iconOnly)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(.primary)
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
-            .controlSize(.large)
-            .background(.fill.tertiary, in: .circle)
+/// Time, date and the next event with their padding. The same view is measured off screen
+/// (`NotchRootView`) to size the island, so the two always agree.
+struct HomeIslandContent: View {
+    let metrics: IslandMetrics
+
+    var body: some View {
+        HomeContent(
+            calendar: ActivityServices.shared.calendar,
+            showCalendar: AppSettings.shared.showCalendar
+        )
+        .padding(.horizontal, metrics.homeHorizontalPadding)
+        .padding(.top, metrics.homeTopPadding)
+        .padding(.bottom, metrics.homeBottomPadding)
     }
 }

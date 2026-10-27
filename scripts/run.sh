@@ -6,7 +6,7 @@
 #   scripts/run.sh --no-pull       # build what is checked out
 #   scripts/run.sh --debug         # Debug configuration (slower UI, better debugging)
 #
-# Needs Xcode 27 and XcodeGen (brew install xcodegen). Locally built apps are not quarantined,
+# Needs Xcode 27, XcodeGen and CMake (brew install xcodegen cmake). Locally built apps are not quarantined,
 # so there is no Gatekeeper prompt.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -24,6 +24,7 @@ for arg in "$@"; do
 done
 
 command -v xcodegen >/dev/null || { echo "XcodeGen is missing: brew install xcodegen" >&2; exit 1; }
+command -v cmake >/dev/null || echo "warning: CMake is missing (brew install cmake); Now Playing won't work in this build" >&2
 
 if $pull; then
   branch=${branch:-$(git rev-parse --abbrev-ref HEAD)}
@@ -31,6 +32,7 @@ if $pull; then
   git checkout --quiet "$branch"
   git merge --quiet --ff-only "origin/$branch"
 fi
+git submodule update --init --recursive --quiet
 echo "Building $(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short HEAD) ($configuration)…"
 
 xcodegen generate --quiet

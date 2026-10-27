@@ -24,6 +24,14 @@ nonisolated enum Motion {
     static let contentBlurRadius: CGFloat = 12
     static let contentScale: CGFloat = 0.94
 
+    /// Artwork and text of the next track cross-fade in place.
+    static let trackChange = Animation.smooth(duration: 0.35)
+    /// Player buttons dip slightly while pressed and spring back.
+    static let controlPress = Animation.spring(duration: 0.22, bounce: 0.35)
+    static let controlPressScale: CGFloat = 0.88
+    /// Hover highlight behind player buttons.
+    static let controlHover = Animation.smooth(duration: 0.15)
+
     // MARK: Pointer intent
 
     /// How long the pointer must rest on the notch before it opens. Prevents accidental opening

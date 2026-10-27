@@ -55,11 +55,12 @@ Only do this for builds you downloaded from this repository.
 
 ## Build from source
 
-You need Xcode 27 (macOS 26 SDK or later) and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+You need Xcode 27 (macOS 26 SDK or later), [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+and CMake (for the bundled Now Playing adapter).
 
 ```sh
-brew install xcodegen
-git clone https://github.com/Dtem4ik/meniscus.git
+brew install xcodegen cmake
+git clone --recursive https://github.com/Dtem4ik/meniscus.git
 cd meniscus
 xcodegen generate
 open Meniscus.xcodeproj
@@ -127,14 +128,13 @@ Meniscus asks for a permission only when you turn on a feature that needs it.
 | Permission | Asked for by | Why |
 | --- | --- | --- |
 | Calendars | Upcoming event in the island (stage 1) | Reads your next event with EventKit. Nothing leaves your Mac. |
-| Automation (Apple Events) | Now Playing (stage 2) | Reads the current track from and sends play/pause/next/previous to Music and Spotify. |
 | Accessibility | Not needed | No current or planned feature needs it. The capture hotkey uses the system hotkey API, which works without Accessibility access. If that ever changes, it will be listed here first. |
 
 ## Roadmap
 
 0. ✅ Skeleton: notch-perfect black island with a spring morph and Liquid Glass controls.
 1. Clock, date, next calendar event; charging live activity.
-2. Now Playing for Music and Spotify.
+2. Now Playing for any app, with artwork and controls.
 3. Modes: one button that opens a named set of links, apps, files and Shortcuts.
 4. Quick capture into an Obsidian inbox note.
 5. File shelf: drop files on the notch, drag them out, Quick Look, AirDrop.
@@ -160,6 +160,19 @@ project.yml     XcodeGen project definition
 Issues and pull requests are welcome. Please keep commits small and use
 [Conventional Commits](https://www.conventionalcommits.org/). Never commit keys, tokens, personal
 paths or links; personal configuration belongs in `~/Library/Application Support/Meniscus/`.
+
+## Now Playing
+
+The island shows what any app is playing, with the system's artwork and play/pause, next and
+previous; the playing app's icon switches to it. It uses the bundled
+[mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because macOS has no
+public API for this. If a macOS update breaks it, the activity just doesn't appear and
+Settings → General says why. Details in [docs/now-playing.md](docs/now-playing.md).
+
+## Third-party software
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The only dependency is
+mediaremote-adapter (BSD 3-Clause), as a git submodule.
 
 ## License
 

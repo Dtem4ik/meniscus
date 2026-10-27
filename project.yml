@@ -51,6 +51,12 @@ targets:
         PRODUCT_NAME: Meniscus
         PRODUCT_BUNDLE_IDENTIFIER: io.github.dtem4ik.meniscus
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        # The adapter build phase reads the submodule and writes into the app bundle.
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    postBuildScripts:
+      - name: Build mediaremote-adapter
+        script: '"$SRCROOT/scripts/build-mediaremote-adapter.sh"'
+        basedOnDependencyAnalysis: false
     scheme:
       testTargets:
         - MeniscusTests

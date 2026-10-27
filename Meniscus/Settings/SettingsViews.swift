@@ -25,20 +25,72 @@ struct GeneralSettingsView: View {
                 CalendarSelectionSection(settings: settings, calendar: ActivityServices.shared.calendar)
             }
             Section {
+                Toggle("Show what's playing", isOn: $settings.showNowPlaying)
+                    .onChange(of: settings.showNowPlaying) { _, isOn in
+                        let nowPlaying = ActivityServices.shared.nowPlaying
+                        if isOn { nowPlaying.start() } else { nowPlaying.stop() }
+                    }
+            } footer: {
+                NowPlayingStatus(availability: ActivityServices.shared.nowPlaying.availability)
+            }
+            Section {
                 Picker("Show on", selection: $settings.displayPreference) {
                     ForEach(DisplayPreference.allCases) { Text($0.title).tag($0) }
                 }
                 Toggle("Show icon in the menu bar", isOn: $showMenuBarIcon)
             } footer: {
                 if !showMenuBarIcon {
-                    Text("Settings stay available from the gear button inside the notch.")
+                    Text("To open Settings, open Meniscus again from the Applications folder or Spotlight.")
                         .foregroundStyle(.secondary)
                 }
+            }
+            Section {
+                LabeledContent {
+                    Button("License") { Acknowledgements.open("mediaremote-adapter-LICENSE") }
+                        .buttonStyle(.link)
+                } label: {
+                    Text(verbatim: "mediaremote-adapter")
+                }
+            } header: {
+                Text("Acknowledgements")
+            } footer: {
+                Text("Reads what's playing on this Mac. BSD 3-Clause License, © Jonas van den Berg and contributors.")
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
         .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// Explains, in Settings, whether what's playing can be shown and why not.
+private struct NowPlayingStatus: View {
+    let availability: NowPlayingService.Availability
+
+    var body: some View {
+        switch availability {
+        case .off:
+            Text("Shows what any app is playing, with its artwork and controls.")
+                .foregroundStyle(.secondary)
+        case .checking:
+            Text("Checking…")
+                .foregroundStyle(.secondary)
+        case .available:
+            Text("Shows what any app is playing, with its artwork and controls. Click the app's icon to switch to it.")
+                .foregroundStyle(.secondary)
+        case .unavailable(let reason):
+            Label(reason.explanation, systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// Licenses of bundled third-party code, shipped in Contents/Resources/Acknowledgements.
+enum Acknowledgements {
+    static func open(_ name: String) {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "txt", subdirectory: "Acknowledgements") else { return }
+        NSWorkspace.shared.open(url)
     }
 }
 

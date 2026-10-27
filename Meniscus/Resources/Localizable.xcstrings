@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Acknowledgements": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Благодарности"
+          }
+        }
+      }
+    },
     "All day": {
       "localizations": {
         "ru": {
@@ -47,6 +57,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Зарядка"
+          }
+        }
+      }
+    },
+    "Checking…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка…"
           }
         }
       }
@@ -101,6 +121,16 @@
         }
       }
     },
+    "License": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лицензия"
+          }
+        }
+      }
+    },
     "Main display": {
       "localizations": {
         "ru": {
@@ -121,12 +151,32 @@
         }
       }
     },
+    "Next": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Следующий трек"
+          }
+        }
+      }
+    },
     "No more events today": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Сегодня событий больше нет"
+          }
+        }
+      }
+    },
+    "Now playing": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас играет"
           }
         }
       }
@@ -191,12 +241,62 @@
         }
       }
     },
+    "Pause": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза"
+          }
+        }
+      }
+    },
+    "Play": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Воспроизвести"
+          }
+        }
+      }
+    },
+    "Previous": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предыдущий трек"
+          }
+        }
+      }
+    },
     "Quit Meniscus": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Завершить Meniscus"
+          }
+        }
+      }
+    },
+    "Reading what's playing keeps failing. Meniscus stopped trying until it's relaunched.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удаётся узнать, что играет. Meniscus прекратил попытки до следующего запуска."
+          }
+        }
+      }
+    },
+    "Reads what's playing on this Mac. BSD 3-Clause License, © Jonas van den Berg and contributors.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Узнаёт, что играет на этом Mac. Лицензия BSD 3-Clause, © Jonas van den Berg и участники проекта."
           }
         }
       }
@@ -217,16 +317,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Настройки"
-          }
-        }
-      }
-    },
-    "Settings stay available from the gear button inside the notch.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Настройки остаются доступны по кнопке с шестерёнкой внутри выреза."
           }
         }
       }
@@ -281,6 +371,36 @@
         }
       }
     },
+    "Show what's playing": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать, что играет"
+          }
+        }
+      }
+    },
+    "Shows what any app is playing, with its artwork and controls.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывает, что играет в любом приложении, с обложкой и кнопками управления."
+          }
+        }
+      }
+    },
+    "Shows what any app is playing, with its artwork and controls. Click the app's icon to switch to it.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывает, что играет в любом приложении, с обложкой и кнопками управления. Нажмите на значок приложения, чтобы перейти в него."
+          }
+        }
+      }
+    },
     "Simulate Charging": {
       "localizations": {
         "ru": {
@@ -311,12 +431,42 @@
         }
       }
     },
-    "Sparkle": {
+    "This build of Meniscus was made without its Now Playing component. Build it with CMake installed.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Блеск"
+            "value": "Эта сборка Meniscus сделана без компонента «Сейчас играет». Соберите её с установленным CMake."
+          }
+        }
+      }
+    },
+    "This version of macOS doesn't let Meniscus read what's playing anymore.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эта версия macOS больше не позволяет Meniscus узнавать, что играет."
+          }
+        }
+      }
+    },
+    "This version of macOS no longer includes the system component Meniscus uses to read what's playing.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В этой версии macOS больше нет системного компонента, через который Meniscus узнаёт, что играет."
+          }
+        }
+      }
+    },
+    "To open Settings, open Meniscus again from the Applications folder or Spotlight.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Чтобы открыть настройки, снова откройте Meniscus из папки «Программы» или через Spotlight."
           }
         }
       }

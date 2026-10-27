@@ -38,11 +38,7 @@ final class NotchWindowController {
 
     func start() {
         let actions = NotchActions(
-            expand: { [weak self] in self?.expand() },
-            openSettings: { [weak self] in
-                self?.collapse()
-                SettingsWindowController.shared.show()
-            }
+            expand: { [weak self] in self?.expand() }
         )
         let hostingView = NotchHostingView(rootView: NotchRootView(state: state, settings: settings, actions: actions))
         // The controller sizes the panel; SwiftUI must not resize it to fit its content.
@@ -69,6 +65,7 @@ final class NotchWindowController {
         }
         observeSettings()
         observeActivities()
+        observeContent()
         refreshGeometry()
     }
 
@@ -89,7 +86,7 @@ final class NotchWindowController {
         transitionID += 1
 
         panel.ignoresMouseEvents = false
-        let islandRect = state.layout.interactiveScreenRect(for: .expanded)
+        let islandRect = state.layout.interactiveScreenRect(for: .expanded, content: state.content)
         container.resetTracking(pointerIsInside: islandRect.contains(NSEvent.mouseLocation))
         let motion = currentMotion()
         withAnimation(motion.expand) { state.phase = .expanded }
@@ -188,7 +185,7 @@ final class NotchWindowController {
 
         let panelFrame = layout.windowFrame(for: .expanded)
         if panel.frame != panelFrame { panel.setFrame(panelFrame, display: true) }
-        container.interactiveRect = layout.interactiveScreenRect(for: .expanded)
+        container.interactiveRect = layout.interactiveScreenRect(for: .expanded, content: state.content)
             .offsetBy(dx: -panelFrame.minX, dy: -panelFrame.minY)
 
         let hotZoneFrame = layout.geometry.notchRect
@@ -201,6 +198,31 @@ final class NotchWindowController {
     }
 
     // MARK: Live activities
+
+    // MARK: Content
+
+    /// The player replaces the home content while something plays. Now Playing itself rides out
+    /// short gaps (like a track change), so this doesn't flicker between the two. The home content
+    /// also changes size with the date and the next event.
+    private func observeContent() {
+        let content: IslandContent = withObservationTracking {
+            ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
+        } onChange: { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in self.observeContent() }
+        }
+        guard content != state.content else { return }
+        withAnimation(currentMotion().expand) { state.content = content }
+
+        // The island's size changed; so did the area that keeps it open.
+        let panelFrame = panel.frame
+        let islandRect = state.layout.interactiveScreenRect(for: .expanded, content: content)
+        container.interactiveRect = islandRect.offsetBy(dx: -panelFrame.minX, dy: -panelFrame.minY)
+        guard state.isExpanded else { return }
+        let pointerIsInside = islandRect.contains(NSEvent.mouseLocation)
+        container.resetTracking(pointerIsInside: pointerIsInside)
+        if !pointerIsInside { islandPointerDidChange(inside: false) }
+    }
 
     /// Follows the activity center: a live activity turns the resting notch into the compact
     /// island, and the island returns to the plain notch when it ends.

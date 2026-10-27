@@ -7,10 +7,14 @@ struct IslandContext {
     var isContentVisible: Bool
     var reduceMotion: Bool
     var compactActivity: LiveActivity?
+    var content: IslandContent
     var actions: NotchActions
 
     var isExpanded: Bool { phase == .expanded }
-    var shape: NotchShape { NotchShape(layout.shape(for: phase), centerOffset: layout.centerOffset) }
+    var contentSize: CGSize { layout.contentSize(for: content) }
+    var shape: NotchShape {
+        NotchShape(layout.shape(for: phase, content: content), centerOffset: layout.centerOffset)
+    }
 }
 
 /// Fills the whole panel. The island is drawn top-centered; the rest stays transparent.
@@ -20,6 +24,19 @@ struct NotchRootView: View {
     let actions: NotchActions
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// The home content at its own size, never shown. The island opens straight to this size
+    /// instead of measuring the visible content, which only appears once the shape is open.
+    private var homeContentMeasure: some View {
+        HomeIslandContent(metrics: state.layout.metrics)
+            .fixedSize()
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+                state.homeContentSize = CGSize(width: size.width.rounded(.up), height: size.height.rounded(.up))
+            }
+            .hidden()
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -40,6 +57,7 @@ struct NotchRootView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(alignment: .top) { homeContentMeasure }
         // The panel is never the key window; keep glass in its active look anyway.
         .environment(\.materialActiveAppearance, .active)
     }
@@ -52,6 +70,7 @@ struct NotchRootView: View {
             isContentVisible: isContentVisible,
             reduceMotion: reduceMotion,
             compactActivity: state.compactActivity,
+            content: state.content,
             actions: actions
         )
         IslandView(context: context)
@@ -70,7 +89,7 @@ struct IslandContentLayer<Content: View>: View {
         ZStack(alignment: .top) {
             if context.isContentVisible {
                 content
-                    .frame(width: context.layout.expandedWidth, height: height)
+                    .frame(width: context.contentSize.width, height: height)
                     .padding(.top, topInset)
                     .offset(x: horizontalOffset)
                     .transition(context.reduceMotion ? .opacity : .contentReveal)
