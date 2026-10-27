@@ -6,7 +6,7 @@ import SwiftUI
 /// artwork, on the GPU.
 nonisolated enum ArtworkTint {
     // CIContext is thread-safe and expensive to create, so one is shared.
-    nonisolated(unsafe) private static let context = CIContext(options: [.workingColorSpace: NSNull()])
+    private static let context = CIContext(options: [.workingColorSpace: NSNull()])
 
     static func color(of image: NSImage) -> NSColor? {
         guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }

@@ -77,11 +77,27 @@ nonisolated struct MediaRemoteAdapter: Sendable {
     }
 
     /// The self-test with the adapter's output, for logs and tests.
+    ///
+    /// The adapter's test starts a client that publishes a track, then reads Now Playing just
+    /// 10 ms later. On a busy Mac the system can take longer to pass the track along, so the
+    /// timing-related failures (exit 3: the client wasn't ready, exit 4: no data yet) are tried
+    /// again. Other failures mean the adapter really can't work and are final.
     @concurrent
-    func selfTestReport() async -> (passed: Bool, output: String) {
-        let result = await Self.run(arguments(["test"], withTestClient: true), timeout: 10)
-        return (result.status == 0, result.output)
+    func selfTestReport(attempts: Int = 3) async -> (passed: Bool, output: String) {
+        var log: [String] = []
+        for attempt in 1...max(attempts, 1) {
+            let result = await Self.run(arguments(["test"], withTestClient: true), timeout: 10)
+            if result.status == 0 { return (true, log.joined(separator: "\n")) }
+            let status = result.status.map { "exit \($0)" } ?? "timed out"
+            log.append("attempt \(attempt): \(status) \(result.output)".trimmingCharacters(in: .whitespacesAndNewlines))
+            guard let code = result.status, Self.retriedSelfTestStatuses.contains(code), attempt < attempts else { break }
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        return (false, log.joined(separator: "\n"))
     }
+
+    /// Exit codes of `test` that depend on timing rather than on whether the adapter works.
+    static let retriedSelfTestStatuses: Set<Int32> = [3, 4]
 
     @concurrent
     func send(_ command: Command) async {

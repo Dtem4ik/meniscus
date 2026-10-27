@@ -17,7 +17,9 @@ Playing, and prints the information as JSON lines.
 This relies on a private framework through a loophole Apple could close in any update. Meniscus
 treats it that way:
 
-- At start, the adapter's own self-test (`test`) checks that reading works on this macOS.
+- At start, the adapter's own self-test (`test`) checks that reading works on this macOS. The
+  test reads Now Playing 10 ms after publishing a track, so its timing failures (exit 3 and 4)
+  are tried up to three times before Now Playing is reported unavailable.
 - The long-running `stream` process pushes changes; nothing polls. Unexpected exits are retried
   after 1, 2, 4… seconds, re-checked after 3 failures, and given up after 6.
 - When it isn't available, the music activity simply doesn't appear, and
