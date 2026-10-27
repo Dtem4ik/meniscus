@@ -6,7 +6,7 @@ import Observation
 nonisolated enum IslandStyle: String, CaseIterable, Identifiable, Sendable {
     /// The whole island stays black like Dynamic Island; only controls inside are glass.
     case obsidian
-    /// A black band around the notch flows into a glass panel below it.
+    /// Glass rises to the top of the screen; only the notch itself stays black.
     case meniscus
     /// The notch stays as is; a separate glass drop flows out from under it.
     case droplet

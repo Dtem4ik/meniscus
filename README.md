@@ -95,7 +95,8 @@ Settings → Developer):
 
 - **Island Style**: three experiments for the transition from the black notch to glass.
   - *A · Obsidian*: the whole island is black, like Dynamic Island; controls inside are glass.
-  - *B · Meniscus*: a black band around the notch flows into a glass panel below it.
+  - *B · Meniscus*: a glass panel rises to the top of the screen; only the notch stays black,
+    sitting in the glass like a drop.
   - *C · Droplet*: the notch stays put; a glass drop flows out from under it.
 - **Slow Animations**: plays every transition at one fifth of the speed.
 - **Outline Computed Notch**: draws a red line 1 pt outside the computed notch. On a correct

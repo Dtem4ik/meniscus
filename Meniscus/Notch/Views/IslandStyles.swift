@@ -30,21 +30,23 @@ struct ObsidianIsland: View {
     }
 }
 
-/// B · A black band around the notch flows into a glass panel below it.
+/// B · A glass panel rises to the top of the screen around the notch; only the notch itself
+/// stays black, sitting in the glass like a drop.
 struct MeniscusIsland: View {
     let context: IslandContext
 
-    /// Height of the gradient from the black band into the glass.
-    private static let bandFade: CGFloat = 22
+    /// Space between the bottom of the notch and the content.
+    private static let contentGap: CGFloat = 8
 
     var body: some View {
         let shape = context.shape
         let layout = context.layout
+        let notch = NotchShape(layout.shape(for: .collapsed), centerOffset: layout.centerOffset)
         ZStack(alignment: .top) {
             IslandContentLayer(
                 context: context,
-                topInset: layout.notchHeight + Self.bandFade / 2,
-                height: layout.contentHeight - Self.bandFade / 2,
+                topInset: layout.notchHeight + Self.contentGap,
+                height: layout.contentHeight - Self.contentGap,
                 horizontalOffset: layout.centerOffset
             ) {
                 IslandPlaceholderContent(controlsAreGlass: false, actions: context.actions)
@@ -52,16 +54,9 @@ struct MeniscusIsland: View {
             .clipShape(shape)
             .glassEffect(context.isExpanded ? .regular : .identity, in: shape)
 
-            shape
+            // Exactly the hardware notch, so glass never shows through the camera housing.
+            notch
                 .fill(.black)
-                .mask(alignment: .top) {
-                    VStack(spacing: 0) {
-                        Rectangle().frame(height: layout.notchHeight)
-                        LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
-                            .frame(height: Self.bandFade)
-                        Spacer(minLength: 0)
-                    }
-                }
                 .allowsHitTesting(false)
         }
     }
