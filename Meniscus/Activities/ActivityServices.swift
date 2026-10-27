@@ -10,6 +10,7 @@ final class ActivityServices {
     let center = ActivityCenter()
     let power = PowerSourceMonitor()
     let calendar = CalendarService()
+    let nowPlaying = NowPlayingService()
 
     /// Battery level shown by the charging activity.
     private(set) var chargingLevel: Int?
@@ -24,6 +25,16 @@ final class ActivityServices {
         power.start()
         calendar.hiddenCalendarIDs = { settings.hiddenCalendarIDs }
         if settings.showCalendar { calendar.start() }
+
+        nowPlaying.onChange = { [weak self] info in
+            guard let self else { return }
+            if let info, info.isPlaying {
+                center.post(LiveActivity(id: "now-playing", kind: .nowPlaying, priority: .ongoing, updatedAt: Date(), expiresAt: nil))
+            } else {
+                center.remove(id: "now-playing")
+            }
+        }
+        if settings.showNowPlaying { nowPlaying.start() }
     }
 
     /// Developer menu: plays the charging activity without a cable.

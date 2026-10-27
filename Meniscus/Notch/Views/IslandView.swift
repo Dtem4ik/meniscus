@@ -42,10 +42,14 @@ struct IslandPlaceholderContent: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            HomeContent(
-                calendar: ActivityServices.shared.calendar,
-                showCalendar: AppSettings.shared.showCalendar
-            )
+            if ActivityServices.shared.nowPlaying.current != nil {
+                NowPlayingView(service: ActivityServices.shared.nowPlaying)
+            } else {
+                HomeContent(
+                    calendar: ActivityServices.shared.calendar,
+                    showCalendar: AppSettings.shared.showCalendar
+                )
+            }
             Spacer(minLength: 0)
             controls
         }

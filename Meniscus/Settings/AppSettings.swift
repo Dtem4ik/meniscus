@@ -25,6 +25,7 @@ nonisolated enum SettingsKey {
     static let hapticsEnabled = "hapticsEnabled"
     static let showCalendar = "showCalendar"
     static let hiddenCalendarIDs = "calendar.hiddenCalendarIDs"
+    static let showNowPlaying = "showNowPlaying"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
     static let forceVirtualNotch = "developer.forceVirtualNotch"
@@ -54,6 +55,9 @@ final class AppSettings {
     var hiddenCalendarIDs: Set<String> {
         didSet { defaults.set(Array(hiddenCalendarIDs).sorted(), forKey: SettingsKey.hiddenCalendarIDs) }
     }
+    var showNowPlaying: Bool {
+        didSet { defaults.set(showNowPlaying, forKey: SettingsKey.showNowPlaying) }
+    }
     var slowAnimations: Bool {
         didSet { defaults.set(slowAnimations, forKey: SettingsKey.slowAnimations) }
     }
@@ -71,6 +75,7 @@ final class AppSettings {
             SettingsKey.expandOnHover: true,
             SettingsKey.hapticsEnabled: true,
             SettingsKey.showCalendar: true,
+            SettingsKey.showNowPlaying: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
             .flatMap(DisplayPreference.init) ?? .notched
@@ -78,6 +83,7 @@ final class AppSettings {
         hapticsEnabled = defaults.bool(forKey: SettingsKey.hapticsEnabled)
         showCalendar = defaults.bool(forKey: SettingsKey.showCalendar)
         hiddenCalendarIDs = Set(defaults.stringArray(forKey: SettingsKey.hiddenCalendarIDs) ?? [])
+        showNowPlaying = defaults.bool(forKey: SettingsKey.showNowPlaying)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)
         forceVirtualNotch = defaults.bool(forKey: SettingsKey.forceVirtualNotch)
