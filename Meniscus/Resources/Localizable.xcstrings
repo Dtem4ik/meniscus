@@ -131,6 +131,26 @@
         }
       }
     },
+    "AirDrop": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AirDrop"
+          }
+        }
+      }
+    },
+    "AirDrop All": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отправить всё по AirDrop"
+          }
+        }
+      }
+    },
     "All day": {
       "localizations": {
         "ru": {
@@ -331,6 +351,16 @@
         }
       }
     },
+    "Clear Shelf": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить полку"
+          }
+        }
+      }
+    },
     "Copied": {
       "localizations": {
         "ru": {
@@ -347,6 +377,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Скопировать отчёт о геометрии"
+          }
+        }
+      }
+    },
+    "Copy Path": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать путь"
           }
         }
       }
@@ -371,12 +411,42 @@
         }
       }
     },
+    "Drag files to the notch to keep them at hand. Off, Meniscus doesn't watch file drags at all; files already on the shelf come back when you turn it on again.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетаскивайте файлы к вырезу, чтобы держать их под рукой. Если выключить, Meniscus совсем не следит за перетаскиванием файлов; файлы, уже лежащие на полке, вернутся, когда вы снова её включите."
+          }
+        }
+      }
+    },
     "Drag to change the order": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Перетащите, чтобы изменить порядок"
+          }
+        }
+      }
+    },
+    "Drop files to keep them here": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетащите сюда файлы, чтобы положить их на полку"
+          }
+        }
+      }
+    },
+    "Drop here": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетащите сюда"
           }
         }
       }
@@ -417,6 +487,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Файл или папка"
+          }
+        }
+      }
+    },
+    "Files on the shelf: %lld": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлов на полке: %lld"
           }
         }
       }
@@ -467,6 +547,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Входные данные"
+          }
+        }
+      }
+    },
+    "Keep dropped files on a shelf": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полка для файлов"
           }
         }
       }
@@ -731,6 +821,16 @@
         }
       }
     },
+    "Open": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть"
+          }
+        }
+      }
+    },
     "Open App": {
       "localizations": {
         "ru": {
@@ -881,6 +981,16 @@
         }
       }
     },
+    "Quick Look": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрый просмотр"
+          }
+        }
+      }
+    },
     "Quit Meniscus": {
       "localizations": {
         "ru": {
@@ -917,6 +1027,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Удалить действие"
+          }
+        }
+      }
+    },
+    "Remove from Shelf": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Убрать с полки"
           }
         }
       }

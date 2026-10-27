@@ -28,6 +28,11 @@ struct CompactActivityView: View {
             ChargingBolt()
         case .nowPlaying:
             CompactArtwork(service: ActivityServices.shared.nowPlaying)
+        case .shelf, .dropHint:
+            Image(systemName: "paperclip")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .accessibilityHidden(true)
         }
     }
 
@@ -43,11 +48,57 @@ struct CompactActivityView: View {
             }
         case .nowPlaying:
             let nowPlaying = ActivityServices.shared.nowPlaying
-            Equalizer(
-                isPlaying: nowPlaying.current?.isPlaying ?? false,
-                tint: nowPlaying.artworkTint.map(Color.init(nsColor:)) ?? .primary
-            )
+            let shelfCount = ShelfController.shared.visibleCount
+            HStack(spacing: 5) {
+                Equalizer(
+                    isPlaying: nowPlaying.current?.isPlaying ?? false,
+                    tint: nowPlaying.artworkTint.map(Color.init(nsColor:)) ?? .primary
+                )
+                // Music comes first; a small count reminds of files on the shelf.
+                if shelfCount > 0 {
+                    ShelfCountBadge(count: shelfCount)
+                }
+            }
+        case .shelf:
+            let count = ShelfController.shared.items.count
+            Text(count.formatted())
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .contentTransition(.numericText())
+                .accessibilityLabel(Text("Files on the shelf: \(count)"))
+        case .dropHint:
+            DropHint()
         }
+    }
+}
+
+/// An arrow toward the notch, gently bouncing while a file is dragged anywhere: drop it here.
+private struct DropHint: View {
+    var body: some View {
+        Image(systemName: "arrow.up")
+            .font(.system(size: 13, weight: .bold))
+            .foregroundStyle(.white)
+            .symbolEffect(.bounce.up, options: .repeating)
+            .accessibilityLabel(Text("Drop here"))
+    }
+}
+
+/// The shelf's symbol and how many files are on it, next to the equalizer while music plays.
+private struct ShelfCountBadge: View {
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: "paperclip")
+                .font(.system(size: 9, weight: .bold))
+            Text(count.formatted())
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+        }
+        .foregroundStyle(.white.opacity(0.85))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Files on the shelf: \(count)"))
     }
 }
 

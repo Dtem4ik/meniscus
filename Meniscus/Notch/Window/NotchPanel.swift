@@ -41,6 +41,9 @@ final class NotchContainerView: NSView {
     var onHoverChange: ((Bool) -> Void)?
     /// Clicks that reach this view itself (not a SwiftUI subview).
     var onClick: (() -> Void)?
+    /// File drags over this view, once `acceptFileDrops()` was called.
+    var onFileDragChange: ((Bool) -> Void)?
+    var onFileDrop: (([URL]) -> Void)?
 
     /// In this view's coordinates.
     var interactiveRect: CGRect = .zero {
@@ -97,6 +100,52 @@ final class NotchContainerView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         if let onClick { onClick() } else { super.mouseDown(with: event) }
+    }
+
+    // MARK: File drops
+
+    func acceptFileDrops(_ accepts: Bool = true) {
+        if accepts {
+            registerForDraggedTypes([.fileURL])
+        } else {
+            unregisterDraggedTypes()
+        }
+    }
+
+    /// Whether the current drag was reported as over this view.
+    private var isTargeted = false
+
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        guard accepts(sender) else { return [] }
+        isTargeted = true
+        onFileDragChange?(true)
+        return .copy
+    }
+
+    override func draggingExited(_ sender: (any NSDraggingInfo)?) {
+        guard isTargeted else { return }
+        isTargeted = false
+        onFileDragChange?(false)
+    }
+
+    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        guard accepts(sender) else { return false }
+        isTargeted = false
+        onFileDrop?(fileURLs(in: sender))
+        return true
+    }
+
+    /// File drags from other apps. A drag from inside Meniscus (a file pulled off the shelf)
+    /// has a dragging source and is left alone, so the shelf doesn't offer itself as a target.
+    private func accepts(_ info: any NSDraggingInfo) -> Bool {
+        info.draggingSource == nil && !fileURLs(in: info).isEmpty
+    }
+
+    private func fileURLs(in info: any NSDraggingInfo) -> [URL] {
+        info.draggingPasteboard.readObjects(
+            forClasses: [NSURL.self],
+            options: [.urlReadingFileURLsOnly: true]
+        ) as? [URL] ?? []
     }
 }
 

@@ -26,6 +26,7 @@ nonisolated enum SettingsKey {
     static let showCalendar = "showCalendar"
     static let hiddenCalendarIDs = "calendar.hiddenCalendarIDs"
     static let showNowPlaying = "showNowPlaying"
+    static let showShelf = "showShelf"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
     static let forceVirtualNotch = "developer.forceVirtualNotch"
@@ -58,6 +59,10 @@ final class AppSettings {
     var showNowPlaying: Bool {
         didSet { defaults.set(showNowPlaying, forKey: SettingsKey.showNowPlaying) }
     }
+    /// The file shelf: drop target, shelf and its notch indicator. Off, file drags aren't watched.
+    var showShelf: Bool {
+        didSet { defaults.set(showShelf, forKey: SettingsKey.showShelf) }
+    }
     var slowAnimations: Bool {
         didSet { defaults.set(slowAnimations, forKey: SettingsKey.slowAnimations) }
     }
@@ -76,6 +81,7 @@ final class AppSettings {
             SettingsKey.hapticsEnabled: true,
             SettingsKey.showCalendar: true,
             SettingsKey.showNowPlaying: true,
+            SettingsKey.showShelf: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
             .flatMap(DisplayPreference.init) ?? .notched
@@ -84,6 +90,7 @@ final class AppSettings {
         showCalendar = defaults.bool(forKey: SettingsKey.showCalendar)
         hiddenCalendarIDs = Set(defaults.stringArray(forKey: SettingsKey.hiddenCalendarIDs) ?? [])
         showNowPlaying = defaults.bool(forKey: SettingsKey.showNowPlaying)
+        showShelf = defaults.bool(forKey: SettingsKey.showShelf)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)
         forceVirtualNotch = defaults.bool(forKey: SettingsKey.forceVirtualNotch)

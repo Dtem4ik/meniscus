@@ -53,6 +53,12 @@ struct IslandContentView: View {
             case .capture:
                 CaptureField(capture: .shared, onFinish: actions.endCapture)
                     .transition(.opacity)
+            case .shelf:
+                ShelfView(shelf: .shared, metrics: metrics)
+                    .transition(.opacity)
+            case .dropZone:
+                ShelfDropZone(isTargeted: ShelfController.shared.isDropTargeted)
+                    .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -34,6 +34,12 @@ struct GeneralSettingsView: View {
                 NowPlayingStatus(availability: ActivityServices.shared.nowPlaying.availability)
             }
             Section {
+                Toggle("Keep dropped files on a shelf", isOn: $settings.showShelf)
+            } footer: {
+                Text("Drag files to the notch to keep them at hand. Off, Meniscus doesn't watch file drags at all; files already on the shelf come back when you turn it on again.")
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 Picker("Show on", selection: $settings.displayPreference) {
                     ForEach(DisplayPreference.allCases) { Text($0.title).tag($0) }
                 }

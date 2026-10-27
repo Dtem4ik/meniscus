@@ -25,6 +25,14 @@ final class NotchWindowController {
     private var pointerTask: Task<Void, Never>?
     /// Incremented on every transition so a stale collapse completion is ignored.
     private var transitionID = 0
+    private let fileDragWatcher = FileDragWatcher()
+    private static let dropHintID = "drop-hint"
+    private var isShowingDropHint = false
+    private var appliedShelfSetting: Bool?
+    /// The island opened for a file drag, and whether anything was dropped since. A drag that
+    /// ends without a drop closes the island it opened, wherever the pointer is.
+    private var isOpenForFileDrag = false
+    private var didDropFiles = false
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -51,6 +59,15 @@ final class NotchWindowController {
 
         hotZoneView.onHoverChange = { [weak self] inside in self?.notchPointerDidChange(inside: inside) }
         hotZoneView.onClick = { [weak self] in self?.expand() }
+        // Dragging a file onto the notch opens the shelf; dropping right on the notch works too.
+        hotZoneView.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
+        hotZoneView.onFileDrop = { [weak self] urls in self?.dropFiles(urls) }
+        // The whole panel takes drops. AppKit rather than SwiftUI, so drags that start on the
+        // shelf itself can be told apart and ignored.
+        container.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
+        container.onFileDrop = hotZoneView.onFileDrop
+        // A file dragged toward the notch opens a large drop target early.
+        fileDragWatcher.onDrag = { [weak self] location in self?.fileDragMoved(to: location) }
         hotZone.contentView = hotZoneView
         // Nearly invisible fill: a window only receives the mouse where it has pixels. It sits
         // over the hardware notch, so even this 1% black is never seen.
@@ -77,6 +94,7 @@ final class NotchWindowController {
             MainActor.assumeIsolated { self?.refreshGeometry() }
         }
         observeSettings()
+        observeShelfSetting()
         observeActivities()
         observeContent()
         refreshGeometry()
@@ -124,8 +142,12 @@ final class NotchWindowController {
     func collapse() {
         pointerTask?.cancel()
         isPinned = false
+        isOpenForFileDrag = false
+        didDropFiles = false
         if CaptureController.shared.isActive {
             CaptureController.shared.end()
+        }
+        if panel.allowsKey {
             panel.allowsKey = false
             if panel.isKeyWindow { panel.resignKey() }
         }
@@ -235,6 +257,9 @@ final class NotchWindowController {
     /// event.
     private func currentContent() -> IslandContent {
         if CaptureController.shared.isActive { return .capture }
+        let shelf = ShelfController.shared
+        if shelf.isDropTargeted || shelf.isDragApproaching { return .dropZone }
+        if shelf.visibleCount > 0 { return .shelf(itemCount: shelf.visibleCount) }
         return ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
     }
 
@@ -260,6 +285,86 @@ final class NotchWindowController {
         let pointerIsInside = islandRect.contains(NSEvent.mouseLocation)
         container.resetTracking(pointerIsInside: pointerIsInside)
         if !pointerIsInside { islandPointerDidChange(inside: false) }
+    }
+
+    // MARK: File drags
+
+    /// A file drag somewhere on screen; `nil` when it ended. Two steps: while a file is dragged
+    /// anywhere, the notch shows a "Drop here" hint; near the top it opens as a large drop
+    /// target. Away from it, or once the drag ends without a drop here, it closes.
+    private func fileDragMoved(to location: CGPoint?) {
+        let shelf = ShelfController.shared
+        let center = ActivityServices.shared.center
+        guard let location else {
+            // Dropped or cancelled. A cancelled drag may never report leaving the island.
+            center.remove(id: Self.dropHintID)
+            isShowingDropHint = false
+            shelf.isDragApproaching = false
+            shelf.isDropTargeted = false
+            settleAfterFileDrag()
+            return
+        }
+        if !isShowingDropHint {
+            isShowingDropHint = true
+            center.post(LiveActivity(id: Self.dropHintID, kind: .dropHint, priority: .alert, updatedAt: Date(), expiresAt: nil))
+        }
+        let isNear = state.layout.isNearDropZone(location, isOpen: shelf.isDragApproaching)
+        guard isNear != shelf.isDragApproaching else { return }
+        shelf.isDragApproaching = isNear
+        if isNear {
+            openDropTarget()
+        } else {
+            settleAfterFileDrag()
+        }
+    }
+
+    /// A file drag entered (`true`) or left (`false`) the notch or the island.
+    private func fileDragChanged(isTargeted: Bool) {
+        ShelfController.shared.isDropTargeted = isTargeted
+        if isTargeted {
+            openDropTarget()
+        } else {
+            settleAfterFileDrag()
+        }
+    }
+
+    private func dropFiles(_ urls: [URL]) {
+        didDropFiles = true
+        ShelfController.shared.add(urls)
+        fileDragChanged(isTargeted: false)
+    }
+
+    private func openDropTarget() {
+        if !state.isExpanded {
+            isOpenForFileDrag = true
+            didDropFiles = false
+        }
+        // Size the island for the drop target before it opens, not after.
+        applyContent(currentContent())
+        expand(pinned: true)
+    }
+
+    /// Once no file drag is over or heading for the island. After a drop the island stays open
+    /// while the pointer is on it, to show the shelf; a drag that ended without a drop closes
+    /// the island it opened. The short wait lets a drop that ends the drag arrive first, and
+    /// tells a drag that merely moves from the notch into the island from one that left.
+    private func settleAfterFileDrag() {
+        let shelf = ShelfController.shared
+        guard !shelf.isDropTargeted, !shelf.isDragApproaching, state.isExpanded else { return }
+        pointerTask?.cancel()
+        pointerTask = Task { [weak self] in
+            try? await Task.sleep(for: Motion.fileDragSettle)
+            let shelf = ShelfController.shared
+            guard !Task.isCancelled, let self, !shelf.isDropTargeted, !shelf.isDragApproaching else { return }
+            let islandRect = self.state.layout.interactiveScreenRect(for: .expanded, content: self.state.content)
+            let keepOpen = islandRect.contains(NSEvent.mouseLocation) && (self.didDropFiles || !self.isOpenForFileDrag)
+            if keepOpen {
+                self.isPinned = false
+                self.container.resetTracking(pointerIsInside: true)
+            } else {
+                self.collapse()
+            }
+        }
     }
 
     // MARK: Live activities
@@ -292,6 +397,33 @@ final class NotchWindowController {
                 self.refreshGeometry()
                 self.observeSettings()
             }
+        }
+    }
+
+    /// The shelf setting: on, file drops are taken and drags are watched; off, neither, so
+    /// Meniscus doesn't react to file drags at all.
+    private func observeShelfSetting() {
+        let isOn = withObservationTracking {
+            settings.showShelf
+        } onChange: { [weak self] in
+            guard let self else { return }
+            // onChange fires before the new value is stored; read it on the next main-actor turn.
+            Task { @MainActor in self.observeShelfSetting() }
+        }
+        let shelf = ShelfController.shared
+        guard isOn != appliedShelfSetting else { return }
+        appliedShelfSetting = isOn
+        shelf.isEnabled = isOn
+        hotZoneView.acceptFileDrops(isOn)
+        container.acceptFileDrops(isOn)
+        if isOn {
+            fileDragWatcher.start()
+        } else {
+            fileDragWatcher.stop()
+            ActivityServices.shared.center.remove(id: Self.dropHintID)
+            isShowingDropHint = false
+            shelf.isDragApproaching = false
+            shelf.isDropTargeted = false
         }
     }
 

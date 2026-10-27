@@ -35,6 +35,16 @@ final class ActivityServices {
             }
         }
         if settings.showNowPlaying { nowPlaying.start() }
+
+        // A reminder that files wait on the shelf; anything else in the notch comes first.
+        ShelfController.shared.onItemsChange = { [weak self] count in
+            guard let self else { return }
+            if count > 0 {
+                center.post(LiveActivity(id: "shelf", kind: .shelf, priority: .background, updatedAt: Date(), expiresAt: nil))
+            } else {
+                center.remove(id: "shelf")
+            }
+        }
     }
 
     /// Developer menu: plays the charging activity without a cable.

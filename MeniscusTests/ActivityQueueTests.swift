@@ -31,6 +31,15 @@ struct ActivityQueueTests {
         #expect(queue.current(at: t0)?.id == "charging")
     }
 
+    @Test func musicOutranksTheShelfReminder() {
+        var queue = ActivityQueue()
+        queue.post(activity("now-playing", .ongoing, updated: 0))
+        queue.post(activity("shelf", .background, updated: 10))
+        #expect(queue.current(at: t0.addingTimeInterval(20))?.id == "now-playing")
+        queue.remove(id: "now-playing")
+        #expect(queue.current(at: t0.addingTimeInterval(20))?.id == "shelf")
+    }
+
     @Test func newestWinsWithinSamePriority() {
         var queue = ActivityQueue()
         queue.post(activity("a", .ongoing, updated: 1))
