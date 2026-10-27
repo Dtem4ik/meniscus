@@ -371,6 +371,16 @@
         }
       }
     },
+    "Drag to change the order": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетащите, чтобы изменить порядок"
+          }
+        }
+      }
+    },
     "Each capture becomes a new note in this folder, for example your Obsidian inbox.": {
       "localizations": {
         "ru": {
@@ -571,6 +581,26 @@
         }
       }
     },
+    "Move Down": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вниз"
+          }
+        }
+      }
+    },
+    "Move Up": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вверх"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "ru": {
@@ -647,6 +677,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не найдено: %@"
+          }
+        }
+      }
+    },
+    "Not in the island": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не в острове"
           }
         }
       }
@@ -1157,6 +1197,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "У файла не указан путь."
+          }
+        }
+      }
+    },
+    "The island shows the first five modes, left to right in this order. Drag ≡ to change it, or use Move Up and Move Down in a mode's context menu.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Остров показывает первые пять режимов слева направо в этом порядке. Чтобы изменить порядок, перетащите ≡ или выберите «Вверх» и «Вниз» в контекстном меню режима."
           }
         }
       }

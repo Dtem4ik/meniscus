@@ -126,6 +126,8 @@ for its name.
 
 Modes live in `~/Library/Application Support/Meniscus/config.json`, outside the repository.
 Edit them in **Settings → Modes** or by hand; changes to the file are picked up immediately.
+The island shows the first five, left to right in the order of the list; drag the ≡ handle or
+use Move Up and Move Down in a mode's context menu to change it.
 [`config.example.json`](config.example.json) has three one-action examples (Settings → Modes →
 **Add Example Modes** installs them). The action types:
 

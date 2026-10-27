@@ -75,6 +75,26 @@ nonisolated struct EditableAction: Identifiable, Equatable, Sendable {
     }
 }
 
+extension Array where Element: Identifiable {
+    /// Moves an element `offset` places (−1 is up); stays put at either end.
+    nonisolated mutating func move(id: Element.ID, by offset: Int) {
+        guard let from = firstIndex(where: { $0.id == id }) else { return }
+        let to = from + offset
+        guard indices.contains(to) else { return }
+        insert(remove(at: from), at: to)
+    }
+
+    /// Moves an element into the place of another, as when dragging it there: the others shift
+    /// toward where it came from.
+    nonisolated mutating func move(id: Element.ID, to targetID: Element.ID) {
+        guard let from = firstIndex(where: { $0.id == id }),
+              let to = firstIndex(where: { $0.id == targetID }),
+              from != to
+        else { return }
+        insert(remove(at: from), at: to)
+    }
+}
+
 extension ModeAction.Kind {
     var title: String {
         switch self {
