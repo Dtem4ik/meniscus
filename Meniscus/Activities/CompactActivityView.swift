@@ -6,7 +6,7 @@ struct CompactActivityView: View {
     let layout: IslandLayout
 
     var body: some View {
-        let wing = layout.metrics.compactWingWidth
+        let wing = layout.compactWingWidth(for: activity.kind)
         HStack(spacing: 0) {
             leading
                 .frame(width: wing)
@@ -28,8 +28,8 @@ struct CompactActivityView: View {
             ChargingBolt()
         case .nowPlaying:
             CompactArtwork(service: ActivityServices.shared.nowPlaying)
-        case .shelf:
-            Image(systemName: "tray.full.fill")
+        case .shelf, .dropHint:
+            Image(systemName: "paperclip")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.white)
                 .accessibilityHidden(true)
@@ -67,7 +67,28 @@ struct CompactActivityView: View {
                 .foregroundStyle(.white)
                 .contentTransition(.numericText())
                 .accessibilityLabel(Text("Files on the shelf: \(count)"))
+        case .dropHint:
+            DropHint()
         }
+    }
+}
+
+/// "Drop here" with an arrow toward the notch, while a file is dragged anywhere.
+private struct DropHint: View {
+    @State private var didAppear = false
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "arrow.up")
+                .font(.system(size: 10, weight: .bold))
+                .symbolEffect(.bounce.up, value: didAppear)
+            Text("Drop here")
+                .font(.system(size: 11, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .foregroundStyle(.white)
+        .onAppear { didAppear = true }
     }
 }
 
@@ -77,8 +98,8 @@ private struct ShelfCountBadge: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            Image(systemName: "tray.full.fill")
-                .font(.system(size: 9, weight: .semibold))
+            Image(systemName: "paperclip")
+                .font(.system(size: 9, weight: .bold))
             Text(count.formatted())
                 .font(.system(size: 10, weight: .semibold, design: .rounded))
                 .monospacedDigit()

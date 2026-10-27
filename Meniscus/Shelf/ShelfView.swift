@@ -9,7 +9,7 @@ struct ShelfView: View {
     var body: some View {
         Group {
             if shelf.items.isEmpty {
-                Label("Drop files to keep them here", systemImage: "tray.and.arrow.down")
+                Label("Drop files to keep them here", systemImage: "paperclip")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.white.opacity(0.6))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -121,7 +121,7 @@ struct ShelfDropZone: View {
             .strokeBorder(.white.opacity(isTargeted ? 0.8 : 0.35), style: StrokeStyle(lineWidth: 1.5, dash: [6, 5]))
             .background(.white.opacity(isTargeted ? 0.08 : 0), in: .rect(cornerRadius: 20, style: .continuous))
             .overlay {
-                Label("Drop files to keep them here", systemImage: "tray.and.arrow.down")
+                Label("Drop files to keep them here", systemImage: "paperclip")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white.opacity(isTargeted ? 1 : 0.7))
             }

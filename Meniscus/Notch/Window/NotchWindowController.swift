@@ -26,6 +26,8 @@ final class NotchWindowController {
     /// Incremented on every transition so a stale collapse completion is ignored.
     private var transitionID = 0
     private let fileDragWatcher = FileDragWatcher()
+    private static let dropHintID = "drop-hint"
+    private var isShowingDropHint = false
     /// The island opened for a file drag, and whether anything was dropped since. A drag that
     /// ends without a drop closes the island it opened, wherever the pointer is.
     private var isOpenForFileDrag = false
@@ -288,16 +290,24 @@ final class NotchWindowController {
 
     // MARK: File drags
 
-    /// A file drag somewhere on screen; `nil` when it ended. Near the notch the island opens as a
-    /// large drop target; away from it, or once the drag ends without a drop here, it closes.
+    /// A file drag somewhere on screen; `nil` when it ended. Two steps: while a file is dragged
+    /// anywhere, the notch shows a "Drop here" hint; near the top it opens as a large drop
+    /// target. Away from it, or once the drag ends without a drop here, it closes.
     private func fileDragMoved(to location: CGPoint?) {
         let shelf = ShelfController.shared
+        let center = ActivityServices.shared.center
         guard let location else {
             // Dropped or cancelled. A cancelled drag may never report leaving the island.
+            center.remove(id: Self.dropHintID)
+            isShowingDropHint = false
             shelf.isDragApproaching = false
             shelf.isDropTargeted = false
             settleAfterFileDrag()
             return
+        }
+        if !isShowingDropHint {
+            isShowingDropHint = true
+            center.post(LiveActivity(id: Self.dropHintID, kind: .dropHint, priority: .alert, updatedAt: Date(), expiresAt: nil))
         }
         let isNear = state.layout.isNearDropZone(location, isOpen: shelf.isDragApproaching)
         guard isNear != shelf.isDragApproaching else { return }

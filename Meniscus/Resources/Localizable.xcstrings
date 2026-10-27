@@ -431,6 +431,16 @@
         }
       }
     },
+    "Drop here": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетащите сюда"
+          }
+        }
+      }
+    },
     "Each capture becomes a new note in this folder, for example your Obsidian inbox.": {
       "localizations": {
         "ru": {

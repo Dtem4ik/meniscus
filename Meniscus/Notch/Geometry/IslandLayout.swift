@@ -43,6 +43,8 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
 
     /// Width of each side of the compact island, left and right of the notch.
     var compactWingWidth: CGFloat = 64
+    /// Wider sides while a file is dragged, for the "Drop here" hint.
+    var dropHintWingWidth: CGFloat = 120
 
     /// The expanded island is always wider than the compact one, so opening grows it sideways as
     /// well as down: by this share of the compact width…
@@ -99,6 +101,11 @@ nonisolated struct IslandLayout: Equatable, Sendable {
 
     var compactWidth: CGFloat { geometry.notchRect.width + 2 * metrics.compactWingWidth }
 
+    /// Each side of the compact island for a live activity.
+    func compactWingWidth(for activity: LiveActivity.Kind?) -> CGFloat {
+        activity == .dropHint ? metrics.dropHintWingWidth : metrics.compactWingWidth
+    }
+
     /// The narrowest expanded island: the compact width plus `expansionRatio`, at least
     /// `minimumExpansionPerSide` on each side.
     var minimumExpandedWidth: CGFloat {
@@ -143,7 +150,7 @@ nonisolated struct IslandLayout: Equatable, Sendable {
         return 2 * metrics.shelfHorizontalPadding + tiles + metrics.shelfTileSpacing + metrics.shelfControlsWidth
     }
 
-    func shape(for phase: IslandPhase, content: IslandContent = .home(nil)) -> IslandShapeSpec {
+    func shape(for phase: IslandPhase, content: IslandContent = .home(nil), activity: LiveActivity.Kind? = nil) -> IslandShapeSpec {
         switch phase {
         case .collapsed:
             IslandShapeSpec(
@@ -154,7 +161,7 @@ nonisolated struct IslandLayout: Equatable, Sendable {
             )
         case .compact:
             IslandShapeSpec(
-                width: compactWidth,
+                width: geometry.notchRect.width + 2 * compactWingWidth(for: activity),
                 height: notchHeight + metrics.collapsedOutset,
                 bottomRadius: metrics.collapsedBottomRadius + 4,
                 shoulderRadius: metrics.collapsedShoulderRadius

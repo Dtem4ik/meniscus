@@ -13,7 +13,10 @@ struct IslandContext {
     var isExpanded: Bool { phase == .expanded }
     var contentSize: CGSize { layout.contentSize(for: content) }
     var shape: NotchShape {
-        NotchShape(layout.shape(for: phase, content: content), centerOffset: layout.centerOffset)
+        NotchShape(
+            layout.shape(for: phase, content: content, activity: compactActivity?.kind),
+            centerOffset: layout.centerOffset
+        )
     }
 }
 

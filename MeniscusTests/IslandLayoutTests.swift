@@ -79,6 +79,15 @@ struct IslandLayoutTests {
         #expect(!layout.isNearDropZone(CGPoint(x: x, y: top - 220), isOpen: true))
     }
 
+    @Test func dropHintWidensTheCompactIsland() {
+        let layout = layout()
+        let plain = layout.shape(for: .compact, activity: .nowPlaying)
+        let hint = layout.shape(for: .compact, activity: .dropHint)
+        #expect(plain.width == layout.compactWidth)
+        #expect(hint.width == layout.geometry.notchRect.width + 2 * layout.metrics.dropHintWingWidth)
+        #expect(layout.windowFrame(for: .expanded).width >= hint.totalWidth)
+    }
+
     @Test func dropTargetTakesTheFullWidth() {
         let layout = layout()
         #expect(layout.contentSize(for: .dropZone).width == layout.maximumExpandedWidth)

@@ -22,7 +22,7 @@ final class NotchState {
     var isExpanded: Bool { phase == .expanded }
     /// Where the island returns when it isn't expanded.
     var restingPhase: IslandPhase { compactActivity == nil ? .collapsed : .compact }
-    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content) }
+    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content, activity: compactActivity?.kind) }
 }
 
 /// What views inside the island can ask the controller to do.
