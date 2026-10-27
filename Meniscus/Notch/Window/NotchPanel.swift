@@ -25,16 +25,8 @@ final class NotchPanel: NSPanel {
         becomesKeyOnlyIfNeeded = true
     }
 
-    /// Only while the capture field is open, or the pointer is on the shelf (for Space to Quick
-    /// Look); otherwise the panel never takes keyboard focus.
+    /// Only while the capture field is open; otherwise the panel never takes keyboard focus.
     var allowsKey = false
-    /// Sees key presses first; returning `true` keeps them from the views.
-    var onKeyDown: ((NSEvent) -> Bool)?
-
-    override func sendEvent(_ event: NSEvent) {
-        if event.type == .keyDown, let onKeyDown, onKeyDown(event) { return }
-        super.sendEvent(event)
-    }
 
     override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }

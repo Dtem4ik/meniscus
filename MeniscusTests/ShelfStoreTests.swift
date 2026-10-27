@@ -36,14 +36,53 @@ struct ShelfStoreTests {
         #expect(store.items.first?.name == "3.txt")
     }
 
-    @Test func removesByIDAndMissingFiles() {
+    @Test func removesByIDAndDeletedFiles() {
         var store = ShelfStore()
         store.add([file("keep.txt"), file("gone.txt"), file("drop.txt")], at: date)
         let drop = store.items.last!
         store.remove(id: drop.id)
-        store.removeMissing { !$0.hasSuffix("gone.txt") }
+        let changed = store.refresh { $0.name == "gone.txt" ? nil : $0.url }
+        #expect(changed)
         #expect(store.items.map(\.name) == ["keep.txt"])
         store.removeAll()
+        #expect(store.isEmpty)
+    }
+
+    @Test func followsMovedFiles() {
+        var store = ShelfStore()
+        store.add([file("a.pdf"), file("b.png")], at: date)
+        let id = store.items[0].id
+        let changed = store.refresh { $0.name == "a.pdf" ? URL(filePath: "/tmp/elsewhere/renamed.pdf") : $0.url }
+        #expect(changed)
+        #expect(store.items[0].id == id)
+        #expect(store.items[0].name == "renamed.pdf")
+        #expect(!store.refresh { $0.url })
+    }
+
+    @Test func recognizesTheTrash() {
+        #expect(ShelfStore.isInTrash("/tmp/home/.Trash/a.pdf", homeTrash: "/tmp/home/.Trash"))
+        #expect(ShelfStore.isInTrash("/Volumes/Disk/.Trashes/501/a.pdf", homeTrash: "/tmp/home/.Trash"))
+        #expect(!ShelfStore.isInTrash("/tmp/home/.Trash-notes/a.pdf", homeTrash: "/tmp/home/.Trash"))
+        #expect(!ShelfStore.isInTrash("/tmp/home/Documents/a.pdf", homeTrash: "/tmp/home/.Trash"))
+    }
+
+    /// A real file: moving it keeps it on the shelf at its new place, deleting it drops it.
+    @MainActor
+    @Test func bookmarksFollowRealFiles() throws {
+        let folder = FileManager.default.temporaryDirectory.appending(path: "shelf-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let original = folder.appending(path: "Отчёт за год.pdf")
+        try Data("x".utf8).write(to: original)
+        var store = ShelfStore()
+        store.add([original], at: date, makeBookmark: { try? $0.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil) })
+
+        let moved = folder.appending(path: "Moved report.pdf")
+        try FileManager.default.moveItem(at: original, to: moved)
+        store.refresh { ShelfController.locate($0, homeTrash: nil) }
+        #expect(store.items.first?.name == "Moved report.pdf")
+
+        try FileManager.default.removeItem(at: moved)
+        store.refresh { ShelfController.locate($0, homeTrash: nil) }
         #expect(store.isEmpty)
     }
 }

@@ -29,7 +29,10 @@ struct CompactActivityView: View {
         case .nowPlaying:
             CompactArtwork(service: ActivityServices.shared.nowPlaying)
         case .shelf:
-            CompactShelfPreview(shelf: .shared)
+            Image(systemName: "tray.full.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .accessibilityHidden(true)
         }
     }
 
@@ -68,35 +71,21 @@ struct CompactActivityView: View {
     }
 }
 
-/// The newest file on the shelf, small, left of the notch.
-private struct CompactShelfPreview: View {
-    let shelf: ShelfController
-
-    var body: some View {
-        if let item = shelf.items.last {
-            Image(nsImage: shelf.image(for: item))
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 20, height: 20)
-                .clipShape(.rect(cornerRadius: shelf.hasThumbnail(item) ? 4 : 0, style: .continuous))
-                .onAppear { shelf.loadThumbnails() }
-        }
-    }
-}
-
-/// How many files wait on the shelf, next to the equalizer.
+/// The shelf's symbol and how many files are on it, next to the equalizer while music plays.
 private struct ShelfCountBadge: View {
     let count: Int
 
     var body: some View {
-        Text(count.formatted())
-            .font(.system(size: 9, weight: .bold, design: .rounded))
-            .monospacedDigit()
-            .foregroundStyle(.black)
-            .padding(.horizontal, 4)
-            .frame(minWidth: 14, minHeight: 14)
-            .background(.white.opacity(0.85), in: .capsule)
-            .accessibilityLabel(Text("Files on the shelf: \(count)"))
+        HStack(spacing: 2) {
+            Image(systemName: "tray.full.fill")
+                .font(.system(size: 9, weight: .semibold))
+            Text(count.formatted())
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+        }
+        .foregroundStyle(.white.opacity(0.85))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Files on the shelf: \(count)"))
     }
 }
 

@@ -32,6 +32,10 @@ nonisolated enum Motion {
     /// Hover highlight behind player buttons.
     static let controlHover = Animation.smooth(duration: 0.15)
 
+    /// After a file drag leaves or ends, how long to wait before deciding whether the island
+    /// stays open.
+    static let fileDragSettle: Duration = .milliseconds(350)
+
     /// How long "Saved" shows after a quick capture before the island closes.
     static let captureSavedHold: Duration = .milliseconds(900)
 

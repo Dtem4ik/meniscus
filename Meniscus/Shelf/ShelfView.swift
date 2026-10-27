@@ -47,7 +47,7 @@ struct ShelfView: View {
             }
         }
         .onAppear {
-            shelf.pruneMissingFiles()
+            shelf.refreshLocations()
             shelf.loadThumbnails()
         }
     }
@@ -83,7 +83,11 @@ private struct ShelfItemView: View {
         .help(item.path)
         // Drag the file out to Finder, Mail, a chat… The file itself never moves.
         .draggable(item.url)
-        .onTapGesture(count: 2) { shelf.open(item) }
+        // A click previews the file in Quick Look, a double-click opens it.
+        .gesture(
+            TapGesture(count: 2).onEnded { shelf.open(item) }
+                .exclusively(before: TapGesture().onEnded { shelf.quickLook(item) })
+        )
         .contextMenu {
             Button("Open") { shelf.open(item) }
             Button("Quick Look") { shelf.quickLook(item) }

@@ -19,7 +19,7 @@ final class ShelfController {
     var isDropTargeted = false
     /// A file drag is near the top of the screen, heading for the notch.
     var isDragApproaching = false
-    /// The tile under the pointer; Space opens it in Quick Look.
+    /// The tile under the pointer, for its highlight.
     var hoveredItemID: ShelfItem.ID?
     /// Real previews of images, PDFs, videos and documents, made in the background.
     private(set) var thumbnails: [ShelfItem.ID: NSImage] = [:]
@@ -31,30 +31,94 @@ final class ShelfController {
 
     @ObservationIgnored private let quickLook = QuickLookPresenter()
     @ObservationIgnored private var thumbnailRequests: Set<ShelfItem.ID> = []
+    /// One per file: reports when it is deleted, moved or renamed. Event driven, so nothing runs
+    /// while the files stay put.
+    @ObservationIgnored private var fileMonitors: [DispatchSourceFileSystemObject] = []
+    @ObservationIgnored private var refreshTask: Task<Void, Never>?
 
     /// Size of the thumbnails, in points.
     static let thumbnailSize: CGFloat = 44
 
     func add(_ urls: [URL]) {
-        guard !store.add(urls, at: Date()).isEmpty else { return }
+        let added = store.add(urls, at: Date(), makeBookmark: { url in
+            try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+        })
+        guard !added.isEmpty else { return }
         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-        loadThumbnails()
+        itemsChanged()
     }
 
     func remove(_ item: ShelfItem) {
         store.remove(id: item.id)
-        thumbnails[item.id] = nil
+        itemsChanged()
     }
 
     func removeAll() {
         store.removeAll()
-        thumbnails.removeAll()
+        itemsChanged()
     }
 
-    /// Cheap check, run when the island opens, so deleted files don't linger.
-    func pruneMissingFiles() {
-        store.removeMissing { FileManager.default.fileExists(atPath: $0) }
+    /// Follows moved files and drops deleted ones (also files put in the Trash). Runs when a
+    /// file's monitor reports a change and when the shelf appears.
+    func refreshLocations() {
+        let homeTrash = FileManager.default.urls(for: .trashDirectory, in: .userDomainMask).first?
+            .standardizedFileURL.path(percentEncoded: false)
+        guard store.refresh(locate: { Self.locate($0, homeTrash: homeTrash) }) else { return }
+        itemsChanged()
+    }
+
+    /// Where the item's file is now, following its bookmark; `nil` when it is gone.
+    nonisolated static func locate(_ item: ShelfItem, homeTrash: String?) -> URL? {
+        var url = item.url
+        if let bookmark = item.bookmark {
+            var isStale = false
+            if let resolved = try? URL(
+                resolvingBookmarkData: bookmark,
+                options: [.withoutUI, .withoutMounting],
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            ) {
+                url = resolved
+            }
+        }
+        let path = url.standardizedFileURL.path(percentEncoded: false)
+        guard FileManager.default.fileExists(atPath: path), !ShelfStore.isInTrash(path, homeTrash: homeTrash) else { return nil }
+        return url
+    }
+
+    private func itemsChanged() {
         thumbnails = thumbnails.filter { id, _ in items.contains { $0.id == id } }
+        loadThumbnails()
+        watchFiles()
+    }
+
+    private func watchFiles() {
+        fileMonitors.forEach { $0.cancel() }
+        fileMonitors = items.compactMap { item in
+            let descriptor = Darwin.open(item.path, O_EVTONLY)
+            guard descriptor >= 0 else { return nil }
+            let source = DispatchSource.makeFileSystemObjectSource(
+                fileDescriptor: descriptor,
+                eventMask: [.delete, .rename, .revoke],
+                queue: .main
+            )
+            source.setEventHandler { [weak self] in
+                MainActor.assumeIsolated { self?.scheduleRefresh() }
+            }
+            source.setCancelHandler { Darwin.close(descriptor) }
+            source.resume()
+            return source
+        }
+    }
+
+    /// A move often comes as several events; look once they settle.
+    private func scheduleRefresh() {
+        refreshTask?.cancel()
+        refreshTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(200))
+            guard !Task.isCancelled else { return }
+            self?.refreshLocations()
+        }
     }
 
     // MARK: Previews
@@ -124,18 +188,6 @@ final class ShelfController {
     func quickLook(_ item: ShelfItem) {
         quickLook.show(items.map(\.url), selecting: item.url)
     }
-
-    /// Space on a tile, as in Finder: opens Quick Look on the hovered file, or closes it.
-    /// Returns `false` when there was nothing to do.
-    func toggleQuickLookForHoveredItem() -> Bool {
-        if quickLook.isVisible {
-            quickLook.close()
-            return true
-        }
-        guard let item = items.first(where: { $0.id == hoveredItemID }) else { return false }
-        quickLook(item)
-        return true
-    }
 }
 
 /// Carries a thumbnail from Quick Look's queue to the main actor.
@@ -150,8 +202,6 @@ private nonisolated final class CGImageBox: @unchecked Sendable {
 final class QuickLookPresenter: NSObject, @preconcurrency QLPreviewPanelDataSource, @preconcurrency QLPreviewPanelDelegate {
     private var urls: [URL] = []
 
-    var isVisible: Bool { QLPreviewPanel.sharedPreviewPanelExists() && QLPreviewPanel.shared().isVisible }
-
     func show(_ urls: [URL], selecting selected: URL) {
         self.urls = urls
         guard let panel = QLPreviewPanel.shared() else { return }
@@ -161,10 +211,6 @@ final class QuickLookPresenter: NSObject, @preconcurrency QLPreviewPanelDataSour
         panel.reloadData()
         panel.currentPreviewItemIndex = urls.firstIndex(of: selected) ?? 0
         panel.makeKeyAndOrderFront(nil)
-    }
-
-    func close() {
-        QLPreviewPanel.shared()?.orderOut(nil)
     }
 
     func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {

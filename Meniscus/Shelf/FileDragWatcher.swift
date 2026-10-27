@@ -3,44 +3,57 @@ import AppKit
 /// Notices a file being dragged anywhere, from any app, so the island can open a drop target
 /// before the pointer reaches the top edge, where macOS would open Mission Control.
 ///
-/// Global mouse monitors need no permission. They only see events, so the drag pasteboard tells
-/// a file drag apart from moving a window or selecting text: it changes when a drag starts. The
-/// work is a few comparisons per mouse event, and only while the button is down.
+/// While the system runs a drag, other apps' mouse-dragged events don't reach global monitors.
+/// A press of the mouse button still does, so it starts a short poll of the pointer, the buttons
+/// and the drag pasteboard (which changes when a drag starts). The poll stops the moment the
+/// button is released; nothing runs otherwise. Global monitors need no permission.
 final class FileDragWatcher {
     /// Where a file drag is, in screen coordinates; `nil` once it ended (dropped or cancelled).
     var onDrag: ((CGPoint?) -> Void)?
 
-    private var monitors: [Any] = []
+    /// How often the pointer is checked while the button is held.
+    static let pollInterval: Duration = .milliseconds(33)
+
+    private var monitor: Any?
+    private var pollTask: Task<Void, Never>?
     private var changeCountAtMouseDown = 0
     /// `nil` until the drag pasteboard shows what is being dragged.
     private var isFileDrag: Bool?
 
     func start() {
-        guard monitors.isEmpty else { return }
-        let down = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in self?.mouseDown() }
-        let dragged = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDragged) { [weak self] _ in self?.mouseDragged() }
-        let up = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp) { [weak self] _ in self?.mouseUp() }
-        monitors = [down, dragged, up].compactMap { $0 }
+        guard monitor == nil else { return }
+        monitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
+            self?.mouseDown()
+        }
     }
 
     private func mouseDown() {
         changeCountAtMouseDown = NSPasteboard(name: .drag).changeCount
         isFileDrag = nil
+        pollTask?.cancel()
+        pollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self, self.poll() else { return }
+                try? await Task.sleep(for: Self.pollInterval)
+            }
+        }
     }
 
-    private func mouseDragged() {
+    /// Returns `false` once the button is up and polling should stop.
+    private func poll() -> Bool {
+        guard NSEvent.pressedMouseButtons & 1 != 0 else {
+            if isFileDrag == true { onDrag?(nil) }
+            isFileDrag = nil
+            return false
+        }
         if isFileDrag == nil {
             let pasteboard = NSPasteboard(name: .drag)
-            // Not a drag-and-drop yet (or at all): nothing was put on the drag pasteboard.
-            guard pasteboard.changeCount != changeCountAtMouseDown else { return }
+            // Not a drag-and-drop (yet): nothing was put on the drag pasteboard.
+            guard pasteboard.changeCount != changeCountAtMouseDown else { return true }
             isFileDrag = pasteboard.types?.contains(.fileURL) ?? false
         }
-        guard isFileDrag == true else { return }
-        onDrag?(NSEvent.mouseLocation)
-    }
-
-    private func mouseUp() {
-        if isFileDrag == true { onDrag?(nil) }
-        isFileDrag = nil
+        if isFileDrag == true { onDrag?(NSEvent.mouseLocation) }
+        // Moving a window or selecting text: nothing to watch until the next press.
+        return isFileDrag != false
     }
 }
