@@ -37,6 +37,8 @@ final class NotchPanel: NSPanel {
 /// area using a tracking area, which costs nothing while the pointer is elsewhere.
 final class NotchContainerView: NSView {
     var onHoverChange: ((Bool) -> Void)?
+    /// Clicks that reach this view itself (not a SwiftUI subview).
+    var onClick: (() -> Void)?
 
     /// In this view's coordinates.
     var interactiveRect: CGRect = .zero {
@@ -47,6 +49,7 @@ final class NotchContainerView: NSView {
     }
 
     private var trackingArea: NSTrackingArea?
+    private var assumesInside = false
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -62,12 +65,22 @@ final class NotchContainerView: NSView {
         addSubview(view)
     }
 
+    /// Rebuilds the tracking area. Pass `true` when the pointer is already inside, so that leaving
+    /// is reported even though no "entered" event came first.
+    func resetTracking(pointerIsInside: Bool) {
+        assumesInside = pointerIsInside
+        updateTrackingAreas()
+    }
+
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
         if let trackingArea { removeTrackingArea(trackingArea) }
+        var options: NSTrackingArea.Options = [.mouseEnteredAndExited, .activeAlways]
+        if assumesInside { options.insert(.assumeInside) }
+        assumesInside = false
         let area = NSTrackingArea(
             rect: interactiveRect,
-            options: [.mouseEnteredAndExited, .activeAlways],
+            options: options,
             owner: self,
             userInfo: nil
         )
@@ -77,6 +90,12 @@ final class NotchContainerView: NSView {
 
     override func mouseEntered(with event: NSEvent) { onHoverChange?(true) }
     override func mouseExited(with event: NSEvent) { onHoverChange?(false) }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        if let onClick { onClick() } else { super.mouseDown(with: event) }
+    }
 }
 
 /// Hosting view that reacts to the first click even though the app is never active.

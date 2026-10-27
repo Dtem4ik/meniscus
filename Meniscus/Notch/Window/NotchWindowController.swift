@@ -2,25 +2,28 @@ import AppKit
 import OSLog
 import SwiftUI
 
-/// Owns the notch panel and drives the collapsed ⇄ expanded transitions.
+/// Owns the notch windows and drives the collapsed ⇄ expanded transitions.
 ///
-/// The panel is only as large as the current phase needs: notch-sized when collapsed, so the menu
-/// bar stays fully clickable, and island-sized while expanded. It grows *before* the expand
-/// animation and shrinks *after* the collapse animation; the shape is drawn top-centered, so a
-/// resize never moves a visible pixel and never happens mid-animation.
+/// Two windows:
+/// - The island panel never changes size. It always has the expanded frame, so nothing but the
+///   shape animates. While collapsed it ignores the mouse, so the menu bar under its transparent
+///   parts stays fully clickable.
+/// - A hot zone window exactly over the hardware notch, where the menu bar never draws anything.
+///   It notices the pointer and clicks while the island is collapsed.
 final class NotchWindowController {
     let state: NotchState
     private let settings: AppSettings
     private let panel = NotchPanel()
     private let container = NotchContainerView(frame: .zero)
+    private let hotZone = NotchPanel()
+    private let hotZoneView = NotchContainerView(frame: .zero)
     private let logger = Logger(subsystem: "io.github.dtem4ik.meniscus", category: "notch")
 
     private var screen: NSScreen?
-    private var isHovering = false
     /// Opened from the menu bar: stays open until the pointer has visited and left it.
     private var isPinned = false
     private var pointerTask: Task<Void, Never>?
-    /// Incremented on every transition so a stale collapse completion can't shrink the panel.
+    /// Incremented on every transition so a stale collapse completion is ignored.
     private var transitionID = 0
 
     init(settings: AppSettings) {
@@ -44,10 +47,18 @@ final class NotchWindowController {
         let hostingView = NotchHostingView(rootView: NotchRootView(state: state, settings: settings, actions: actions))
         // The controller sizes the panel; SwiftUI must not resize it to fit its content.
         hostingView.sizingOptions = []
-        container.frame = CGRect(origin: .zero, size: panel.frame.size)
         container.embed(hostingView)
-        container.onHoverChange = { [weak self] inside in self?.pointerDidChange(inside: inside) }
+        container.onHoverChange = { [weak self] inside in self?.islandPointerDidChange(inside: inside) }
         panel.contentView = container
+        panel.ignoresMouseEvents = true
+
+        hotZoneView.onHoverChange = { [weak self] inside in self?.notchPointerDidChange(inside: inside) }
+        hotZoneView.onClick = { [weak self] in self?.expand() }
+        hotZone.contentView = hotZoneView
+        // Nearly invisible fill: a window only receives the mouse where it has pixels. It sits
+        // over the hardware notch, so even this 1% black is never seen.
+        hotZoneView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.01).cgColor
+        hotZone.ignoresMouseEvents = false
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
@@ -76,8 +87,9 @@ final class NotchWindowController {
         guard !state.isExpanded else { return }
         transitionID += 1
 
-        setPanelFrame(for: .expanded)
         panel.ignoresMouseEvents = false
+        let islandRect = state.layout.interactiveScreenRect(for: .expanded)
+        container.resetTracking(pointerIsInside: islandRect.contains(NSEvent.mouseLocation))
         let motion = currentMotion()
         withAnimation(motion.expand) { state.phase = .expanded }
         withAnimation(motion.contentIn) { state.isContentVisible = true }
@@ -103,9 +115,10 @@ final class NotchWindowController {
         } completion: { [weak self] in
             MainActor.assumeIsolated {
                 guard let self, self.transitionID == id else { return }
-                self.setPanelFrame(for: .collapsed)
-                self.panel.ignoresMouseEvents = false
-                self.revalidatePointer()
+                // The pointer may already be back on the notch.
+                if self.state.layout.geometry.notchRect.contains(NSEvent.mouseLocation) {
+                    self.notchPointerDidChange(inside: true)
+                }
             }
         }
     }
@@ -119,34 +132,32 @@ final class NotchWindowController {
 
     // MARK: Pointer
 
-    private func pointerDidChange(inside: Bool) {
-        guard inside != isHovering else { return }
-        isHovering = inside
+    /// From the hot zone: matters only while collapsed.
+    private func notchPointerDidChange(inside: Bool) {
+        guard !state.isExpanded else { return }
         pointerTask?.cancel()
-
-        if inside {
-            isPinned = false
-            guard !state.isExpanded, settings.expandOnHover else { return }
-            pointerTask = Task { [weak self] in
-                try? await Task.sleep(for: Motion.hoverIntentDelay)
-                guard !Task.isCancelled else { return }
-                self?.expand()
-            }
-        } else {
-            guard state.isExpanded, !isPinned else { return }
-            pointerTask = Task { [weak self] in
-                try? await Task.sleep(for: Motion.collapseGrace)
-                guard !Task.isCancelled else { return }
-                self?.collapse()
-            }
+        guard inside, settings.expandOnHover else { return }
+        pointerTask = Task { [weak self] in
+            try? await Task.sleep(for: Motion.hoverIntentDelay)
+            guard !Task.isCancelled else { return }
+            self?.expand()
         }
     }
 
-    /// Tracking areas only report crossings, so after the panel changes size, check where the
-    /// pointer actually is.
-    private func revalidatePointer() {
-        let rect = state.layout.interactiveScreenRect(for: state.phase)
-        pointerDidChange(inside: rect.contains(NSEvent.mouseLocation))
+    /// From the island: matters only while expanded.
+    private func islandPointerDidChange(inside: Bool) {
+        guard state.isExpanded else { return }
+        pointerTask?.cancel()
+        if inside {
+            isPinned = false
+            return
+        }
+        guard !isPinned else { return }
+        pointerTask = Task { [weak self] in
+            try? await Task.sleep(for: Motion.collapseGrace)
+            guard !Task.isCancelled else { return }
+            self?.collapse()
+        }
     }
 
     // MARK: Geometry
@@ -154,6 +165,7 @@ final class NotchWindowController {
     private func refreshGeometry() {
         guard let screen = ScreenLocator.screen(for: settings.displayPreference) else {
             panel.orderOut(nil)
+            hotZone.orderOut(nil)
             return
         }
         self.screen = screen
@@ -162,7 +174,7 @@ final class NotchWindowController {
         logger.debug("Notch geometry: \(String(describing: geometry.notchRect)), kind: \(geometry.kind.rawValue)")
 
         if layout != state.layout {
-            // A display change mid-animation would leave the panel in the wrong place;
+            // A display change mid-animation would leave the island in the wrong place;
             // start over from the collapsed state.
             transitionID += 1
             pointerTask?.cancel()
@@ -170,19 +182,21 @@ final class NotchWindowController {
             state.isContentVisible = false
             state.phase = .collapsed
             state.layout = layout
-            panel.ignoresMouseEvents = false
+            panel.ignoresMouseEvents = true
         }
-        setPanelFrame(for: state.phase)
-        panel.orderFrontRegardless()
-    }
 
-    private func setPanelFrame(for phase: IslandPhase) {
-        let frame = state.layout.windowFrame(for: phase)
-        if panel.frame != frame {
-            panel.setFrame(frame, display: true)
-        }
-        let interactive = state.layout.interactiveScreenRect(for: phase)
-        container.interactiveRect = interactive.offsetBy(dx: -frame.minX, dy: -frame.minY)
+        let panelFrame = layout.windowFrame(for: .expanded)
+        if panel.frame != panelFrame { panel.setFrame(panelFrame, display: true) }
+        container.interactiveRect = layout.interactiveScreenRect(for: .expanded)
+            .offsetBy(dx: -panelFrame.minX, dy: -panelFrame.minY)
+
+        let hotZoneFrame = layout.geometry.notchRect
+        if hotZone.frame != hotZoneFrame { hotZone.setFrame(hotZoneFrame, display: true) }
+        hotZoneView.interactiveRect = CGRect(origin: .zero, size: hotZoneFrame.size)
+
+        // The island panel goes above the hot zone so it gets the mouse while expanded.
+        hotZone.orderFrontRegardless()
+        panel.orderFrontRegardless()
     }
 
     private func observeSettings() {

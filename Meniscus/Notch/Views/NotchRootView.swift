@@ -33,12 +33,6 @@ struct NotchRootView: View {
                 island(phase: state.phase, isContentVisible: state.isContentVisible)
             }
 
-            if !state.isExpanded {
-                Color.clear
-                    .contentShape(NotchShape(state.layout.shape(for: .collapsed), centerOffset: state.layout.centerOffset))
-                    .onTapGesture { actions.expand() }
-            }
-
             if settings.showGeometryOverlay {
                 GeometryOverlay(layout: state.layout)
                     .allowsHitTesting(false)
