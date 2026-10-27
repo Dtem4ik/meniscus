@@ -5,6 +5,7 @@ nonisolated enum ResolvedAction: Equatable, Sendable {
     case url(URL)
     case application(bundleID: String)
     case file(URL)
+    case quickCapture
 }
 
 /// Pure translation from config actions to things `NSWorkspace` can open.
@@ -20,6 +21,8 @@ nonisolated enum ModeActionResolver {
             return fileURL(from: path, homeDirectory: homeDirectory).map(ResolvedAction.file)
         case .runShortcut(let name, let input):
             return shortcutURL(name: name, input: input).map(ResolvedAction.url)
+        case .quickCapture:
+            return .quickCapture
         }
     }
 
@@ -36,6 +39,8 @@ nonisolated enum ModeActionResolver {
             path.trimmingCharacters(in: .whitespaces).isEmpty ? String(localized: "The file has no path.") : nil
         case .runShortcut(let name, _):
             name.trimmingCharacters(in: .whitespaces).isEmpty ? String(localized: "The shortcut has no name.") : nil
+        case .quickCapture:
+            nil
         }
     }
 

@@ -14,6 +14,8 @@ nonisolated enum IslandContent: Equatable, Sendable {
     case home(CGSize?)
     /// The player: denser, sized to its content like the system's own.
     case nowPlaying
+    /// The quick capture field.
+    case capture
 }
 
 /// The animatable parameters of `NotchShape`.
@@ -53,6 +55,9 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
 
     /// The player's area below the notch. Its width follows the rule above.
     var nowPlayingContentHeight: CGFloat = 120
+    /// The quick capture field below the notch.
+    var captureContentWidth: CGFloat = 420
+    var captureContentHeight: CGFloat = 56
     /// Home content before it has been measured.
     var homeFallbackSize = CGSize(width: 420, height: 80)
     /// Room around the home content (time, date, event).
@@ -90,6 +95,7 @@ nonisolated struct IslandLayout: Equatable, Sendable {
         let natural = switch content {
         case .home(let measured): measured ?? metrics.homeFallbackSize
         case .nowPlaying: CGSize(width: 0, height: metrics.nowPlayingContentHeight)
+        case .capture: CGSize(width: metrics.captureContentWidth, height: metrics.captureContentHeight)
         }
         return CGSize(
             width: min(max(natural.width.rounded(.up), minimumExpandedWidth), maximumExpandedWidth),

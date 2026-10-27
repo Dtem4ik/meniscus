@@ -66,6 +66,7 @@ nonisolated struct Mode: Codable, Equatable, Sendable, Identifiable {
 /// { "type": "app", "bundleId": "com.apple.Notes" }
 /// { "type": "file", "path": "~/Documents/Plan.md" }
 /// { "type": "shortcut", "name": "Start Focus", "input": "optional text" }
+/// { "type": "capture" }
 /// ```
 nonisolated enum ModeAction: Codable, Equatable, Sendable {
     /// Any URL, including deep links such as `obsidian://…` or `shortcuts://…`.
@@ -74,9 +75,11 @@ nonisolated enum ModeAction: Codable, Equatable, Sendable {
     /// A file or folder; `~` is expanded.
     case openFile(path: String)
     case runShortcut(name: String, input: String?)
+    /// Opens the quick capture field, the same as its keyboard shortcut.
+    case quickCapture
 
     nonisolated enum Kind: String, Codable, CaseIterable, Sendable {
-        case url, app, file, shortcut
+        case url, app, file, shortcut, capture
     }
 
     var kind: Kind {
@@ -85,6 +88,7 @@ nonisolated enum ModeAction: Codable, Equatable, Sendable {
         case .openApp: .app
         case .openFile: .file
         case .runShortcut: .shortcut
+        case .quickCapture: .capture
         }
     }
 
@@ -102,6 +106,7 @@ nonisolated enum ModeAction: Codable, Equatable, Sendable {
                 name: try container.decode(String.self, forKey: .name),
                 input: try container.decodeIfPresent(String.self, forKey: .input)
             )
+        case .capture: self = .quickCapture
         case nil:
             let allowed = Kind.allCases.map(\.rawValue).joined(separator: ", ")
             throw DecodingError.dataCorruptedError(
@@ -121,6 +126,7 @@ nonisolated enum ModeAction: Codable, Equatable, Sendable {
         case .runShortcut(let name, let input):
             try container.encode(name, forKey: .name)
             try container.encodeIfPresent(input, forKey: .input)
+        case .quickCapture: break
         }
     }
 }

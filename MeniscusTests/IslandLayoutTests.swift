@@ -35,6 +35,7 @@ struct IslandLayoutTests {
 
     @Test(arguments: [
         IslandContent.nowPlaying,
+        .capture,
         .home(nil),
         .home(CGSize(width: 120, height: 60)),
         .home(CGSize(width: 2000, height: 500)),

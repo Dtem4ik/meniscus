@@ -1,8 +1,9 @@
 import Foundation
 
-/// Remembers the vault folder across launches. Security-scoped bookmarks keep working if the app
-/// is ever sandboxed; outside the sandbox a plain bookmark is used as a fallback.
-nonisolated enum VaultBookmark {
+/// Remembers the chosen folder or note across launches, and follows it when it is moved or
+/// renamed. Security-scoped bookmarks keep working if the app is ever sandboxed; outside the
+/// sandbox a plain bookmark is used as a fallback.
+nonisolated enum CaptureBookmark {
     static func make(for url: URL) throws -> Data {
         do {
             return try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
@@ -21,15 +22,5 @@ nonisolated enum VaultBookmark {
             let url = try URL(resolvingBookmarkData: data, options: [], relativeTo: nil, bookmarkDataIsStale: &isStale)
             return (url, isStale)
         }
-    }
-
-    /// The inbox note's path inside the vault, or `nil` if it is outside.
-    static func relativePath(of file: URL, in vault: URL) -> String? {
-        let vaultComponents = vault.standardizedFileURL.resolvingSymlinksInPath().pathComponents
-        let fileComponents = file.standardizedFileURL.resolvingSymlinksInPath().pathComponents
-        guard fileComponents.count > vaultComponents.count,
-              Array(fileComponents.prefix(vaultComponents.count)) == vaultComponents
-        else { return nil }
-        return fileComponents.dropFirst(vaultComponents.count).joined(separator: "/")
     }
 }

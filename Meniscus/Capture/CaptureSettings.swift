@@ -2,25 +2,44 @@ import AppKit
 import Observation
 import UniformTypeIdentifiers
 
-/// Where captured thoughts go, persisted in `UserDefaults`. Nothing about the vault is stored in
-/// the repository.
+/// Where a capture is saved.
+nonisolated enum CaptureDestination: String, CaseIterable, Identifiable, Sendable {
+    /// A new note for each capture, in a chosen folder. The default.
+    case noteInFolder
+    /// A line at the end of one chosen note.
+    case lineInNote
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .noteInFolder: String(localized: "A new note for each capture")
+        case .lineInNote: String(localized: "A line in one note")
+        }
+    }
+}
+
+/// Where captured thoughts go, persisted in `UserDefaults`. Nothing about the folder or note is
+/// stored in the repository.
 @Observable
 final class CaptureSettings {
     static let shared = CaptureSettings()
 
     private enum Key {
-        static let vaultBookmark = "capture.vaultBookmark"
-        static let inboxPath = "capture.inboxPath"
+        static let destination = "capture.destination"
+        static let folderBookmark = "capture.folderBookmark"
+        static let noteBookmark = "capture.noteBookmark"
         static let dateHeadings = "capture.dateHeadings"
         static let hotKey = "capture.hotKey"
     }
 
-    /// Display path of the vault folder, if one is chosen.
-    private(set) var vaultPath: String?
-    /// The inbox note, relative to the vault.
-    var inboxPath: String {
-        didSet { defaults.set(inboxPath, forKey: Key.inboxPath) }
+    var destination: CaptureDestination {
+        didSet { defaults.set(destination.rawValue, forKey: Key.destination) }
     }
+    /// The chosen folder and note, for display; `resolvedFolder()` and `resolvedNote()` follow
+    /// moves and renames when saving.
+    private(set) var folderURL: URL?
+    private(set) var noteURL: URL?
     var addsDateHeadings: Bool {
         didSet { defaults.set(addsDateHeadings, forKey: Key.dateHeadings) }
     }
@@ -28,62 +47,75 @@ final class CaptureSettings {
         didSet { defaults.set(hotKey.flatMap { try? JSONEncoder().encode($0) }, forKey: Key.hotKey) }
     }
 
-    var isConfigured: Bool { vaultPath != nil && !inboxPath.isEmpty }
+    var isConfigured: Bool {
+        switch destination {
+        case .noteInFolder: folderURL != nil
+        case .lineInNote: noteURL != nil
+        }
+    }
 
     @ObservationIgnored private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        inboxPath = defaults.string(forKey: Key.inboxPath) ?? "Inbox.md"
+        destination = defaults.string(forKey: Key.destination).flatMap(CaptureDestination.init(rawValue:)) ?? .noteInFolder
         addsDateHeadings = defaults.object(forKey: Key.dateHeadings) as? Bool ?? true
         if let data = defaults.data(forKey: Key.hotKey) {
             hotKey = try? JSONDecoder().decode(HotKey.self, from: data)
         } else {
             hotKey = .defaultCapture
         }
-        vaultPath = (try? resolveVault())?.path(percentEncoded: false)
+        folderURL = resolve(Key.folderBookmark)
+        noteURL = resolve(Key.noteBookmark)
     }
 
-    /// The vault folder, refreshing a stale bookmark.
-    func resolveVault() throws -> URL? {
-        guard let data = defaults.data(forKey: Key.vaultBookmark) else { return nil }
-        let (url, isStale) = try VaultBookmark.resolve(data)
-        if isStale, let fresh = try? VaultBookmark.make(for: url) {
-            defaults.set(fresh, forKey: Key.vaultBookmark)
+    func resolvedFolder() -> URL? {
+        folderURL = resolve(Key.folderBookmark)
+        return folderURL
+    }
+
+    func resolvedNote() -> URL? {
+        noteURL = resolve(Key.noteBookmark)
+        return noteURL
+    }
+
+    /// Resolves a bookmark, refreshing it when stale.
+    private func resolve(_ key: String) -> URL? {
+        guard let data = defaults.data(forKey: key),
+              let resolved = try? CaptureBookmark.resolve(data)
+        else { return nil }
+        if resolved.isStale, let fresh = try? CaptureBookmark.make(for: resolved.url) {
+            defaults.set(fresh, forKey: key)
         }
-        return url
+        return resolved.url
     }
 
     // MARK: Choosing
 
-    func chooseVault() {
+    func chooseFolder() {
         let panel = NSOpenPanel()
-        panel.title = String(localized: "Choose Your Obsidian Vault")
-        panel.message = String(localized: "Pick the vault folder. Meniscus only writes to the inbox note inside it.")
+        panel.title = String(localized: "Choose a Folder for Captures")
+        panel.message = String(localized: "Each capture becomes a new note in this folder, for example your Obsidian inbox.")
+        panel.directoryURL = folderURL
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
-        panel.canCreateDirectories = false
-        panel.prompt = String(localized: "Choose Vault")
-        guard panel.runModal() == .OK, let url = panel.url, let bookmark = try? VaultBookmark.make(for: url) else { return }
-        defaults.set(bookmark, forKey: Key.vaultBookmark)
-        vaultPath = url.path(percentEncoded: false)
+        panel.canCreateDirectories = true
+        panel.prompt = String(localized: "Choose")
+        guard panel.runModal() == .OK, let url = panel.url, let bookmark = try? CaptureBookmark.make(for: url) else { return }
+        defaults.set(bookmark, forKey: Key.folderBookmark)
+        folderURL = url
     }
 
-    /// Returns a message if the chosen note isn't inside the vault.
-    func chooseInbox() -> String? {
-        guard let vault = try? resolveVault() else { return String(localized: "Choose the vault first.") }
+    func chooseNote() {
         let panel = NSOpenPanel()
-        panel.title = String(localized: "Choose the Inbox Note")
-        panel.directoryURL = vault
+        panel.title = String(localized: "Choose a Note for Captures")
+        panel.directoryURL = noteURL?.deletingLastPathComponent() ?? folderURL
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText, .plainText]
-        panel.prompt = String(localized: "Choose Note")
-        guard panel.runModal() == .OK, let url = panel.url else { return nil }
-        guard let relative = VaultBookmark.relativePath(of: url, in: vault) else {
-            return String(localized: "The inbox note must be inside the vault.")
-        }
-        inboxPath = relative
-        return nil
+        panel.prompt = String(localized: "Choose")
+        guard panel.runModal() == .OK, let url = panel.url, let bookmark = try? CaptureBookmark.make(for: url) else { return }
+        defaults.set(bookmark, forKey: Key.noteBookmark)
+        noteURL = url
     }
 }

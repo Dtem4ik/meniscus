@@ -32,6 +32,9 @@ nonisolated enum Motion {
     /// Hover highlight behind player buttons.
     static let controlHover = Animation.smooth(duration: 0.15)
 
+    /// How long "Saved" shows after a quick capture before the island closes.
+    static let captureSavedHold: Duration = .milliseconds(900)
+
     // MARK: Pointer intent
 
     /// How long the pointer must rest on the notch before it opens. Prevents accidental opening

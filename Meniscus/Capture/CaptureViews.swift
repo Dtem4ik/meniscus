@@ -2,7 +2,8 @@ import AppKit
 import Carbon.HIToolbox
 import SwiftUI
 
-/// The text field shown in the island during quick capture.
+/// The capture field in the island: just the text. Return saves, Escape closes; after saving a
+/// short "Saved" shows and the island closes.
 struct CaptureField: View {
     @Bindable var capture: CaptureController
     var onFinish: () -> Void
@@ -10,43 +11,58 @@ struct CaptureField: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "square.and.pencil")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-
-            if capture.settings.isConfigured {
-                TextField("Capture a thought…", text: $capture.draft)
+        ZStack(alignment: .leading) {
+            if capture.status == .saved {
+                SavedBadge()
+                    .frame(maxWidth: .infinity)
+                    .transition(.opacity)
+            } else if capture.settings.isConfigured {
+                HStack(spacing: 8) {
+                    TextField(
+                        "Capture",
+                        text: $capture.draft,
+                        prompt: Text("Capture a thought…").foregroundStyle(.white.opacity(0.4))
+                    )
+                    .labelsHidden()
                     .textFieldStyle(.plain)
-                    .font(.title3)
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white)
                     .focused($isFocused)
-                    .onSubmit {
-                        Task {
-                            if await capture.submit() { onFinish() }
-                        }
-                    }
-                status
+                    .onSubmit(submit)
+                    status
+                }
+                .transition(.opacity)
             } else {
-                Text("Choose your Obsidian vault first.")
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 0)
-                Button("Open Settings…") {
+                // Return opens Settings, so even this needs no button.
+                Button("Choose where captures go in Settings → Capture") {
                     onFinish()
                     SettingsWindowController.shared.show()
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.plain)
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.6))
+                .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(.horizontal, 28)
-        .frame(maxHeight: .infinity)
+        .padding(.horizontal, 22)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .animation(Motion.trackChange, value: capture.status)
         .onAppear { isFocused = true }
         .onExitCommand(perform: onFinish)
+    }
+
+    private func submit() {
+        Task {
+            guard await capture.submit() else { return }
+            try? await Task.sleep(for: Motion.captureSavedHold)
+            onFinish()
+        }
     }
 
     @ViewBuilder
     private var status: some View {
         switch capture.status {
-        case .idle:
+        case .idle, .saved:
             EmptyView()
         case .saving:
             ProgressView().controlSize(.small)
@@ -58,37 +74,42 @@ struct CaptureField: View {
     }
 }
 
+/// "Saved" with a check that bounces once as it appears.
+private struct SavedBadge: View {
+    @State private var didAppear = false
+
+    var body: some View {
+        Label("Saved", systemImage: "checkmark.circle.fill")
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(.white)
+            .symbolEffect(.bounce, value: didAppear)
+            .onAppear { didAppear = true }
+    }
+}
+
 /// Settings → Capture.
 struct CaptureSettingsView: View {
     @Bindable var settings: CaptureSettings
-    @State private var inboxError: String?
 
     var body: some View {
         Form {
             Section {
-                LabeledContent("Vault") {
-                    HStack {
-                        Text(settings.vaultPath.map { ($0 as NSString).abbreviatingWithTildeInPath } ?? String(localized: "Not chosen"))
-                            .foregroundStyle(settings.vaultPath == nil ? .secondary : .primary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        Button("Choose…") { settings.chooseVault() }
+                Picker("Save as", selection: $settings.destination) {
+                    ForEach(CaptureDestination.allCases) { Text($0.title).tag($0) }
+                }
+                switch settings.destination {
+                case .noteInFolder:
+                    LabeledContent("Folder") {
+                        ChosenLocation(url: settings.folderURL, choose: settings.chooseFolder)
                     }
-                }
-                LabeledContent("Inbox note") {
-                    HStack {
-                        TextField("Inbox note", text: $settings.inboxPath)
-                            .labelsHidden()
-                        Button("Choose…") { inboxError = settings.chooseInbox() }
-                            .disabled(settings.vaultPath == nil)
+                case .lineInNote:
+                    LabeledContent("Note") {
+                        ChosenLocation(url: settings.noteURL, choose: settings.chooseNote)
                     }
+                    Toggle("Add a date heading for each new day", isOn: $settings.addsDateHeadings)
                 }
-                if let inboxError {
-                    Text(inboxError).foregroundStyle(.red)
-                }
-                Toggle("Add a date heading for each new day", isOn: $settings.addsDateHeadings)
             } footer: {
-                Text("Each thought is added to the end of the note as “- 14:32 your text”. The note is created if it doesn't exist. No Obsidian plugin is needed.")
+                Text(footer)
                     .foregroundStyle(.secondary)
             }
             Section {
@@ -103,6 +124,40 @@ struct CaptureSettingsView: View {
         .formStyle(.grouped)
         .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var footer: String {
+        switch settings.destination {
+        case .noteInFolder:
+            String(localized: "Each capture becomes a note like “2026-10-27 21-45 First words.md” with your text inside. Works with any folder, such as an Obsidian inbox in iCloud Drive; no plugin is needed.")
+        case .lineInNote:
+            String(localized: "Each capture is added to the end of the note as “- 21:45 your text”. No plugin is needed.")
+        }
+    }
+}
+
+/// A chosen folder or note: its icon and name (the full path on hover) and a button to change it.
+private struct ChosenLocation: View {
+    let url: URL?
+    var choose: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let url {
+                let path = url.path(percentEncoded: false)
+                Image(nsImage: NSWorkspace.shared.icon(forFile: path))
+                    .resizable()
+                    .frame(width: 16, height: 16)
+                Text(FileManager.default.displayName(atPath: path))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .help((path as NSString).abbreviatingWithTildeInPath)
+            } else {
+                Text("Not chosen")
+                    .foregroundStyle(.secondary)
+            }
+            Button("Choose…", action: choose)
+        }
     }
 }
 

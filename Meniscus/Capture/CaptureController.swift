@@ -9,11 +9,13 @@ final class CaptureController {
     nonisolated enum Status: Equatable, Sendable {
         case idle
         case saving
+        /// Shown for a moment before the island closes.
+        case saved
         case failed(String)
     }
 
     /// True while the island shows the capture field.
-    var isActive = false
+    private(set) var isActive = false
     var draft = ""
     private(set) var status: Status = .idle
 
@@ -26,30 +28,66 @@ final class CaptureController {
         self.settings = settings
     }
 
-    /// Appends the draft to the inbox note. Returns `true` when it was saved.
+    func begin() {
+        status = .idle
+        isActive = true
+    }
+
+    /// Closes the field. An unsaved draft is kept for next time.
+    func end() {
+        isActive = false
+    }
+
+    /// Saves the draft where Settings say. Returns `true` when it was saved.
     func submit() async -> Bool {
         let text = draft
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
-        guard let vault = try? settings.resolveVault() else {
-            status = .failed(String(localized: "Choose your Obsidian vault in Settings → Capture."))
-            return false
-        }
-        let note = vault.appending(path: settings.inboxPath, directoryHint: .notDirectory)
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, status != .saving else { return false }
         status = .saving
-        let isScoped = vault.startAccessingSecurityScopedResource()
-        defer { if isScoped { vault.stopAccessingSecurityScopedResource() } }
-        do throws(InboxWriter.WriteError) {
-            try await InboxWriter.append(text, to: note, at: Date(), addDateHeading: settings.addsDateHeadings)
-        } catch {
-            switch error {
-            case .emptyEntry: status = .idle
-            case .failed(let message): status = .failed(message)
+        let result: Result<Void, InboxWriter.WriteError>
+        switch settings.destination {
+        case .noteInFolder:
+            guard let folder = settings.resolvedFolder() else {
+                status = .failed(String(localized: "Choose a folder in Settings → Capture."))
+                return false
             }
-            return false
+            result = await Self.withAccess(to: folder) { () async throws(InboxWriter.WriteError) in
+                _ = try await InboxWriter.createNote(text, in: folder, at: Date())
+            }
+        case .lineInNote:
+            guard let note = settings.resolvedNote() else {
+                status = .failed(String(localized: "Choose a note in Settings → Capture."))
+                return false
+            }
+            let addsHeading = settings.addsDateHeadings
+            result = await Self.withAccess(to: note) { () async throws(InboxWriter.WriteError) in
+                try await InboxWriter.append(text, to: note, at: Date(), addDateHeading: addsHeading)
+            }
         }
-        draft = ""
-        status = .idle
-        return true
+        switch result {
+        case .success:
+            draft = ""
+            status = .saved
+            return true
+        case .failure(.emptyEntry):
+            status = .idle
+        case .failure(.failed(let message)):
+            status = .failed(message)
+        }
+        return false
+    }
+
+    private static func withAccess(
+        to url: URL,
+        _ write: () async throws(InboxWriter.WriteError) -> Void
+    ) async -> Result<Void, InboxWriter.WriteError> {
+        let isScoped = url.startAccessingSecurityScopedResource()
+        defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
+        do throws(InboxWriter.WriteError) {
+            try await write()
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
     }
 
     // MARK: Hot key

@@ -195,6 +195,18 @@ struct ModesStoreTests {
     }
 }
 
+struct QuickCaptureActionTests {
+    @Test func captureActionRoundTrips() throws {
+        let config = try ModesConfigCoder.decode(Data(#"{ "modes": [ { "name": "Note", "actions": [ { "type": "capture" } ] } ] }"#.utf8))
+        #expect(config.modes.first?.actions == [.quickCapture])
+        let encoded = String(decoding: try ModesConfigCoder.encode(config), as: UTF8.self)
+        #expect(encoded.contains(#""type" : "capture""#))
+        #expect(ModeActionResolver.resolve(.quickCapture) == .quickCapture)
+        #expect(ModeActionResolver.problem(with: .quickCapture) == nil)
+        #expect(EditableAction(.quickCapture).action == .quickCapture)
+    }
+}
+
 struct ModesSettingsHelperTests {
     @Test func shortcutsListIsParsedSortedAndDeduplicated() {
         let output = "Start Focus\n\nbeta\nAlpha  \nStart Focus\r\n"

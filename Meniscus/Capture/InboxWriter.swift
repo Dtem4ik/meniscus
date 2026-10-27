@@ -1,7 +1,7 @@
 import Foundation
 
-/// Appends entries to the inbox note. Runs off the main actor and coordinates the write, so
-/// iCloud Drive and Obsidian see a clean change.
+/// Writes captures: a note of its own in a folder, or a line appended to one note. Runs off the
+/// main actor and coordinates the write, so iCloud Drive and Obsidian see a clean change.
 nonisolated enum InboxWriter {
     /// How much of the end of the note is read to find the last line break and date heading.
     static let tailLength = 64 * 1024
@@ -9,6 +9,30 @@ nonisolated enum InboxWriter {
     nonisolated enum WriteError: Error, Equatable, Sendable {
         case emptyEntry
         case failed(String)
+    }
+
+    /// Creates `2026-10-27 21-45 First words.md` in `folder` with the text inside, never
+    /// replacing an existing note. Returns the new note.
+    @concurrent
+    static func createNote(_ text: String, in folder: URL, at date: Date) async throws(WriteError) -> URL {
+        guard let body = InboxFormatter.noteBody(for: text) else { throw .emptyEntry }
+        let fileManager = FileManager.default
+        let url = CaptureNoteName.uniqueURL(in: folder, fileName: CaptureNoteName.fileName(for: text, at: date)) {
+            fileManager.fileExists(atPath: $0.path(percentEncoded: false))
+        }
+
+        var coordinationError: NSError?
+        var writeError: (any Error)?
+        NSFileCoordinator().coordinate(writingItemAt: url, options: [], error: &coordinationError) { url in
+            do {
+                try Data(body.utf8).write(to: url, options: .withoutOverwriting)
+            } catch {
+                writeError = error
+            }
+        }
+        if let coordinationError { throw .failed(coordinationError.localizedDescription) }
+        if let writeError { throw .failed(writeError.localizedDescription) }
+        return url
     }
 
     @concurrent

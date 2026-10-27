@@ -206,6 +206,9 @@ private struct ActionEditor: View {
                     }
                 }
             }
+        case .capture:
+            Text("Opens the capture field, the same as its keyboard shortcut. Where it saves is set in Settings → Capture.")
+                .foregroundStyle(.secondary)
         case .shortcut:
             ShortcutPicker(name: $action.value, library: .shared)
             TextField("Input", text: $action.input, prompt: Text("Optional"))

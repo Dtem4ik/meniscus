@@ -5,6 +5,8 @@ import OSLog
 /// reported but doesn't stop the others.
 enum ModeRunner {
     private static let logger = Logger(subsystem: "io.github.dtem4ik.meniscus", category: "modes")
+    /// Opens the quick capture field; set by the app delegate once the island exists.
+    static var beginCapture: (() -> Void)?
 
     struct Failure: Equatable, Sendable {
         var actionIndex: Int
@@ -40,6 +42,9 @@ enum ModeRunner {
                 return "No app with the bundle id \(bundleID) is installed."
             }
             workspace.openApplication(at: appURL, configuration: configuration, completionHandler: logFailure)
+        case .quickCapture:
+            guard let beginCapture else { return "Quick capture isn't ready yet." }
+            beginCapture()
         case .file(let url):
             guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else {
                 return "\(url.path(percentEncoded: false)) doesn't exist."

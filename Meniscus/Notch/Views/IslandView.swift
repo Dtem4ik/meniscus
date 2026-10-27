@@ -19,7 +19,7 @@ struct IslandView: View {
                 height: context.contentSize.height,
                 horizontalOffset: layout.centerOffset
             ) {
-                IslandContentView(content: context.content, metrics: layout.metrics)
+                IslandContentView(content: context.content, metrics: layout.metrics, actions: context.actions)
             }
             .mask { shape }
 
@@ -38,6 +38,7 @@ struct IslandView: View {
 struct IslandContentView: View {
     let content: IslandContent
     let metrics: IslandMetrics
+    let actions: NotchActions
 
     var body: some View {
         ZStack {
@@ -48,6 +49,9 @@ struct IslandContentView: View {
                     .transition(.opacity)
             case .nowPlaying:
                 NowPlayingView(service: ActivityServices.shared.nowPlaying)
+                    .transition(.opacity)
+            case .capture:
+                CaptureField(capture: .shared, onFinish: actions.endCapture)
                     .transition(.opacity)
             }
         }

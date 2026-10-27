@@ -38,7 +38,8 @@ final class NotchWindowController {
 
     func start() {
         let actions = NotchActions(
-            expand: { [weak self] in self?.expand() }
+            expand: { [weak self] in self?.expand() },
+            endCapture: { [weak self] in self?.collapse() }
         )
         let hostingView = NotchHostingView(rootView: NotchRootView(state: state, settings: settings, actions: actions))
         // The controller sizes the panel; SwiftUI must not resize it to fit its content.
@@ -55,6 +56,18 @@ final class NotchWindowController {
         // over the hardware notch, so even this 1% black is never seen.
         hotZoneView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.01).cgColor
         hotZone.ignoresMouseEvents = false
+
+        // Clicking anywhere else ends quick capture.
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification,
+            object: panel,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, CaptureController.shared.isActive else { return }
+                self.collapse()
+            }
+        }
 
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
@@ -97,9 +110,25 @@ final class NotchWindowController {
         }
     }
 
+    /// Opens the island with the capture field focused, without activating Meniscus: typing goes
+    /// to the island while the frontmost app stays frontmost.
+    func beginCapture() {
+        CaptureController.shared.begin()
+        // Size the island for the field before it opens, not after.
+        applyContent(currentContent())
+        expand(pinned: true)
+        panel.allowsKey = true
+        panel.makeKeyAndOrderFront(nil)
+    }
+
     func collapse() {
         pointerTask?.cancel()
         isPinned = false
+        if CaptureController.shared.isActive {
+            CaptureController.shared.end()
+            panel.allowsKey = false
+            if panel.isKeyWindow { panel.resignKey() }
+        }
         guard state.isExpanded else { return }
         transitionID += 1
         let id = transitionID
@@ -144,7 +173,8 @@ final class NotchWindowController {
 
     /// From the island: matters only while expanded.
     private func islandPointerDidChange(inside: Bool) {
-        guard state.isExpanded else { return }
+        // Quick capture stays open until submitted or dismissed.
+        guard state.isExpanded, !CaptureController.shared.isActive else { return }
         pointerTask?.cancel()
         if inside {
             isPinned = false
@@ -197,20 +227,28 @@ final class NotchWindowController {
         panel.orderFrontRegardless()
     }
 
-    // MARK: Live activities
-
     // MARK: Content
 
-    /// The player replaces the home content while something plays. Now Playing itself rides out
-    /// short gaps (like a track change), so this doesn't flicker between the two. The home content
-    /// also changes size with the date and the next event.
+    /// Quick capture comes first. Otherwise the player replaces the home content while something
+    /// plays; Now Playing itself rides out short gaps (like a track change), so this doesn't
+    /// flicker between the two. The home content also changes size with the date and the next
+    /// event.
+    private func currentContent() -> IslandContent {
+        if CaptureController.shared.isActive { return .capture }
+        return ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
+    }
+
     private func observeContent() {
-        let content: IslandContent = withObservationTracking {
-            ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
+        let content = withObservationTracking {
+            currentContent()
         } onChange: { [weak self] in
             guard let self else { return }
             Task { @MainActor in self.observeContent() }
         }
+        applyContent(content)
+    }
+
+    private func applyContent(_ content: IslandContent) {
         guard content != state.content else { return }
         withAnimation(currentMotion().expand) { state.content = content }
 
@@ -223,6 +261,8 @@ final class NotchWindowController {
         container.resetTracking(pointerIsInside: pointerIsInside)
         if !pointerIsInside { islandPointerDidChange(inside: false) }
     }
+
+    // MARK: Live activities
 
     /// Follows the activity center: a live activity turns the resting notch into the compact
     /// island, and the island returns to the plain notch when it ends.

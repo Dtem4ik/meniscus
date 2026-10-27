@@ -36,6 +36,18 @@ nonisolated enum InboxFormatter {
         return output + entry + "\n"
     }
 
+    /// The text of a note of its own: blank lines at the start and end dropped, the rest as typed.
+    static func noteBody(for text: String) -> String? {
+        let lines = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { String($0) }
+        let isBlank = { (line: String) in line.trimmingCharacters(in: .whitespaces).isEmpty }
+        let trimmed = Array(lines.drop(while: isBlank).reversed().drop(while: isBlank).reversed())
+        guard !trimmed.isEmpty else { return nil }
+        return trimmed.joined(separator: "\n") + "\n"
+    }
+
     static func time(of date: Date, timeZone: TimeZone) -> String {
         formatted(date, pattern: "HH:mm", timeZone: timeZone)
     }
@@ -44,7 +56,7 @@ nonisolated enum InboxFormatter {
         formatted(date, pattern: "yyyy-MM-dd", timeZone: timeZone)
     }
 
-    private static func formatted(_ date: Date, pattern: String, timeZone: TimeZone) -> String {
+    static func formatted(_ date: Date, pattern: String, timeZone: TimeZone) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .gregorian)

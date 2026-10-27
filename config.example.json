@@ -18,11 +18,11 @@
       ]
     },
     {
-      "id": "downloads",
-      "name": "Downloads",
-      "symbol": "arrow.down.circle",
+      "id": "quick-note",
+      "name": "Quick Note",
+      "symbol": "square.and.pencil",
       "actions": [
-        { "type": "file", "path": "~/Downloads" }
+        { "type": "capture" }
       ]
     }
   ]
