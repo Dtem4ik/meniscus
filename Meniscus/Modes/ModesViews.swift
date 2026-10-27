@@ -4,18 +4,25 @@ import SwiftUI
 /// Mode buttons inside the island.
 struct ModesBar: View {
     let store: ModesStore
-    /// How many modes fit next to the other controls.
-    static let maximumVisible = 4
+    /// How many modes the row shows; the rest stay in Settings.
+    static let maximumVisible = 5
 
     var body: some View {
-        ForEach(store.modes.prefix(Self.maximumVisible)) { mode in
-            Button {
-                ModeRunner.run(mode)
-            } label: {
-                Label(mode.name, systemImage: mode.symbol)
+        if !store.modes.isEmpty {
+            HStack(spacing: 4) {
+                ForEach(store.modes.prefix(Self.maximumVisible)) { mode in
+                    Button {
+                        ModeRunner.run(mode)
+                    } label: {
+                        Label(mode.name, systemImage: mode.symbol)
+                    }
+                    .buttonStyle(IslandControlStyle(size: 15))
+                    // The name shows on hover only.
+                    .help(mode.name)
+                }
             }
-            .help(mode.name)
-            .islandControl()
+            // Line the symbols up with the time above, not their hover circles.
+            .padding(.leading, -9)
         }
     }
 }

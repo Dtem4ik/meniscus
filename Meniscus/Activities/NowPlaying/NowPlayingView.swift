@@ -48,7 +48,7 @@ struct NowPlayingView: View {
             Button(action: service.previousTrack) {
                 Label("Previous", systemImage: "backward.fill")
             }
-            .buttonStyle(PlayerControlStyle(size: 15))
+            .buttonStyle(IslandControlStyle(size: 15))
 
             Button(action: service.togglePlayPause) {
                 Label(
@@ -57,12 +57,12 @@ struct NowPlayingView: View {
                 )
                 .contentTransition(.symbolEffect(.replace))
             }
-            .buttonStyle(PlayerControlStyle(size: 22))
+            .buttonStyle(IslandControlStyle(size: 22))
 
             Button(action: service.nextTrack) {
                 Label("Next", systemImage: "forward.fill")
             }
-            .buttonStyle(PlayerControlStyle(size: 15))
+            .buttonStyle(IslandControlStyle(size: 15))
         }
     }
 
@@ -105,38 +105,6 @@ private struct PlayerArtwork: View {
             }
         }
         .animation(Motion.trackChange, value: image.map(ObjectIdentifier.init))
-    }
-}
-
-/// White symbols with no background; a soft circle shows only on hover and press.
-private struct PlayerControlStyle: ButtonStyle {
-    var size: CGFloat
-
-    func makeBody(configuration: Configuration) -> some View {
-        PlayerControl(configuration: configuration, size: size)
-    }
-
-    private struct PlayerControl: View {
-        let configuration: Configuration
-        let size: CGFloat
-        @State private var isHovered = false
-
-        var body: some View {
-            configuration.label
-                .labelStyle(.iconOnly)
-                .font(.system(size: size, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: size + 18, height: size + 18)
-                .background {
-                    Circle()
-                        .fill(.white.opacity(configuration.isPressed ? 0.2 : isHovered ? 0.1 : 0))
-                        .animation(Motion.controlHover, value: isHovered)
-                }
-                .contentShape(.circle)
-                .scaleEffect(configuration.isPressed ? Motion.controlPressScale : 1)
-                .animation(Motion.controlPress, value: configuration.isPressed)
-                .onHover { isHovered = $0 }
-        }
     }
 }
 

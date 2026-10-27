@@ -86,8 +86,8 @@ xcodebuild test -project Meniscus.xcodeproj -scheme Meniscus -destination 'platf
 
 - Rest the pointer on the notch for a moment, or click it, to open the island. Move the pointer
   away to close it.
-- The menu bar icon (a drop) opens Settings and the Developer menu. You can hide the icon in
-  Settings; the gear button inside the island still opens Settings.
+- The menu bar icon (a drop) opens Settings and the Developer menu, with a left or a right click.
+  You can hide the icon in Settings; opening Meniscus again then shows Settings.
 
 ### Developer menu
 
@@ -121,6 +121,8 @@ All motion parameters (springs, delays, the content reveal) are in
 A mode is a named set of actions started with one button in the island: open URLs (including
 deep links such as `obsidian://…` or `https://claude.ai/…`), apps, files or folders, and run
 Shortcuts.
+The first five modes show as a row of symbols under the time and the next event; hover over one
+for its name.
 
 Modes live in `~/Library/Application Support/Meniscus/config.json`, outside the repository.
 Edit them in **Settings → Modes** or by hand; changes to the file are picked up immediately.
