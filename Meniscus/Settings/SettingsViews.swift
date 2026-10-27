@@ -45,9 +45,11 @@ struct GeneralSettingsView: View {
                 }
             }
             Section {
-                LabeledContent("mediaremote-adapter") {
+                LabeledContent {
                     Button("License") { Acknowledgements.open("mediaremote-adapter-LICENSE") }
                         .buttonStyle(.link)
+                } label: {
+                    Text(verbatim: "mediaremote-adapter")
                 }
             } header: {
                 Text("Acknowledgements")

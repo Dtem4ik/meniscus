@@ -56,7 +56,10 @@ struct NowPlayingView: View {
                 }
                 .islandControl()
                 Button(action: service.togglePlayPause) {
-                    Label(isPlaying ? "Pause" : "Play", systemImage: isPlaying ? "pause.fill" : "play.fill")
+                    Label(
+                        isPlaying ? String(localized: "Pause") : String(localized: "Play"),
+                        systemImage: isPlaying ? "pause.fill" : "play.fill"
+                    )
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .islandControl()
