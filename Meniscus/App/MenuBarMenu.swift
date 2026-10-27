@@ -13,6 +13,7 @@ struct MenuBarMenu: View {
 
         Menu("Developer") {
             Button("Open or Close Island") { appDelegate.notchController?.toggleFromMenu() }
+            Button("Simulate Charging") { ActivityServices.shared.simulateCharging() }
             Divider()
             Toggle("Slow Animations", isOn: $settings.slowAnimations)
             Toggle("Outline Computed Notch", isOn: $settings.showGeometryOverlay)

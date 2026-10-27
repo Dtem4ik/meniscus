@@ -1,6 +1,7 @@
 import Foundation
 import IOKit.ps
 import Observation
+import OSLog
 
 /// Publishes the battery state and charger events. IOKit calls back on the main run loop
 /// whenever a power source changes, so nothing polls.
@@ -17,15 +18,19 @@ final class PowerSourceMonitor {
         guard runLoopSource == nil else { return }
         let context = Unmanaged.passUnretained(self).toOpaque()
         guard let source = IOPSNotificationCreateRunLoopSource(powerSourcesDidChange, context)?
-            .takeRetainedValue() else { return }
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .defaultMode)
+            .takeRetainedValue() else {
+            Logger.power.error("Couldn't subscribe to power source notifications")
+            return
+        }
+        // Common modes, so changes arrive even while a menu is open.
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         runLoopSource = source
         refresh()
     }
 
     func stop() {
         guard let runLoopSource else { return }
-        CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .defaultMode)
+        CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         self.runLoopSource = nil
     }
 
@@ -33,6 +38,13 @@ final class PowerSourceMonitor {
         let current = Self.readInternalBattery()
         let previous = state
         guard current != previous else { return }
+        if let current {
+            Logger.power.notice(
+                "Battery \(current.level, privacy: .public)%, on AC: \(current.isOnACPower, privacy: .public), charging: \(current.isCharging, privacy: .public), charged: \(current.isCharged, privacy: .public)"
+            )
+        } else {
+            Logger.power.notice("No internal battery reported")
+        }
         state = current
         if let current, let event = PowerEventDetector.event(from: previous, to: current) {
             onEvent?(event)
