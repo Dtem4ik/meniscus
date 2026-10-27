@@ -172,6 +172,14 @@ Meniscus writes the Markdown files directly; no Obsidian plugin is needed. The c
 note is remembered with a bookmark, so it is followed when moved or renamed, and nothing about
 it is stored in this repository.
 
+## Pages
+
+While something plays, or files are on the shelf, the open island has pages: the player, the
+shelf and the home view (time, date, next event, modes). It opens on the player while something
+plays, otherwise on the home view. Swipe left or
+right with two fingers on the trackpad to turn pages, or click the small dots at the bottom; the
+dots only show when there is more than one page.
+
 ## File shelf
 
 As soon as you start dragging a file anywhere, the notch widens a little: a paperclip on the left
@@ -179,7 +187,7 @@ and a gently bouncing arrow up on the right. Once the pointer gets near the top 
 before macOS would open Mission Control at the edge. Everything goes back to normal if the drag
 moves away or ends without a drop (including a cancelled drag).
 
-Dropped files stay on the shelf with real previews (images, PDFs, videos, documents) or their
+Dropped files stay on the shelf, its own page of the island, with real previews (images, PDFs, videos, documents) or their
 icons. Click a file for Quick Look (Space or Escape closes it, the arrow keys move between
 files), double-click to open it, drag it anywhere, or right-click for AirDrop, Copy Path and
 Show in Finder. A file moved or renamed on disk stays on the shelf at its new place; a deleted

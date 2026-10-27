@@ -531,6 +531,16 @@
         }
       }
     },
+    "Home": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Главная"
+          }
+        }
+      }
+    },
     "Icon": {
       "localizations": {
         "ru": {
@@ -961,6 +971,16 @@
         }
       }
     },
+    "Player": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Плеер"
+          }
+        }
+      }
+    },
     "Previous": {
       "localizations": {
         "ru": {
@@ -1137,6 +1157,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Настройки…"
+          }
+        }
+      }
+    },
+    "Shelf": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полка"
           }
         }
       }

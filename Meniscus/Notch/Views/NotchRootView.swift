@@ -8,6 +8,9 @@ struct IslandContext {
     var reduceMotion: Bool
     var compactActivity: LiveActivity?
     var content: IslandContent
+    var pages: [IslandPage]
+    var page: IslandPage
+    var pageMovesForward: Bool
     var actions: NotchActions
 
     var isExpanded: Bool { phase == .expanded }
@@ -71,6 +74,9 @@ struct NotchRootView: View {
             reduceMotion: reduceMotion,
             compactActivity: state.compactActivity,
             content: state.content,
+            pages: state.pages,
+            page: state.page,
+            pageMovesForward: state.pageMovesForward,
             actions: actions
         )
         IslandView(context: context)
