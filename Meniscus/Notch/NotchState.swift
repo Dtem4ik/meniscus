@@ -1,3 +1,4 @@
+import CoreGraphics
 import Observation
 
 /// What the island views render. Owned and mutated by `NotchWindowController`.
