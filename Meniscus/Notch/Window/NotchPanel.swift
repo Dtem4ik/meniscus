@@ -104,8 +104,12 @@ final class NotchContainerView: NSView {
 
     // MARK: File drops
 
-    func acceptFileDrops() {
-        registerForDraggedTypes([.fileURL])
+    func acceptFileDrops(_ accepts: Bool = true) {
+        if accepts {
+            registerForDraggedTypes([.fileURL])
+        } else {
+            unregisterDraggedTypes()
+        }
     }
 
     /// Whether the current drag was reported as over this view.

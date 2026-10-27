@@ -411,6 +411,16 @@
         }
       }
     },
+    "Drag files to the notch to keep them at hand. Off, Meniscus doesn't watch file drags at all; files already on the shelf come back when you turn it on again.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетаскивайте файлы к вырезу, чтобы держать их под рукой. Если выключить, Meniscus совсем не следит за перетаскиванием файлов; файлы, уже лежащие на полке, вернутся, когда вы снова её включите."
+          }
+        }
+      }
+    },
     "Drag to change the order": {
       "localizations": {
         "ru": {
@@ -537,6 +547,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Входные данные"
+          }
+        }
+      }
+    },
+    "Keep dropped files on a shelf": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полка для файлов"
           }
         }
       }

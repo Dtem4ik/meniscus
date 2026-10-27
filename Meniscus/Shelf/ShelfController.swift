@@ -12,9 +12,19 @@ final class ShelfController {
     private(set) var store = ShelfStore() {
         didSet {
             guard store.items.count != oldValue.items.count else { return }
-            onItemsChange?(store.items.count)
+            onItemsChange?(visibleCount)
         }
     }
+    /// Follows Settings. Off, the shelf is out of sight and takes nothing; its files are kept for
+    /// when it is turned on again.
+    var isEnabled = true {
+        didSet {
+            guard isEnabled != oldValue else { return }
+            onItemsChange?(visibleCount)
+        }
+    }
+    /// How many files the island and the notch show: none while the shelf is off.
+    var visibleCount: Int { isEnabled ? store.items.count : 0 }
     /// A file drag is over the notch or the island.
     var isDropTargeted = false
     /// A file drag is near the top of the screen, heading for the notch.

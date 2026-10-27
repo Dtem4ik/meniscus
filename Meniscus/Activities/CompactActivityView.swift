@@ -48,7 +48,7 @@ struct CompactActivityView: View {
             }
         case .nowPlaying:
             let nowPlaying = ActivityServices.shared.nowPlaying
-            let shelfCount = ShelfController.shared.items.count
+            let shelfCount = ShelfController.shared.visibleCount
             HStack(spacing: 5) {
                 Equalizer(
                     isPlaying: nowPlaying.current?.isPlaying ?? false,

@@ -27,6 +27,15 @@ final class FileDragWatcher {
         }
     }
 
+    func stop() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+        pollTask?.cancel()
+        pollTask = nil
+        if isFileDrag == true { onDrag?(nil) }
+        isFileDrag = nil
+    }
+
     private func mouseDown() {
         changeCountAtMouseDown = NSPasteboard(name: .drag).changeCount
         isFileDrag = nil

@@ -86,3 +86,24 @@ struct ShelfStoreTests {
         #expect(store.isEmpty)
     }
 }
+
+@MainActor
+struct ShelfSettingTests {
+    @Test func shelfIsOnByDefault() {
+        let defaults = UserDefaults(suiteName: "meniscus-shelf-\(UUID().uuidString)")!
+        #expect(AppSettings(defaults: defaults).showShelf)
+    }
+
+    @Test func turnedOffShelfShowsNothingButKeepsItsFiles() {
+        let shelf = ShelfController()
+        var reported: [Int] = []
+        shelf.onItemsChange = { reported.append($0) }
+        shelf.add([URL(filePath: "/tmp/shelf-setting/a.txt")])
+        #expect(shelf.visibleCount == 1)
+        shelf.isEnabled = false
+        #expect(shelf.visibleCount == 0)
+        #expect(shelf.items.count == 1)
+        shelf.isEnabled = true
+        #expect(reported == [1, 0, 1])
+    }
+}

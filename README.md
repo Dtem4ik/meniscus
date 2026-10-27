@@ -189,7 +189,9 @@ While files are on the shelf, the closed notch shows a paperclip and how many th
 music plays, the music comes first and a small paperclip with the count sits next to the
 equalizer.
 
-Dragging a file off the shelf never opens the drop target. The shelf only keeps references;
+Don't want it? Turn off **Settings → General → Keep dropped files on a shelf**: Meniscus then
+doesn't watch file drags at all, and files already on the shelf come back when you turn it on
+again. Dragging a file off the shelf never opens the drop target. The shelf only keeps references;
 files are never copied or moved. A file drag is noticed with a
 global monitor for mouse presses, which needs no permission: while the button is held, Meniscus
 briefly checks the pointer and the drag pasteboard, and stops as soon as it is released.

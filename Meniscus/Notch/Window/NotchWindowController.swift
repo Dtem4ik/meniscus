@@ -28,6 +28,7 @@ final class NotchWindowController {
     private let fileDragWatcher = FileDragWatcher()
     private static let dropHintID = "drop-hint"
     private var isShowingDropHint = false
+    private var appliedShelfSetting: Bool?
     /// The island opened for a file drag, and whether anything was dropped since. A drag that
     /// ends without a drop closes the island it opened, wherever the pointer is.
     private var isOpenForFileDrag = false
@@ -59,17 +60,14 @@ final class NotchWindowController {
         hotZoneView.onHoverChange = { [weak self] inside in self?.notchPointerDidChange(inside: inside) }
         hotZoneView.onClick = { [weak self] in self?.expand() }
         // Dragging a file onto the notch opens the shelf; dropping right on the notch works too.
-        hotZoneView.acceptFileDrops()
         hotZoneView.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
         hotZoneView.onFileDrop = { [weak self] urls in self?.dropFiles(urls) }
         // The whole panel takes drops. AppKit rather than SwiftUI, so drags that start on the
         // shelf itself can be told apart and ignored.
-        container.acceptFileDrops()
         container.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
         container.onFileDrop = hotZoneView.onFileDrop
         // A file dragged toward the notch opens a large drop target early.
         fileDragWatcher.onDrag = { [weak self] location in self?.fileDragMoved(to: location) }
-        fileDragWatcher.start()
         hotZone.contentView = hotZoneView
         // Nearly invisible fill: a window only receives the mouse where it has pixels. It sits
         // over the hardware notch, so even this 1% black is never seen.
@@ -96,6 +94,7 @@ final class NotchWindowController {
             MainActor.assumeIsolated { self?.refreshGeometry() }
         }
         observeSettings()
+        observeShelfSetting()
         observeActivities()
         observeContent()
         refreshGeometry()
@@ -260,7 +259,7 @@ final class NotchWindowController {
         if CaptureController.shared.isActive { return .capture }
         let shelf = ShelfController.shared
         if shelf.isDropTargeted || shelf.isDragApproaching { return .dropZone }
-        if !shelf.items.isEmpty { return .shelf(itemCount: shelf.items.count) }
+        if shelf.visibleCount > 0 { return .shelf(itemCount: shelf.visibleCount) }
         return ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
     }
 
@@ -398,6 +397,33 @@ final class NotchWindowController {
                 self.refreshGeometry()
                 self.observeSettings()
             }
+        }
+    }
+
+    /// The shelf setting: on, file drops are taken and drags are watched; off, neither, so
+    /// Meniscus doesn't react to file drags at all.
+    private func observeShelfSetting() {
+        let isOn = withObservationTracking {
+            settings.showShelf
+        } onChange: { [weak self] in
+            guard let self else { return }
+            // onChange fires before the new value is stored; read it on the next main-actor turn.
+            Task { @MainActor in self.observeShelfSetting() }
+        }
+        let shelf = ShelfController.shared
+        guard isOn != appliedShelfSetting else { return }
+        appliedShelfSetting = isOn
+        shelf.isEnabled = isOn
+        hotZoneView.acceptFileDrops(isOn)
+        container.acceptFileDrops(isOn)
+        if isOn {
+            fileDragWatcher.start()
+        } else {
+            fileDragWatcher.stop()
+            ActivityServices.shared.center.remove(id: Self.dropHintID)
+            isShowingDropHint = false
+            shelf.isDragApproaching = false
+            shelf.isDropTargeted = false
         }
     }
 
