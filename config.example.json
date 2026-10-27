@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "modes": [
+    {
+      "id": "work",
+      "name": "Work",
+      "symbol": "briefcase",
+      "actions": [
+        { "type": "url", "url": "https://claude.ai/new" },
+        { "type": "url", "url": "obsidian://open?vault=Notes&file=Today" },
+        { "type": "app", "bundleId": "com.apple.mail" },
+        { "type": "url", "url": "https://github.com" }
+      ]
+    },
+    {
+      "id": "focus",
+      "name": "Focus",
+      "symbol": "moon",
+      "actions": [
+        { "type": "shortcut", "name": "Start Focus Session" },
+        { "type": "file", "path": "~/Documents" }
+      ]
+    }
+  ]
+}
