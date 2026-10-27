@@ -68,7 +68,7 @@ struct CaptureSettingsView: View {
             Section {
                 LabeledContent("Vault") {
                     HStack {
-                        Text(settings.vaultPath.map { ($0 as NSString).abbreviatingWithTildeInPath } ?? "Not chosen")
+                        Text(settings.vaultPath.map { ($0 as NSString).abbreviatingWithTildeInPath } ?? String(localized: "Not chosen"))
                             .foregroundStyle(settings.vaultPath == nil ? .secondary : .primary)
                             .lineLimit(1)
                             .truncationMode(.middle)
@@ -114,7 +114,7 @@ struct HotKeyRecorder: View {
 
     var body: some View {
         HStack {
-            Button(isRecording ? "Type a shortcut…" : (hotKey?.displayString ?? "None")) {
+            Button(isRecording ? String(localized: "Type a shortcut…") : (hotKey?.displayString ?? String(localized: "None"))) {
                 isRecording ? stopRecording() : startRecording()
             }
             if hotKey != nil && !isRecording {

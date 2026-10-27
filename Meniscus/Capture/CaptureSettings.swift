@@ -58,12 +58,12 @@ final class CaptureSettings {
 
     func chooseVault() {
         let panel = NSOpenPanel()
-        panel.title = "Choose Your Obsidian Vault"
-        panel.message = "Pick the vault folder. Meniscus only writes to the inbox note inside it."
+        panel.title = String(localized: "Choose Your Obsidian Vault")
+        panel.message = String(localized: "Pick the vault folder. Meniscus only writes to the inbox note inside it.")
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = false
-        panel.prompt = "Choose Vault"
+        panel.prompt = String(localized: "Choose Vault")
         guard panel.runModal() == .OK, let url = panel.url, let bookmark = try? VaultBookmark.make(for: url) else { return }
         defaults.set(bookmark, forKey: Key.vaultBookmark)
         vaultPath = url.path(percentEncoded: false)
@@ -71,17 +71,17 @@ final class CaptureSettings {
 
     /// Returns a message if the chosen note isn't inside the vault.
     func chooseInbox() -> String? {
-        guard let vault = try? resolveVault() else { return "Choose the vault first." }
+        guard let vault = try? resolveVault() else { return String(localized: "Choose the vault first.") }
         let panel = NSOpenPanel()
-        panel.title = "Choose the Inbox Note"
+        panel.title = String(localized: "Choose the Inbox Note")
         panel.directoryURL = vault
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText, .plainText]
-        panel.prompt = "Choose Note"
+        panel.prompt = String(localized: "Choose Note")
         guard panel.runModal() == .OK, let url = panel.url else { return nil }
         guard let relative = VaultBookmark.relativePath(of: url, in: vault) else {
-            return "The inbox note must be inside the vault."
+            return String(localized: "The inbox note must be inside the vault.")
         }
         inboxPath = relative
         return nil

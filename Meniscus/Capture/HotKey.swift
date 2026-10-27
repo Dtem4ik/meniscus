@@ -38,7 +38,8 @@ nonisolated struct HotKey: Codable, Equatable, Sendable {
         if modifiers.contains(.option) { symbols += "⌥" }
         if modifiers.contains(.shift) { symbols += "⇧" }
         if modifiers.contains(.command) { symbols += "⌘" }
-        return symbols + (Self.keyNames[Int(keyCode)] ?? "Key \(keyCode)")
+        let key = Int(keyCode) == kVK_Space ? String(localized: "Space") : Self.keyNames[Int(keyCode)]
+        return symbols + (key ?? "Key \(keyCode)")
     }
 
     /// Names for the ANSI layout; good enough to show a shortcut.

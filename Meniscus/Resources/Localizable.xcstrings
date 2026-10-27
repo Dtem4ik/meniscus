@@ -101,6 +101,16 @@
         }
       }
     },
+    "Add a date heading for each new day": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавлять заголовок с датой для каждого нового дня"
+          }
+        }
+      }
+    },
     "All day": {
       "localizations": {
         "ru": {
@@ -161,6 +171,26 @@
         }
       }
     },
+    "Capture": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Захват"
+          }
+        }
+      }
+    },
+    "Capture a thought…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запишите мысль…"
+          }
+        }
+      }
+    },
     "Charging": {
       "localizations": {
         "ru": {
@@ -191,6 +221,36 @@
         }
       }
     },
+    "Choose Note": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать заметку"
+          }
+        }
+      }
+    },
+    "Choose Vault": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать хранилище"
+          }
+        }
+      }
+    },
+    "Choose Your Obsidian Vault": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите хранилище Obsidian"
+          }
+        }
+      }
+    },
     "Choose a Shortcut": {
       "localizations": {
         "ru": {
@@ -211,12 +271,62 @@
         }
       }
     },
+    "Choose the Inbox Note": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите заметку для входящих"
+          }
+        }
+      }
+    },
+    "Choose the vault first.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала выберите хранилище."
+          }
+        }
+      }
+    },
+    "Choose your Obsidian vault first.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала выберите хранилище Obsidian."
+          }
+        }
+      }
+    },
+    "Choose your Obsidian vault in Settings → Capture.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите хранилище Obsidian в разделе «Настройки» → «Захват»."
+          }
+        }
+      }
+    },
     "Choose…": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Выбрать…"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить"
           }
         }
       }
@@ -261,6 +371,16 @@
         }
       }
     },
+    "Each thought is added to the end of the note as “- 14:32 your text”. The note is created if it doesn't exist. No Obsidian plugin is needed.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Каждая мысль добавляется в конец заметки строкой «- 14:32 ваш текст». Если заметки нет, она будет создана. Плагины Obsidian не нужны."
+          }
+        }
+      }
+    },
     "File or Folder": {
       "localizations": {
         "ru": {
@@ -297,6 +417,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Иконка"
+          }
+        }
+      }
+    },
+    "Inbox note": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметка для входящих"
           }
         }
       }
@@ -481,6 +611,26 @@
         }
       }
     },
+    "None": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не задано"
+          }
+        }
+      }
+    },
+    "Not chosen": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не выбрано"
+          }
+        }
+      }
+    },
     "Not found: %@": {
       "localizations": {
         "ru": {
@@ -541,6 +691,16 @@
         }
       }
     },
+    "Open Settings…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки…"
+          }
+        }
+      }
+    },
     "Open URL": {
       "localizations": {
         "ru": {
@@ -567,6 +727,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Открывать, когда указатель задерживается на вырезе"
+          }
+        }
+      }
+    },
+    "Opens the capture field from any app. Works without Accessibility access.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открывает поле для заметки из любого приложения. Работает без доступа к Универсальному доступу."
           }
         }
       }
@@ -621,6 +791,16 @@
         }
       }
     },
+    "Pick the vault folder. Meniscus only writes to the inbox note inside it.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите папку хранилища. Meniscus пишет только в заметку для входящих внутри неё."
+          }
+        }
+      }
+    },
     "Play": {
       "localizations": {
         "ru": {
@@ -637,6 +817,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Предыдущий трек"
+          }
+        }
+      }
+    },
+    "Quick Capture": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрая заметка"
           }
         }
       }
@@ -901,6 +1091,16 @@
         }
       }
     },
+    "Space": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пробел"
+          }
+        }
+      }
+    },
     "Stored in config.json. Edits made in a text editor show up here automatically.": {
       "localizations": {
         "ru": {
@@ -937,6 +1137,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "У файла не указан путь."
+          }
+        }
+      }
+    },
+    "The inbox note must be inside the vault.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметка для входящих должна находиться внутри хранилища."
           }
         }
       }
@@ -1011,6 +1221,16 @@
         }
       }
     },
+    "Type a shortcut…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажмите сочетание…"
+          }
+        }
+      }
+    },
     "Unknown action type “%@”. Use one of: %@.": {
       "localizations": {
         "ru": {
@@ -1037,6 +1257,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Использовать виртуальный вырез на этом экране"
+          }
+        }
+      }
+    },
+    "Vault": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Хранилище"
           }
         }
       }
