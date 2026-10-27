@@ -49,30 +49,30 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private func makeMenu() -> NSMenu {
         let menu = NSMenu()
         menu.delegate = self
-        menu.addItem(ActionMenuItem(String(localized: "Settings…"), key: ",") {
+        menu.addItem(item(String(localized: "Settings…"), key: ",") {
             SettingsWindowController.shared.show()
         })
         menu.addItem(.separator())
 
         let developer = NSMenu()
-        developer.addItem(ActionMenuItem(String(localized: "Open or Close Island")) { [weak self] in
+        developer.addItem(item(String(localized: "Open or Close Island")) { [weak self] in
             self?.notchController()?.toggleFromMenu()
         })
-        developer.addItem(ActionMenuItem(String(localized: "Simulate Charging")) {
+        developer.addItem(item(String(localized: "Simulate Charging")) {
             ActivityServices.shared.simulateCharging()
         })
         developer.addItem(.separator())
-        slowAnimationsItem = developer.addAction(String(localized: "Slow Animations")) { [settings] in
+        slowAnimationsItem = addAction(to: developer, String(localized: "Slow Animations")) { [settings] in
             settings.slowAnimations.toggle()
         }
-        geometryOverlayItem = developer.addAction(String(localized: "Outline Computed Notch")) { [settings] in
+        geometryOverlayItem = addAction(to: developer, String(localized: "Outline Computed Notch")) { [settings] in
             settings.showGeometryOverlay.toggle()
         }
-        virtualNotchItem = developer.addAction(String(localized: "Use Virtual Notch")) { [settings] in
+        virtualNotchItem = addAction(to: developer, String(localized: "Use Virtual Notch")) { [settings] in
             settings.forceVirtualNotch.toggle()
         }
         developer.addItem(.separator())
-        developer.addItem(ActionMenuItem(String(localized: "Copy Geometry Report")) { [weak self] in
+        developer.addItem(item(String(localized: "Copy Geometry Report")) { [weak self] in
             guard let report = self?.notchController()?.geometryReport() else { return }
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(report, forType: .string)
@@ -82,10 +82,23 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(developerItem)
 
         menu.addItem(.separator())
-        menu.addItem(ActionMenuItem(String(localized: "Quit Meniscus"), key: "q") {
+        menu.addItem(item(String(localized: "Quit Meniscus"), key: "q") {
             NSApp.terminate(nil)
         })
         return menu
+    }
+
+    private func item(_ title: String, key: String = "", handler: @escaping () -> Void) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: #selector(runMenuAction(_:)), keyEquivalent: key)
+        item.target = self
+        item.representedObject = MenuAction(handler)
+        return item
+    }
+
+    private func addAction(to menu: NSMenu, _ title: String, handler: @escaping () -> Void) -> NSMenuItem {
+        let item = self.item(title, handler: handler)
+        menu.addItem(item)
+        return item
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
@@ -95,27 +108,15 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     }
 }
 
-/// A menu item that runs a closure.
-private final class ActionMenuItem: NSMenuItem {
-    private let handler: () -> Void
-
-    init(_ title: String, key: String = "", handler: @escaping () -> Void) {
-        self.handler = handler
-        super.init(title: title, action: #selector(run), keyEquivalent: key)
-        target = self
-    }
-
-    @available(*, unavailable)
-    required init(coder: NSCoder) { fatalError("init(coder:) is not supported") }
-
-    @objc private func run() { handler() }
+/// Holds a menu item's closure in its `representedObject`. `NSMenuItem` itself isn't subclassed:
+/// its initializers aren't main-actor isolated, so a subclass here wouldn't compile.
+private final class MenuAction: NSObject {
+    let handler: () -> Void
+    init(_ handler: @escaping () -> Void) { self.handler = handler }
 }
 
-private extension NSMenu {
-    @discardableResult
-    func addAction(_ title: String, handler: @escaping () -> Void) -> NSMenuItem {
-        let item = ActionMenuItem(title, handler: handler)
-        addItem(item)
-        return item
+private extension StatusItemController {
+    @objc func runMenuAction(_ sender: NSMenuItem) {
+        (sender.representedObject as? MenuAction)?.handler()
     }
 }
