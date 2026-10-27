@@ -17,8 +17,14 @@ final class CalendarService {
 
     private(set) var access: Access
     private(set) var upcoming: CalendarEventSnapshot?
+    /// Every calendar of every account, for the selection in Settings.
+    private(set) var calendars: [CalendarInfo] = []
 
-    @ObservationIgnored private let store = EKEventStore()
+    /// Calendars the user chose not to show.
+    @ObservationIgnored var hiddenCalendarIDs: () -> Set<String> = { [] }
+
+    /// Created once access is granted, so it sees every calendar from the start.
+    @ObservationIgnored private var reader: CalendarReader?
     @ObservationIgnored private var events: [CalendarEventSnapshot] = []
     @ObservationIgnored private var changeObserver: NSObjectProtocol?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
@@ -39,7 +45,7 @@ final class CalendarService {
     /// Asks for full calendar access (reading events needs full access, not write-only).
     func requestAccess() async {
         do {
-            _ = try await store.requestFullAccessToEvents()
+            _ = try await EKEventStore().requestFullAccessToEvents()
         } catch {
             // Treated like a denial below.
         }
@@ -50,9 +56,11 @@ final class CalendarService {
     /// Starts listening for changes. Does nothing until access is granted.
     func start() {
         guard access == .granted, changeObserver == nil else { return }
+        if reader == nil { reader = CalendarReader() }
+        // Posted when any account syncs or calendars change.
         changeObserver = NotificationCenter.default.addObserver(
             forName: .EKEventStoreChanged,
-            object: store,
+            object: nil,
             queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
@@ -75,13 +83,20 @@ final class CalendarService {
         }
     }
 
-    private func refresh() {
+    /// Re-reads calendars and events, for example after the selection changed in Settings.
+    func refresh() {
+        guard let reader else { return }
         refreshTask?.cancel()
+        let hidden = hiddenCalendarIDs()
         refreshTask = Task { [weak self] in
-            // EventKit queries can take a moment with many calendars; keep them off the main actor.
-            let events = await Self.fetchEvents(from: Date())
-            guard !Task.isCancelled else { return }
-            self?.apply(events)
+            // EventKit queries can take a moment with many calendars; the reader runs them off the
+            // main actor.
+            let calendars = await reader.calendars()
+            let included = CalendarGrouping.included(calendars, hiding: hidden)
+            let events = await reader.events(from: Date(), calendarIDs: hidden.isEmpty ? nil : included)
+            guard !Task.isCancelled, let self else { return }
+            if calendars != self.calendars { self.calendars = calendars }
+            self.apply(events)
         }
     }
 
@@ -101,28 +116,6 @@ final class CalendarService {
             try? await Task.sleep(for: .seconds(next.timeIntervalSinceNow + 0.5))
             guard !Task.isCancelled else { return }
             self?.reselect()
-        }
-    }
-
-    @concurrent
-    private nonisolated static func fetchEvents(from date: Date) async -> [CalendarEventSnapshot] {
-        // A store of its own: EKEventStore is not Sendable, and this runs off the main actor.
-        let store = EKEventStore()
-        let end = date.addingTimeInterval(UpcomingEventSelector.lookahead)
-        // Starts a day back so events that began earlier but are still running are included.
-        let predicate = store.predicateForEvents(withStart: date.addingTimeInterval(-86_400), end: end, calendars: nil)
-        return store.events(matching: predicate).compactMap { event in
-            guard event.status != .canceled, let start = event.startDate, let end = event.endDate else { return nil }
-            let color = event.calendar?.color?.usingColorSpace(.sRGB)
-            return CalendarEventSnapshot(
-                id: event.calendarItemIdentifier + "|\(start.timeIntervalSince1970)",
-                title: event.title ?? "",
-                start: start,
-                end: end,
-                isAllDay: event.isAllDay,
-                location: event.location,
-                calendarColor: color.map { RGBColor(red: $0.redComponent, green: $0.greenComponent, blue: $0.blueComponent) }
-            )
         }
     }
 }
