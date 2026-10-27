@@ -30,7 +30,7 @@ final class ShortcutsLibrary {
         }
     }
 
-    static let commandURL = URL(filePath: "/usr/bin/shortcuts")
+    nonisolated static let commandURL = URL(filePath: "/usr/bin/shortcuts")
 
     @concurrent
     nonisolated static func fetchNames() async -> [String]? {
