@@ -12,8 +12,8 @@ nonisolated enum DisplayPreference: String, CaseIterable, Identifiable, Sendable
 
     var title: String {
         switch self {
-        case .notched: "Built-in display with notch"
-        case .main: "Main display"
+        case .notched: String(localized: "Built-in display with notch")
+        case .main: String(localized: "Main display")
         }
     }
 }
@@ -24,6 +24,7 @@ nonisolated enum SettingsKey {
     static let expandOnHover = "expandOnHover"
     static let hapticsEnabled = "hapticsEnabled"
     static let showCalendar = "showCalendar"
+    static let hiddenCalendarIDs = "calendar.hiddenCalendarIDs"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
     static let forceVirtualNotch = "developer.forceVirtualNotch"
@@ -49,6 +50,10 @@ final class AppSettings {
     var showCalendar: Bool {
         didSet { defaults.set(showCalendar, forKey: SettingsKey.showCalendar) }
     }
+    /// Calendars not to show in the island. Stored as hidden, so new calendars appear by default.
+    var hiddenCalendarIDs: Set<String> {
+        didSet { defaults.set(Array(hiddenCalendarIDs).sorted(), forKey: SettingsKey.hiddenCalendarIDs) }
+    }
     var slowAnimations: Bool {
         didSet { defaults.set(slowAnimations, forKey: SettingsKey.slowAnimations) }
     }
@@ -72,6 +77,7 @@ final class AppSettings {
         expandOnHover = defaults.bool(forKey: SettingsKey.expandOnHover)
         hapticsEnabled = defaults.bool(forKey: SettingsKey.hapticsEnabled)
         showCalendar = defaults.bool(forKey: SettingsKey.showCalendar)
+        hiddenCalendarIDs = Set(defaults.stringArray(forKey: SettingsKey.hiddenCalendarIDs) ?? [])
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)
         forceVirtualNotch = defaults.bool(forKey: SettingsKey.forceVirtualNotch)

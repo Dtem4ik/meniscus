@@ -1,0 +1,356 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "All day": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Весь день"
+          }
+        }
+      }
+    },
+    "Allow Calendar Access…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешить доступ к календарю…"
+          }
+        }
+      }
+    },
+    "Built-in display with notch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Встроенный дисплей с вырезом"
+          }
+        }
+      }
+    },
+    "Calendar access is requested the first time you open the island with this on.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к календарю запрашивается, когда вы впервые откроете остров с этой настройкой."
+          }
+        }
+      }
+    },
+    "Charging": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зарядка"
+          }
+        }
+      }
+    },
+    "Copied": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировано"
+          }
+        }
+      }
+    },
+    "Copy Geometry Report": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать отчёт о геометрии"
+          }
+        }
+      }
+    },
+    "Developer": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разработка"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Основные"
+          }
+        }
+      }
+    },
+    "Haptic feedback on the trackpad": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тактильный отклик на трекпаде"
+          }
+        }
+      }
+    },
+    "Main display": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Основной дисплей"
+          }
+        }
+      }
+    },
+    "Meniscus": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meniscus"
+          }
+        }
+      }
+    },
+    "No more events today": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня событий больше нет"
+          }
+        }
+      }
+    },
+    "Now · until %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас · до %@"
+          }
+        }
+      }
+    },
+    "Open or Close Island": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть или закрыть остров"
+          }
+        }
+      }
+    },
+    "Open when the pointer rests on the notch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открывать, когда указатель задерживается на вырезе"
+          }
+        }
+      }
+    },
+    "Other": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другие"
+          }
+        }
+      }
+    },
+    "Outline Computed Notch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обвести вычисленный вырез"
+          }
+        }
+      }
+    },
+    "Outline the computed notch in red": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обвести вычисленный вырез красным"
+          }
+        }
+      }
+    },
+    "Quit Meniscus": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершить Meniscus"
+          }
+        }
+      }
+    },
+    "Screen numbers behind the notch outline. Paste them into a bug report.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Параметры экрана, по которым строится вырез. Вставьте их в отчёт об ошибке."
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки"
+          }
+        }
+      }
+    },
+    "Settings stay available from the gear button inside the notch.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки остаются доступны по кнопке с шестерёнкой внутри выреза."
+          }
+        }
+      }
+    },
+    "Settings…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки…"
+          }
+        }
+      }
+    },
+    "Show Calendar": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать календарь"
+          }
+        }
+      }
+    },
+    "Show icon in the menu bar": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать значок в строке меню"
+          }
+        }
+      }
+    },
+    "Show on": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать на"
+          }
+        }
+      }
+    },
+    "Show the next calendar event": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать ближайшее событие календаря"
+          }
+        }
+      }
+    },
+    "Simulate Charging": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать зарядку"
+          }
+        }
+      }
+    },
+    "Slow Animations": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Замедленные анимации"
+          }
+        }
+      }
+    },
+    "Slow animations (×%lld)": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Замедленные анимации (×%lld)"
+          }
+        }
+      }
+    },
+    "Sparkle": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Блеск"
+          }
+        }
+      }
+    },
+    "Tuning": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тонкая настройка"
+          }
+        }
+      }
+    },
+    "Use Virtual Notch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виртуальный вырез"
+          }
+        }
+      }
+    },
+    "Use a virtual notch on this screen": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использовать виртуальный вырез на этом экране"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

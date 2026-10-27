@@ -17,6 +17,9 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "26.0"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     DEAD_CODE_STRIPPING: YES
+    # Strings live in Meniscus/Resources/Localizable.xcstrings (English and Russian).
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
     # Builds are ad-hoc signed ("Sign to Run Locally"): no Apple Developer account needed.
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
@@ -33,6 +36,10 @@ targets:
       path: Meniscus/Resources/Info.plist
       properties:
         CFBundleDisplayName: Meniscus
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations:
+          - en
+          - ru
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.utilities

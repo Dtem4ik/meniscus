@@ -98,11 +98,27 @@ Settings → Developer):
   geometry it hugs the hardware notch evenly on all three sides.
 - **Use Virtual Notch**: draws the virtual notch even on a screen with a camera housing.
 - **Copy Geometry Report**: copies the screen numbers behind the notch, for bug reports.
+- **Simulate Charging**: plays the charging activity without plugging in a cable.
+
+### Logs
+
+Meniscus logs through the unified logging system. To send logs with a bug report, open Console,
+start streaming, and filter by subsystem `io.github.dtem4ik.meniscus` (category `power` for
+charging), or run:
+
+```sh
+log stream --predicate 'subsystem == "io.github.dtem4ik.meniscus"' --level info
+```
 - **Open or Close Island**: keeps the island open without hovering, to inspect it.
 
 All motion parameters (springs, delays, the content reveal) are in
 [`Meniscus/Notch/Motion.swift`](Meniscus/Notch/Motion.swift); sizes are in
 [`Meniscus/Notch/Geometry/IslandLayout.swift`](Meniscus/Notch/Geometry/IslandLayout.swift).
+
+## Languages
+
+English and Russian, following the system language. Strings live in
+`Meniscus/Resources/Localizable.xcstrings`; CI fails when a string has no Russian translation.
 
 ## Permissions
 
