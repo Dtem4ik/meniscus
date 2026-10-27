@@ -16,6 +16,8 @@ nonisolated enum IslandContent: Equatable, Sendable {
     case nowPlaying
     /// The quick capture field.
     case capture
+    /// The file shelf with this many files; 0 while waiting for a drop.
+    case shelf(itemCount: Int)
 }
 
 /// The animatable parameters of `NotchShape`.
@@ -58,6 +60,12 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     /// The quick capture field below the notch.
     var captureContentWidth: CGFloat = 420
     var captureContentHeight: CGFloat = 56
+    /// The file shelf: one tile per file, then the shelf's own buttons.
+    var shelfTileWidth: CGFloat = 72
+    var shelfTileSpacing: CGFloat = 8
+    var shelfHorizontalPadding: CGFloat = 20
+    var shelfControlsWidth: CGFloat = 40
+    var shelfContentHeight: CGFloat = 92
     /// Home content before it has been measured.
     var homeFallbackSize = CGSize(width: 420, height: 80)
     /// Room around the home content (time, date, event).
@@ -96,11 +104,19 @@ nonisolated struct IslandLayout: Equatable, Sendable {
         case .home(let measured): measured ?? metrics.homeFallbackSize
         case .nowPlaying: CGSize(width: 0, height: metrics.nowPlayingContentHeight)
         case .capture: CGSize(width: metrics.captureContentWidth, height: metrics.captureContentHeight)
+        case .shelf(let count): CGSize(width: shelfWidth(itemCount: count), height: metrics.shelfContentHeight)
         }
         return CGSize(
             width: min(max(natural.width.rounded(.up), minimumExpandedWidth), maximumExpandedWidth),
             height: min(natural.height.rounded(.up), metrics.maximumContentHeight)
         )
+    }
+
+    /// The shelf's natural width; scrolls once it reaches the maximum.
+    private func shelfWidth(itemCount: Int) -> CGFloat {
+        guard itemCount > 0 else { return 0 }
+        let tiles = CGFloat(itemCount) * metrics.shelfTileWidth + CGFloat(itemCount - 1) * metrics.shelfTileSpacing
+        return 2 * metrics.shelfHorizontalPadding + tiles + metrics.shelfTileSpacing + metrics.shelfControlsWidth
     }
 
     func shape(for phase: IslandPhase, content: IslandContent = .home(nil)) -> IslandShapeSpec {

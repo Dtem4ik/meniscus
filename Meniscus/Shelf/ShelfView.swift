@@ -1,45 +1,51 @@
 import SwiftUI
 
-/// The shelf inside the island. Functional layout only; polish comes with the island style.
+/// The shelf inside the island: a tile per file, sized to how many there are, and two quiet
+/// buttons in the island's control style.
 struct ShelfView: View {
     let shelf: ShelfController
+    let metrics: IslandMetrics
 
     var body: some View {
-        HStack(spacing: 12) {
+        Group {
             if shelf.items.isEmpty {
                 Label("Drop files to keep them here", systemImage: "tray.and.arrow.down")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.6))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView(.horizontal) {
-                    HStack(spacing: 10) {
-                        ForEach(shelf.items) { item in
-                            ShelfItemView(item: item, shelf: shelf)
+                HStack(spacing: metrics.shelfTileSpacing) {
+                    ScrollView(.horizontal) {
+                        HStack(spacing: metrics.shelfTileSpacing) {
+                            ForEach(shelf.items) { item in
+                                ShelfItemView(item: item, shelf: shelf)
+                                    .frame(width: metrics.shelfTileWidth)
+                            }
                         }
                     }
-                    .padding(.vertical, 4)
-                }
-                .scrollIndicators(.never)
+                    .scrollIndicators(.never)
 
-                VStack(spacing: 8) {
-                    Button {
-                        shelf.airDrop(shelf.items)
-                    } label: {
-                        Label("AirDrop All", systemImage: "square.and.arrow.up")
+                    VStack(spacing: 2) {
+                        Button {
+                            shelf.airDrop(shelf.items)
+                        } label: {
+                            Label("AirDrop All", systemImage: "square.and.arrow.up")
+                        }
+                        .help("AirDrop All")
+                        Button {
+                            shelf.removeAll()
+                        } label: {
+                            Label("Clear Shelf", systemImage: "xmark")
+                        }
+                        .help("Clear Shelf")
                     }
-                    Button {
-                        shelf.removeAll()
-                    } label: {
-                        Label("Clear Shelf", systemImage: "xmark.circle")
-                    }
+                    .buttonStyle(IslandControlStyle(size: 13))
+                    .frame(width: metrics.shelfControlsWidth)
                 }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.borderless)
+                .padding(.horizontal, metrics.shelfHorizontalPadding)
+                .frame(maxHeight: .infinity)
             }
         }
-        .padding(.horizontal, 24)
-        .frame(maxHeight: .infinity)
         .onAppear { shelf.pruneMissingFiles() }
     }
 }
@@ -53,12 +59,12 @@ private struct ShelfItemView: View {
             Image(nsImage: shelf.icon(for: item))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 44, height: 44)
+                .frame(width: 40, height: 40)
             Text(item.name)
-                .font(.caption)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.white.opacity(0.85))
                 .lineLimit(1)
                 .truncationMode(.middle)
-                .frame(width: 68)
         }
         .contentShape(Rectangle())
         .help(item.path)

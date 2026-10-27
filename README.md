@@ -172,6 +172,12 @@ Meniscus writes the Markdown files directly; no Obsidian plugin is needed. The c
 note is remembered with a bookmark, so it is followed when moved or renamed, and nothing about
 it is stored in this repository.
 
+## File shelf
+
+Drag files onto the notch: the island opens and keeps them on a shelf. From there, drag them
+anywhere, double-click to open, or right-click for Quick Look, AirDrop, Copy Path and Show in
+Finder. The shelf only keeps references; files are never copied or moved.
+
 ## Languages
 
 English and Russian, following the system language. Strings live in

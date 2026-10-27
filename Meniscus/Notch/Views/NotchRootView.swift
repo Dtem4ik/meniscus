@@ -58,6 +58,13 @@ struct NotchRootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(alignment: .top) { homeContentMeasure }
+        .dropDestination(for: URL.self) { urls, _ in
+            ShelfController.shared.add(urls)
+            actions.fileDragChanged(false)
+            return true
+        } isTargeted: { isTargeted in
+            actions.fileDragChanged(isTargeted)
+        }
         // The panel is never the key window; keep glass in its active look anyway.
         .environment(\.materialActiveAppearance, .active)
     }

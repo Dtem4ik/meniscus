@@ -39,7 +39,8 @@ final class NotchWindowController {
     func start() {
         let actions = NotchActions(
             expand: { [weak self] in self?.expand() },
-            endCapture: { [weak self] in self?.collapse() }
+            endCapture: { [weak self] in self?.collapse() },
+            fileDragChanged: { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
         )
         let hostingView = NotchHostingView(rootView: NotchRootView(state: state, settings: settings, actions: actions))
         // The controller sizes the panel; SwiftUI must not resize it to fit its content.
@@ -51,6 +52,13 @@ final class NotchWindowController {
 
         hotZoneView.onHoverChange = { [weak self] inside in self?.notchPointerDidChange(inside: inside) }
         hotZoneView.onClick = { [weak self] in self?.expand() }
+        // Dragging a file onto the notch opens the shelf; dropping right on the notch works too.
+        hotZoneView.acceptFileDrops()
+        hotZoneView.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
+        hotZoneView.onFileDrop = { [weak self] urls in
+            ShelfController.shared.add(urls)
+            self?.fileDragChanged(isTargeted: false)
+        }
         hotZone.contentView = hotZoneView
         // Nearly invisible fill: a window only receives the mouse where it has pixels. It sits
         // over the hardware notch, so even this 1% black is never seen.
@@ -235,6 +243,8 @@ final class NotchWindowController {
     /// event.
     private func currentContent() -> IslandContent {
         if CaptureController.shared.isActive { return .capture }
+        let shelf = ShelfController.shared
+        if shelf.isPresented { return .shelf(itemCount: shelf.items.count) }
         return ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
     }
 
@@ -260,6 +270,33 @@ final class NotchWindowController {
         let pointerIsInside = islandRect.contains(NSEvent.mouseLocation)
         container.resetTracking(pointerIsInside: pointerIsInside)
         if !pointerIsInside { islandPointerDidChange(inside: false) }
+    }
+
+    // MARK: File drags
+
+    private func fileDragChanged(isTargeted: Bool) {
+        if isTargeted {
+            ShelfController.shared.isDropTargeted = true
+            // Size the island for the shelf before it opens, not after.
+            applyContent(currentContent())
+            expand(pinned: true)
+            return
+        }
+        ShelfController.shared.isDropTargeted = false
+        // The drag may just be moving from the notch into the island. Tracking areas don't
+        // report the pointer during a drag, so check where it ended up once things settle.
+        pointerTask?.cancel()
+        pointerTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled, let self, !ShelfController.shared.isDropTargeted else { return }
+            let islandRect = self.state.layout.interactiveScreenRect(for: .expanded, content: self.state.content)
+            if islandRect.contains(NSEvent.mouseLocation) {
+                self.isPinned = false
+                self.container.resetTracking(pointerIsInside: true)
+            } else {
+                self.collapse()
+            }
+        }
     }
 
     // MARK: Live activities

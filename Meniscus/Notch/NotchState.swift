@@ -30,4 +30,6 @@ struct NotchActions {
     var expand: () -> Void = {}
     /// Closes the capture field and the island.
     var endCapture: () -> Void = {}
+    /// A file drag entered (`true`) or left (`false`) the island.
+    var fileDragChanged: (Bool) -> Void = { _ in }
 }

@@ -36,6 +36,9 @@ struct IslandLayoutTests {
     @Test(arguments: [
         IslandContent.nowPlaying,
         .capture,
+        .shelf(itemCount: 0),
+        .shelf(itemCount: 3),
+        .shelf(itemCount: 40),
         .home(nil),
         .home(CGSize(width: 120, height: 60)),
         .home(CGSize(width: 2000, height: 500)),
@@ -55,6 +58,16 @@ struct IslandLayoutTests {
         let player = layout.contentSize(for: .nowPlaying)
         #expect(player.width == layout.minimumExpandedWidth)
         #expect(player.height == layout.metrics.nowPlayingContentHeight)
+    }
+
+    @Test func shelfGrowsWithItsFilesUpToTheMaximum() {
+        let layout = layout()
+        let empty = layout.contentSize(for: .shelf(itemCount: 0)).width
+        let few = layout.contentSize(for: .shelf(itemCount: 4)).width
+        let many = layout.contentSize(for: .shelf(itemCount: 40)).width
+        #expect(empty == layout.minimumExpandedWidth)
+        #expect(few > empty)
+        #expect(many == layout.maximumExpandedWidth)
     }
 
     @Test func homeTakesItsMeasuredSize() {
