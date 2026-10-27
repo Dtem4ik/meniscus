@@ -39,6 +39,7 @@ struct IslandLayoutTests {
         .shelf(itemCount: 0),
         .shelf(itemCount: 3),
         .shelf(itemCount: 40),
+        .dropZone,
         .home(nil),
         .home(CGSize(width: 120, height: 60)),
         .home(CGSize(width: 2000, height: 500)),
@@ -58,6 +59,29 @@ struct IslandLayoutTests {
         let player = layout.contentSize(for: .nowPlaying)
         #expect(player.width == layout.minimumExpandedWidth)
         #expect(player.height == layout.metrics.nowPlayingContentHeight)
+    }
+
+    @Test func dropTargetOpensNearTheTopBeforeTheEdge() {
+        let layout = layout()
+        let top = layout.geometry.screenFrame.maxY
+        let x = layout.geometry.notchRect.midX
+        #expect(layout.isNearDropZone(CGPoint(x: x, y: top - 50), isOpen: false))
+        #expect(layout.isNearDropZone(CGPoint(x: x + 300, y: top - 80), isOpen: false))
+        #expect(!layout.isNearDropZone(CGPoint(x: x, y: top - 150), isOpen: false))
+        #expect(!layout.isNearDropZone(CGPoint(x: 20, y: top - 10), isOpen: false))
+    }
+
+    @Test func dropTargetClosesOnlyFurtherAway() {
+        let layout = layout()
+        let top = layout.geometry.screenFrame.maxY
+        let x = layout.geometry.notchRect.midX
+        #expect(layout.isNearDropZone(CGPoint(x: x, y: top - 150), isOpen: true))
+        #expect(!layout.isNearDropZone(CGPoint(x: x, y: top - 220), isOpen: true))
+    }
+
+    @Test func dropTargetTakesTheFullWidth() {
+        let layout = layout()
+        #expect(layout.contentSize(for: .dropZone).width == layout.maximumExpandedWidth)
     }
 
     @Test func shelfGrowsWithItsFilesUpToTheMaximum() {

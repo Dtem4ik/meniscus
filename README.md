@@ -174,9 +174,17 @@ it is stored in this repository.
 
 ## File shelf
 
-Drag files onto the notch: the island opens and keeps them on a shelf. From there, drag them
-anywhere, double-click to open, or right-click for Quick Look, AirDrop, Copy Path and Show in
-Finder. The shelf only keeps references; files are never copied or moved.
+Drag files toward the notch: as soon as the pointer gets near the top of the screen, the island
+opens as a large drop target, before macOS would open Mission Control at the edge. It closes
+again if the drag moves away or is cancelled. Dropped files stay on the shelf with real previews
+(images, PDFs, videos, documents) or their icons. From there, drag them anywhere, double-click to
+open, press Space on one for Quick Look (Space or Escape closes it, the arrow keys move between
+files), or right-click for AirDrop, Copy Path and Show in Finder.
+
+While files are on the shelf, the closed notch shows the newest one and how many there are; when
+music plays, the music comes first and a small count sits next to the equalizer. The shelf only
+keeps references; files are never copied or moved. Noticing a drag uses global mouse monitors,
+which need no permission.
 
 ## Languages
 

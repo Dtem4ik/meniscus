@@ -471,6 +471,16 @@
         }
       }
     },
+    "Files on the shelf: %lld": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлов на полке: %lld"
+          }
+        }
+      }
+    },
     "Folder": {
       "localizations": {
         "ru": {

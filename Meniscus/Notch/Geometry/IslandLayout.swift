@@ -16,8 +16,10 @@ nonisolated enum IslandContent: Equatable, Sendable {
     case nowPlaying
     /// The quick capture field.
     case capture
-    /// The file shelf with this many files; 0 while waiting for a drop.
+    /// The file shelf with this many files.
     case shelf(itemCount: Int)
+    /// A large target while files are dragged toward the notch.
+    case dropZone
 }
 
 /// The animatable parameters of `NotchShape`.
@@ -65,7 +67,16 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var shelfTileSpacing: CGFloat = 8
     var shelfHorizontalPadding: CGFloat = 20
     var shelfControlsWidth: CGFloat = 40
-    var shelfContentHeight: CGFloat = 92
+    var shelfContentHeight: CGFloat = 96
+    /// The drop target's height below the notch; it takes the full expanded width.
+    var dropZoneHeight: CGFloat = 120
+    /// A file drag this close to the top of the screen, near the notch, opens the drop target,
+    /// well before the pointer reaches the edge where macOS opens Mission Control.
+    var dropZoneApproachDistance: CGFloat = 90
+    /// It closes again once the drag moves this far from the top.
+    var dropZoneLeaveDistance: CGFloat = 180
+    /// How far to either side of the expanded island a drag still counts as near.
+    var dropZoneSideMargin: CGFloat = 120
     /// Home content before it has been measured.
     var homeFallbackSize = CGSize(width: 420, height: 80)
     /// Room around the home content (time, date, event).
@@ -105,11 +116,24 @@ nonisolated struct IslandLayout: Equatable, Sendable {
         case .nowPlaying: CGSize(width: 0, height: metrics.nowPlayingContentHeight)
         case .capture: CGSize(width: metrics.captureContentWidth, height: metrics.captureContentHeight)
         case .shelf(let count): CGSize(width: shelfWidth(itemCount: count), height: metrics.shelfContentHeight)
+        case .dropZone: CGSize(width: maximumExpandedWidth, height: metrics.dropZoneHeight)
         }
         return CGSize(
             width: min(max(natural.width.rounded(.up), minimumExpandedWidth), maximumExpandedWidth),
             height: min(natural.height.rounded(.up), metrics.maximumContentHeight)
         )
+    }
+
+    /// Whether a file drag at `point` (screen coordinates) is near enough to the notch for the
+    /// drop target. `isOpen` widens the area, so the target doesn't flicker at its edge.
+    func isNearDropZone(_ point: CGPoint, isOpen: Bool) -> Bool {
+        let screen = geometry.screenFrame
+        guard point.x >= screen.minX, point.x <= screen.maxX, point.y <= screen.maxY + 1 else { return false }
+        let fromTop = screen.maxY - point.y
+        let sideways = abs(point.x - geometry.notchRect.midX)
+        let halfWidth = maximumExpandedWidth / 2 + metrics.dropZoneSideMargin
+        let distance = isOpen ? metrics.dropZoneLeaveDistance : metrics.dropZoneApproachDistance
+        return fromTop <= distance && sideways <= halfWidth + (isOpen ? 40 : 0)
     }
 
     /// The shelf's natural width; scrolls once it reaches the maximum.

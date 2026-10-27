@@ -5,6 +5,8 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
     nonisolated enum Kind: String, Equatable, Sendable {
         case charging
         case nowPlaying
+        /// Files are waiting on the shelf.
+        case shelf
     }
 
     /// Higher wins. Transient alerts outrank ongoing activities.

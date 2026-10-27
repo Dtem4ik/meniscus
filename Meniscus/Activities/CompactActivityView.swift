@@ -28,6 +28,8 @@ struct CompactActivityView: View {
             ChargingBolt()
         case .nowPlaying:
             CompactArtwork(service: ActivityServices.shared.nowPlaying)
+        case .shelf:
+            CompactShelfPreview(shelf: .shared)
         }
     }
 
@@ -43,11 +45,58 @@ struct CompactActivityView: View {
             }
         case .nowPlaying:
             let nowPlaying = ActivityServices.shared.nowPlaying
-            Equalizer(
-                isPlaying: nowPlaying.current?.isPlaying ?? false,
-                tint: nowPlaying.artworkTint.map(Color.init(nsColor:)) ?? .primary
-            )
+            let shelfCount = ShelfController.shared.items.count
+            HStack(spacing: 5) {
+                Equalizer(
+                    isPlaying: nowPlaying.current?.isPlaying ?? false,
+                    tint: nowPlaying.artworkTint.map(Color.init(nsColor:)) ?? .primary
+                )
+                // Music comes first; a small count reminds of files on the shelf.
+                if shelfCount > 0 {
+                    ShelfCountBadge(count: shelfCount)
+                }
+            }
+        case .shelf:
+            let count = ShelfController.shared.items.count
+            Text(count.formatted())
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .contentTransition(.numericText())
+                .accessibilityLabel(Text("Files on the shelf: \(count)"))
         }
+    }
+}
+
+/// The newest file on the shelf, small, left of the notch.
+private struct CompactShelfPreview: View {
+    let shelf: ShelfController
+
+    var body: some View {
+        if let item = shelf.items.last {
+            Image(nsImage: shelf.image(for: item))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 20, height: 20)
+                .clipShape(.rect(cornerRadius: shelf.hasThumbnail(item) ? 4 : 0, style: .continuous))
+                .onAppear { shelf.loadThumbnails() }
+        }
+    }
+}
+
+/// How many files wait on the shelf, next to the equalizer.
+private struct ShelfCountBadge: View {
+    let count: Int
+
+    var body: some View {
+        Text(count.formatted())
+            .font(.system(size: 9, weight: .bold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(.black)
+            .padding(.horizontal, 4)
+            .frame(minWidth: 14, minHeight: 14)
+            .background(.white.opacity(0.85), in: .capsule)
+            .accessibilityLabel(Text("Files on the shelf: \(count)"))
     }
 }
 

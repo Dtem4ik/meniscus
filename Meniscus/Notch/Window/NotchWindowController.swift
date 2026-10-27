@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import OSLog
 import SwiftUI
 
@@ -25,6 +26,7 @@ final class NotchWindowController {
     private var pointerTask: Task<Void, Never>?
     /// Incremented on every transition so a stale collapse completion is ignored.
     private var transitionID = 0
+    private let fileDragWatcher = FileDragWatcher()
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -59,6 +61,15 @@ final class NotchWindowController {
             ShelfController.shared.add(urls)
             self?.fileDragChanged(isTargeted: false)
         }
+        // The whole panel takes drops too, not only the parts SwiftUI draws.
+        container.acceptFileDrops()
+        container.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
+        container.onFileDrop = hotZoneView.onFileDrop
+        // A file dragged toward the notch opens a large drop target early.
+        fileDragWatcher.onDrag = { [weak self] location in self?.fileDragMoved(to: location) }
+        fileDragWatcher.start()
+        // Space on a shelf tile opens Quick Look.
+        panel.onKeyDown = { [weak self] event in self?.handleKeyDown(event) ?? false }
         hotZone.contentView = hotZoneView
         // Nearly invisible fill: a window only receives the mouse where it has pixels. It sits
         // over the hardware notch, so even this 1% black is never seen.
@@ -134,6 +145,8 @@ final class NotchWindowController {
         isPinned = false
         if CaptureController.shared.isActive {
             CaptureController.shared.end()
+        }
+        if panel.allowsKey {
             panel.allowsKey = false
             if panel.isKeyWindow { panel.resignKey() }
         }
@@ -183,6 +196,7 @@ final class NotchWindowController {
     private func islandPointerDidChange(inside: Bool) {
         // Quick capture stays open until submitted or dismissed.
         guard state.isExpanded, !CaptureController.shared.isActive else { return }
+        updateShelfKeyboard(pointerIsInside: inside)
         pointerTask?.cancel()
         if inside {
             isPinned = false
@@ -244,7 +258,8 @@ final class NotchWindowController {
     private func currentContent() -> IslandContent {
         if CaptureController.shared.isActive { return .capture }
         let shelf = ShelfController.shared
-        if shelf.isPresented { return .shelf(itemCount: shelf.items.count) }
+        if shelf.isDropTargeted || shelf.isDragApproaching { return .dropZone }
+        if !shelf.items.isEmpty { return .shelf(itemCount: shelf.items.count) }
         return ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
     }
 
@@ -269,30 +284,90 @@ final class NotchWindowController {
         guard state.isExpanded else { return }
         let pointerIsInside = islandRect.contains(NSEvent.mouseLocation)
         container.resetTracking(pointerIsInside: pointerIsInside)
+        updateShelfKeyboard(pointerIsInside: pointerIsInside)
         if !pointerIsInside { islandPointerDidChange(inside: false) }
+    }
+
+    // MARK: Keyboard on the shelf
+
+    /// While the pointer is on the shelf, the panel takes key presses (without activating
+    /// Meniscus) so Space can open Quick Look, as in Finder.
+    private func updateShelfKeyboard(pointerIsInside: Bool) {
+        guard !CaptureController.shared.isActive else { return }
+        var isShelf = false
+        if case .shelf = state.content { isShelf = true }
+        if pointerIsInside && state.isExpanded && isShelf {
+            guard !panel.isKeyWindow else { return }
+            panel.allowsKey = true
+            panel.makeKey()
+        } else if panel.allowsKey {
+            panel.allowsKey = false
+            if panel.isKeyWindow { panel.resignKey() }
+        }
+    }
+
+    private func handleKeyDown(_ event: NSEvent) -> Bool {
+        guard !CaptureController.shared.isActive,
+              Int(event.keyCode) == kVK_Space,
+              event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty
+        else { return false }
+        return ShelfController.shared.toggleQuickLookForHoveredItem()
     }
 
     // MARK: File drags
 
-    private func fileDragChanged(isTargeted: Bool) {
-        if isTargeted {
-            ShelfController.shared.isDropTargeted = true
-            // Size the island for the shelf before it opens, not after.
-            applyContent(currentContent())
-            expand(pinned: true)
+    /// A file drag somewhere on screen; `nil` when it ended. Near the notch the island opens as a
+    /// large drop target; away from it, or once the drag ends without a drop here, it closes.
+    private func fileDragMoved(to location: CGPoint?) {
+        let shelf = ShelfController.shared
+        guard let location else {
+            guard shelf.isDragApproaching else { return }
+            shelf.isDragApproaching = false
+            settleAfterFileDrag()
             return
         }
-        ShelfController.shared.isDropTargeted = false
-        // The drag may just be moving from the notch into the island. Tracking areas don't
-        // report the pointer during a drag, so check where it ended up once things settle.
+        let isNear = state.layout.isNearDropZone(location, isOpen: shelf.isDragApproaching)
+        guard isNear != shelf.isDragApproaching else { return }
+        shelf.isDragApproaching = isNear
+        if isNear {
+            openDropTarget()
+        } else {
+            settleAfterFileDrag()
+        }
+    }
+
+    /// A file drag entered (`true`) or left (`false`) the notch or the island.
+    private func fileDragChanged(isTargeted: Bool) {
+        ShelfController.shared.isDropTargeted = isTargeted
+        if isTargeted {
+            openDropTarget()
+        } else {
+            settleAfterFileDrag()
+        }
+    }
+
+    private func openDropTarget() {
+        // Size the island for the drop target before it opens, not after.
+        applyContent(currentContent())
+        expand(pinned: true)
+    }
+
+    /// Once no file drag is over or heading for the island: it stays open if the pointer is on
+    /// it (showing what was just dropped), and closes otherwise. Tracking areas don't report the
+    /// pointer during a drag, so this checks where it ended up once things settle.
+    private func settleAfterFileDrag() {
+        let shelf = ShelfController.shared
+        guard !shelf.isDropTargeted, !shelf.isDragApproaching, state.isExpanded else { return }
         pointerTask?.cancel()
         pointerTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(400))
-            guard !Task.isCancelled, let self, !ShelfController.shared.isDropTargeted else { return }
+            let shelf = ShelfController.shared
+            guard !Task.isCancelled, let self, !shelf.isDropTargeted, !shelf.isDragApproaching else { return }
             let islandRect = self.state.layout.interactiveScreenRect(for: .expanded, content: self.state.content)
             if islandRect.contains(NSEvent.mouseLocation) {
                 self.isPinned = false
                 self.container.resetTracking(pointerIsInside: true)
+                self.updateShelfKeyboard(pointerIsInside: true)
             } else {
                 self.collapse()
             }
