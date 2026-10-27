@@ -44,7 +44,6 @@ struct GeneralSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-        }
             Section {
                 LabeledContent("mediaremote-adapter") {
                     Button("License") { Acknowledgements.open("mediaremote-adapter-LICENSE") }
