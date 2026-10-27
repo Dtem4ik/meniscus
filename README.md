@@ -175,8 +175,9 @@ it is stored in this repository.
 ## Pages
 
 While something plays, or files are on the shelf, the open island has pages: the player, the
-shelf and the home view (time, date, next event, modes). It opens on the player while something
-plays, otherwise on the home view. Swipe left or
+shelf and the home view (time, date, next event, modes). It opens on the page you looked at
+last, unless something newer happened: a new track opens the player, dropped files the shelf. If
+that page is gone (the shelf was cleared, the music stopped), it opens on the home view. Swipe left or
 right with two fingers on the trackpad to turn pages, or click the small dots at the bottom; the
 dots only show when there is more than one page.
 

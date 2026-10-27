@@ -10,15 +10,10 @@ struct IslandPagesTests {
         #expect(IslandPages.available(isPlaying: false, hasShelfItems: true) == [.shelf, .home])
     }
 
-    @Test func islandOpensOnThePlayer() {
-        #expect(IslandPages.defaultPage(in: [.nowPlaying, .home]) == .nowPlaying)
-        #expect(IslandPages.defaultPage(in: [.nowPlaying, .shelf, .home]) == .nowPlaying)
-        #expect(IslandPages.defaultPage(in: [.shelf, .home]) == .home)
-    }
-
-    @Test func vanishedPageFallsBackToTheDefault() {
-        #expect(IslandPages.resolve(.shelf, in: [.nowPlaying, .home]) == .nowPlaying)
-        #expect(IslandPages.resolve(.home, in: [.nowPlaying, .home]) == .home)
+    @Test func vanishedPageFallsBackToHome() {
+        #expect(IslandPages.resolve(.shelf, in: [.nowPlaying, .home]) == .home)
+        #expect(IslandPages.resolve(.nowPlaying, in: [.shelf, .home]) == .home)
+        #expect(IslandPages.resolve(.shelf, in: [.nowPlaying, .shelf, .home]) == .shelf)
     }
 
     @Test func turningStopsAtTheEnds() {
@@ -27,6 +22,35 @@ struct IslandPagesTests {
         #expect(IslandPages.page(from: .shelf, by: -1, in: pages) == .nowPlaying)
         #expect(IslandPages.page(from: .nowPlaying, by: -1, in: pages) == nil)
         #expect(IslandPages.page(from: .home, by: 1, in: pages) == nil)
+    }
+}
+
+struct IslandPageMemoryTests {
+    private let all: [IslandPage] = [.nowPlaying, .shelf, .home]
+
+    @Test func opensOnTheLastPageLookedAt() {
+        var memory = IslandPageMemory()
+        #expect(memory.pageToOpen(in: all) == .home)
+        memory.viewed(.shelf)
+        #expect(memory.pageToOpen(in: all) == .shelf)
+    }
+
+    @Test func newerEventsWin() {
+        var memory = IslandPageMemory()
+        memory.viewed(.home)
+        memory.request(.nowPlaying)
+        #expect(memory.pageToOpen(in: all) == .nowPlaying)
+        // Looking at another page afterwards settles it.
+        memory.viewed(.shelf)
+        #expect(memory.pageToOpen(in: all) == .shelf)
+    }
+
+    @Test func goneLastPageOpensHome() {
+        var memory = IslandPageMemory()
+        memory.viewed(.shelf)
+        #expect(memory.pageToOpen(in: [.nowPlaying, .home]) == .home)
+        memory.request(.nowPlaying)
+        #expect(memory.pageToOpen(in: [.home]) == .home)
     }
 }
 

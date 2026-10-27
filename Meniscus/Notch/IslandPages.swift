@@ -22,20 +22,39 @@ nonisolated enum IslandPages {
         (isPlaying ? [.nowPlaying] : []) + (hasShelfItems ? [.shelf] : []) + [.home]
     }
 
-    /// The page the island opens on: the player while something plays, otherwise the home view.
-    static func defaultPage(in pages: [IslandPage]) -> IslandPage {
-        pages.contains(.nowPlaying) ? .nowPlaying : .home
-    }
-
-    /// `page` if it is still there, otherwise the default.
+    /// `page` if it is still there (the shelf may have been cleared, the music gone), otherwise
+    /// the home view, which always is.
     static func resolve(_ page: IslandPage, in pages: [IslandPage]) -> IslandPage {
-        pages.contains(page) ? page : defaultPage(in: pages)
+        pages.contains(page) ? page : .home
     }
 
     /// The page `offset` places away, or `nil` past either end.
     static func page(from page: IslandPage, by offset: Int, in pages: [IslandPage]) -> IslandPage? {
         guard let index = pages.firstIndex(of: page), pages.indices.contains(index + offset) else { return nil }
         return pages[index + offset]
+    }
+}
+
+/// Which page the island opens on: the last one looked at, unless something newer happened
+/// since (a new track wants the player, dropped files want the shelf). Pure, so it is unit tested.
+nonisolated struct IslandPageMemory: Equatable, Sendable {
+    private(set) var lastViewed: IslandPage = .home
+    /// Asked for by an event since the island was last looked at.
+    private(set) var requested: IslandPage?
+
+    /// The island shows `page` (opened on it, swiped or clicked to it).
+    mutating func viewed(_ page: IslandPage) {
+        lastViewed = page
+        requested = nil
+    }
+
+    /// Something happened that the island should show next time it opens.
+    mutating func request(_ page: IslandPage) {
+        requested = page
+    }
+
+    func pageToOpen(in pages: [IslandPage]) -> IslandPage {
+        IslandPages.resolve(requested ?? lastViewed, in: pages)
     }
 }
 

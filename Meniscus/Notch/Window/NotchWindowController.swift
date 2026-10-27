@@ -34,6 +34,9 @@ final class NotchWindowController {
     private var isOpenForFileDrag = false
     private var didDropFiles = false
     private var pageSwipe = PageSwipeTracker()
+    private var pageMemory = IslandPageMemory()
+    /// The track last seen in Now Playing; a different one asks for the player page.
+    private var lastTrack: String?
     private var scrollMonitor: Any?
 
     init(settings: AppSettings) {
@@ -107,6 +110,7 @@ final class NotchWindowController {
         observeShelfSetting()
         observeActivities()
         observeContent()
+        observeTrack()
         refreshGeometry()
     }
 
@@ -126,8 +130,10 @@ final class NotchWindowController {
         guard !state.isExpanded else { return }
         transitionID += 1
 
-        // Every opening starts on the player while something plays, otherwise on the home view.
-        state.page = IslandPages.defaultPage(in: state.pages)
+        // The last page looked at, or what something newer asks for.
+        let page = pageMemory.pageToOpen(in: currentChoice().pages)
+        state.page = page
+        pageMemory.viewed(page)
         applyChoice(currentChoice())
 
         panel.ignoresMouseEvents = false
@@ -297,6 +303,20 @@ final class NotchWindowController {
         return ContentChoice(content: content, pages: pages, page: page)
     }
 
+    /// A new track asks for the player page the next time the island opens. Pausing, resuming
+    /// or a short gap between tracks is not a new track.
+    private func observeTrack() {
+        let track = withObservationTracking {
+            ActivityServices.shared.nowPlaying.current.map { "\($0.title)\u{1F}\($0.artist ?? "")" }
+        } onChange: { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in self.observeTrack() }
+        }
+        guard let track, track != lastTrack else { return }
+        lastTrack = track
+        pageMemory.request(.nowPlaying)
+    }
+
     private func observeContent() {
         let choice = withObservationTracking {
             currentChoice()
@@ -338,6 +358,7 @@ final class NotchWindowController {
         else { return }
         state.pageMovesForward = to > from
         state.page = page
+        pageMemory.viewed(page)
         applyChoice(currentChoice())
         if settings.hapticsEnabled {
             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
@@ -416,6 +437,7 @@ final class NotchWindowController {
             let pages = currentChoice().pages
             state.pageMovesForward = (pages.firstIndex(of: .shelf) ?? 0) > (pages.firstIndex(of: state.page) ?? 0)
             state.page = .shelf
+            pageMemory.viewed(.shelf)
         }
         fileDragChanged(isTargeted: false)
     }
