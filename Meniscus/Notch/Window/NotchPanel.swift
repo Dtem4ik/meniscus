@@ -41,6 +41,9 @@ final class NotchContainerView: NSView {
     var onHoverChange: ((Bool) -> Void)?
     /// Clicks that reach this view itself (not a SwiftUI subview).
     var onClick: (() -> Void)?
+    /// File drags over this view, once `acceptFileDrops()` was called.
+    var onFileDragChange: ((Bool) -> Void)?
+    var onFileDrop: (([URL]) -> Void)?
 
     /// In this view's coordinates.
     var interactiveRect: CGRect = .zero {
@@ -97,6 +100,36 @@ final class NotchContainerView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         if let onClick { onClick() } else { super.mouseDown(with: event) }
+    }
+
+    // MARK: File drops
+
+    func acceptFileDrops() {
+        registerForDraggedTypes([.fileURL])
+    }
+
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        guard !fileURLs(in: sender).isEmpty else { return [] }
+        onFileDragChange?(true)
+        return .copy
+    }
+
+    override func draggingExited(_ sender: (any NSDraggingInfo)?) {
+        onFileDragChange?(false)
+    }
+
+    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        let urls = fileURLs(in: sender)
+        guard !urls.isEmpty else { return false }
+        onFileDrop?(urls)
+        return true
+    }
+
+    private func fileURLs(in info: any NSDraggingInfo) -> [URL] {
+        info.draggingPasteboard.readObjects(
+            forClasses: [NSURL.self],
+            options: [.urlReadingFileURLsOnly: true]
+        ) as? [URL] ?? []
     }
 }
 
