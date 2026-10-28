@@ -98,7 +98,7 @@ nonisolated enum APILimits {
     }
 }
 
-extension APIRequest {
+nonisolated extension APIRequest {
     /// Decodes one socket message (a JSON object). Unknown fields are ignored; an unknown state
     /// is `info`; an unknown action is dropped.
     static func decode(_ object: [String: Any], trusted: Bool) throws(APIError) -> APIRequest {
