@@ -4,45 +4,51 @@ import Testing
 @testable import Meniscus
 
 struct TrackChangeDetectorTests {
+    /// `#expect` can't call a mutating method on a local value, so the tests use a reference.
+    private final class Detector {
+        var value = TrackChangeDetector()
+        func check(_ info: NowPlayingInfo?) -> Bool { value.check(info) }
+    }
+
     private func track(_ title: String, artist: String = "Artist", playing: Bool = true) -> NowPlayingInfo {
         NowPlayingInfo(title: title, artist: artist, isPlaying: playing)
     }
 
     @Test func musicAlreadyPlayingAtStartIsNotAChange() {
-        var detector = TrackChangeDetector()
+        let detector = Detector()
         #expect(!detector.check(track("One")))
     }
 
     @Test func aNewTrackIsAChange() {
-        var detector = TrackChangeDetector()
+        let detector = Detector()
         _ = detector.check(track("One"))
         #expect(detector.check(track("Two")))
         #expect(!detector.check(track("Two")))
     }
 
     @Test func resumingTheSameTrackIsNot() {
-        var detector = TrackChangeDetector()
+        let detector = Detector()
         _ = detector.check(track("One"))
         #expect(!detector.check(track("One", playing: false)))
         #expect(!detector.check(track("One", playing: true)))
     }
 
     @Test func aDropoutBetweenReportsIsNot() {
-        var detector = TrackChangeDetector()
+        let detector = Detector()
         _ = detector.check(track("One"))
         #expect(!detector.check(nil))
         #expect(!detector.check(track("One")))
     }
 
     @Test func aTrackPickedWhilePausedIsAnnouncedWhenItPlays() {
-        var detector = TrackChangeDetector()
+        let detector = Detector()
         _ = detector.check(track("One"))
         #expect(!detector.check(track("Two", playing: false)))
         #expect(detector.check(track("Two", playing: true)))
     }
 
     @Test func quickSkipsAreEachAChange() {
-        var detector = TrackChangeDetector()
+        let detector = Detector()
         _ = detector.check(track("One"))
         #expect(detector.check(track("Two")))
         #expect(detector.check(track("Three")))
@@ -50,7 +56,7 @@ struct TrackChangeDetectorTests {
     }
 
     @Test func sameTitleByAnotherArtistIsAChange() {
-        var detector = TrackChangeDetector()
+        let detector = Detector()
         _ = detector.check(track("Intro", artist: "A"))
         #expect(detector.check(track("Intro", artist: "B")))
     }
