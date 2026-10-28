@@ -551,6 +551,16 @@
         }
       }
     },
+    "Headphones": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Наушники"
+          }
+        }
+      }
+    },
     "Hide from screenshots and screen sharing": {
       "localizations": {
         "ru": {
@@ -907,6 +917,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сейчас · до %@"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Откл."
+          }
+        }
+      }
+    },
+    "On": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вкл."
           }
         }
       }
@@ -1281,12 +1311,12 @@
         }
       }
     },
-    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen.": {
+    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, headphones connecting with their battery. They stay hidden while an app is in full screen.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись. Пока приложение развёрнуто на весь экран, они не показываются."
+            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись, подключение наушников с их зарядом. Пока приложение развёрнуто на весь экран, они не показываются."
           }
         }
       }
@@ -1397,6 +1427,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Имитировать зарядку"
+          }
+        }
+      }
+    },
+    "Simulate Headphones": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать наушники"
           }
         }
       }

@@ -73,6 +73,10 @@ struct CompactSlot: View {
             CompactSymbol(name: "keyboard")
         case .captureSaved:
             CompactSymbol(name: "checkmark.circle.fill", color: .green)
+        case .headphones:
+            let event = ActivityServices.shared.headphonesEvent
+            CompactSymbol(name: event?.symbol ?? "headphones", color: event?.isConnected == false ? .white.opacity(0.5) : .white)
+                .contentTransition(.symbolEffect(.replace))
         }
     }
 
@@ -117,7 +121,35 @@ struct CompactSlot: View {
                 CompactValue(text: String(localized: "Saved"))
                 CompactValue(text: "✓")
             }
+        case .headphones:
+            HeadphonesValue(event: ActivityServices.shared.headphonesEvent)
         }
+    }
+}
+
+/// The lower bud's battery once it is read; until then, or if the system doesn't report it, the
+/// name, shortened rather than cut.
+private struct HeadphonesValue: View {
+    let event: HeadphonesEvent?
+
+    var body: some View {
+        Group {
+            if let event {
+                if !event.isConnected {
+                    CompactValue(text: String(localized: "Off"), color: .white.opacity(0.6))
+                } else if let level = event.battery?.lowest {
+                    CompactValue(text: CompactText.percent(level), color: level <= 10 ? .red : .white)
+                } else {
+                    ViewThatFits(in: .horizontal) {
+                        ForEach(CompactText.headphonesNames(event.name), id: \.self) { name in
+                            CompactValue(text: name)
+                        }
+                    }
+                }
+            }
+        }
+        .contentTransition(.opacity)
+        .accessibilityLabel(Text(event?.name ?? ""))
     }
 }
 
@@ -147,6 +179,15 @@ enum CompactText {
 
     private static func minutesText(_ minutes: Int) -> String {
         String(localized: "\(minutes) min")
+    }
+
+    /// The device name, then shorter forms to fall back on: the family ("AirPods"), then "On".
+    static func headphonesNames(_ name: String) -> [String] {
+        var names = [String]()
+        if !name.isEmpty { names.append(name) }
+        if let family = HeadphonesSymbol.family(for: name), family != name { names.append(family) }
+        names.append(String(localized: "On"))
+        return names
     }
 
     /// "6 min" before the meeting, "now" when it starts.

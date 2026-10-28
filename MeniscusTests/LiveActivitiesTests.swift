@@ -177,6 +177,7 @@ struct LiveActivitySettingsTests {
         #expect(settings.showCharging)
         #expect(settings.showInputSource)
         #expect(settings.showCaptureConfirmation)
+        #expect(settings.showHeadphones)
         #expect(settings.hideFromScreenCapture)
     }
 }
@@ -204,6 +205,7 @@ struct CompactWingTests {
         "EN", "РУ", "УК", "DE",                        // keyboard layout
         "Saved", "Сохранено",                          // quick capture
         "12",                                          // shelf
+        "Off", "Откл.", "On", "Вкл.", "AirPods",       // headphones
     ])
     func valueFitsItsSide(text: String) {
         let layout = layout()
@@ -246,6 +248,14 @@ struct NoActivityHangsTests {
         } else {
             Issue.record("The meeting reminder never ends")
         }
+    }
+
+    @Test func headphonesSimulationEndsByItself() {
+        let services = ActivityServices()
+        services.simulateHeadphones()
+        #expect(services.center.current?.kind == .headphones)
+        #expect(services.center.current?.expiresAt != nil)
+        #expect(services.headphonesEvent?.symbol == "airpodspro")
     }
 
     @Test func lowerActivitiesShowAfterAHigherOneEnds() async throws {

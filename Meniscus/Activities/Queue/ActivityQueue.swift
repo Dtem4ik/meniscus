@@ -17,6 +17,8 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
         case inputSource
         /// A quick capture was saved.
         case captureSaved
+        /// Headphones connected or disconnected.
+        case headphones
     }
 
     /// Higher wins. Short activities outrank music; when they end, music comes back.

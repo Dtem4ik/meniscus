@@ -70,6 +70,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         developer.addItem(item(String(localized: "Simulate Upcoming Meeting")) {
             ActivityServices.shared.calendar.simulateStartingSoon()
         })
+        developer.addItem(item(String(localized: "Simulate Headphones")) {
+            ActivityServices.shared.simulateHeadphones()
+        })
         developer.addItem(.separator())
         slowAnimationsItem = addAction(to: developer, String(localized: "Slow Animations")) { [settings] in
             settings.slowAnimations.toggle()

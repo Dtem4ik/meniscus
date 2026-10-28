@@ -13,6 +13,7 @@ final class ActivityServices {
     let nowPlaying = NowPlayingService()
     let inputSource = InputSourceMonitor()
     let presentation = PresentationGuard()
+    let headphones = HeadphonesMonitor()
 
     /// Battery level shown by the charging activity.
     private(set) var chargingLevel: Int?
@@ -23,6 +24,8 @@ final class ActivityServices {
     /// The event the meeting reminder is about, and whether it is about to start or starting.
     private(set) var meetingEvent: CalendarEventSnapshot?
     private(set) var meetingMoment: MeetingReminder.Moment = .soon
+    /// The headphones that just connected or disconnected.
+    private(set) var headphonesEvent: HeadphonesEvent?
 
     /// How long the charging activity stays in the notch after the charger is connected.
     static let chargingActivityDuration: TimeInterval = 4
@@ -30,14 +33,19 @@ final class ActivityServices {
     static let inputSourceActivityDuration: TimeInterval = 1.2
     static let captureSavedActivityDuration: TimeInterval = 1.6
     static let meetingActivityDuration: TimeInterval = 5
+    static let headphonesActivityDuration: TimeInterval = 4
+    /// A battery reading later than this after the connection is old news and is dropped.
+    static let headphonesBatteryWindow: TimeInterval = 8
 
     @ObservationIgnored private let logger = Logger.power
     @ObservationIgnored private var lowBatteryWarnings = LowBatteryWarnings()
     @ObservationIgnored private var settings: AppSettings = .shared
+    @ObservationIgnored private var headphonesConnectedAt: Date?
 
     init() {
         // Wired here rather than in start(), so the Developer simulations (and tests) work too.
         calendar.onMeetingMoment = { [weak self] event, moment in self?.showMeeting(event, moment) }
+        headphones.onEvent = { [weak self] event in self?.showHeadphones(event) }
     }
 
     func start(settings: AppSettings) {
@@ -49,6 +57,7 @@ final class ActivityServices {
         updateCalendar(settings: settings)
         inputSource.onChange = { [weak self] label in self?.showInputSource(label) }
         updateInputSource(settings: settings)
+        updateHeadphones(settings: settings)
         presentation.start()
 
         nowPlaying.onChange = { [weak self] info in
@@ -86,6 +95,29 @@ final class ActivityServices {
         if settings.showInputSource { inputSource.start() } else { inputSource.stop() }
     }
 
+    /// Bluetooth is asked for only while the headphones activity is on.
+    func updateHeadphones(settings: AppSettings) {
+        if settings.showHeadphones {
+            headphones.start()
+        } else {
+            headphones.stop()
+            center.remove(id: ActivityID.headphones)
+        }
+    }
+
+    /// Developer menu: AirPods Pro connecting, then their battery a moment later, like the real
+    /// thing.
+    func simulateHeadphones() {
+        let event = HeadphonesEvent(name: "AirPods Pro", address: "", isConnected: true)
+        showHeadphones(event)
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1.5))
+            var withBattery = event
+            withBattery.battery = HeadphonesBattery(left: 80, right: 75, case: 60)
+            self?.showHeadphones(withBattery)
+        }
+    }
+
     /// Shown after a quick capture is saved.
     func showCaptureSaved() {
         guard settings.showCaptureConfirmation else { return }
@@ -115,6 +147,21 @@ final class ActivityServices {
         lowBatteryLevel = level
         center.postTransient(id: ActivityID.lowBattery, kind: .lowBattery, duration: Self.lowBatteryActivityDuration, priority: .lowBattery)
         playHaptic()
+    }
+
+    private func showHeadphones(_ event: HeadphonesEvent) {
+        guard settings.showHeadphones else { return }
+        let date = Date()
+        if event.isConnected, event.battery != nil {
+            // The battery comes in after the connection; late readings would just repeat it.
+            guard let connectedAt = headphonesConnectedAt,
+                  date.timeIntervalSince(connectedAt) < Self.headphonesBatteryWindow,
+                  headphonesEvent?.address == event.address else { return }
+        } else {
+            headphonesConnectedAt = event.isConnected ? date : nil
+        }
+        headphonesEvent = event
+        center.postTransient(id: ActivityID.headphones, kind: .headphones, duration: Self.headphonesActivityDuration, priority: .confirmation)
     }
 
     private func showInputSource(_ label: String) {
@@ -161,6 +208,7 @@ nonisolated enum ActivityID {
     static let meeting = "meeting"
     static let inputSource = "input-source"
     static let captureSaved = "capture-saved"
+    static let headphones = "headphones"
 }
 
 extension Logger {

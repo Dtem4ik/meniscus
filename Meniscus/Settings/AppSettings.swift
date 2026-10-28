@@ -32,6 +32,7 @@ nonisolated enum SettingsKey {
     static let showCharging = "activities.charging"
     static let showInputSource = "activities.inputSource"
     static let showCaptureConfirmation = "activities.captureSaved"
+    static let showHeadphones = "activities.headphones"
     static let hideFromScreenCapture = "hideFromScreenCapture"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
@@ -86,6 +87,9 @@ final class AppSettings {
     var showCaptureConfirmation: Bool {
         didSet { defaults.set(showCaptureConfirmation, forKey: SettingsKey.showCaptureConfirmation) }
     }
+    var showHeadphones: Bool {
+        didSet { defaults.set(showHeadphones, forKey: SettingsKey.showHeadphones) }
+    }
     /// Leaves the island out of screenshots, recordings and screen sharing, where the system
     /// honors it. macOS can't tell apps when the screen is being shared, so this is the way to
     /// keep live activities out of a presentation.
@@ -116,6 +120,7 @@ final class AppSettings {
             SettingsKey.showCharging: true,
             SettingsKey.showInputSource: true,
             SettingsKey.showCaptureConfirmation: true,
+            SettingsKey.showHeadphones: true,
             SettingsKey.hideFromScreenCapture: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
@@ -131,6 +136,7 @@ final class AppSettings {
         showCharging = defaults.bool(forKey: SettingsKey.showCharging)
         showInputSource = defaults.bool(forKey: SettingsKey.showInputSource)
         showCaptureConfirmation = defaults.bool(forKey: SettingsKey.showCaptureConfirmation)
+        showHeadphones = defaults.bool(forKey: SettingsKey.showHeadphones)
         hideFromScreenCapture = defaults.bool(forKey: SettingsKey.hideFromScreenCapture)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)
