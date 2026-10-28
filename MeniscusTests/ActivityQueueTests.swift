@@ -100,19 +100,6 @@ struct ActivityQueueTests {
         #expect(queue.nextExpiration(after: t0.addingTimeInterval(3)) == t0.addingTimeInterval(8))
         #expect(queue.nextExpiration(after: t0.addingTimeInterval(8)) == nil)
     }
-}
-
-@MainActor
-struct ActivityCenterTests {
-    @Test func transientActivityIsCurrentUntilItExpires() async throws {
-        let center = ActivityCenter()
-        center.post(LiveActivity(id: "music", kind: .nowPlaying, priority: .ongoing, updatedAt: .now, expiresAt: nil))
-        center.postTransient(id: "charging", kind: .charging, duration: 0.2, priority: .charging)
-        #expect(center.current?.id == "charging")
-        try await Task.sleep(for: .milliseconds(600))
-        #expect(center.current?.id == "music")
-    }
-
     @Test func aWaitingNoticeGetsItsFullTimeOnceShown() {
         var queue = ActivityQueue()
         queue.post(activity("meeting", .meeting, expires: 5))
@@ -151,5 +138,17 @@ struct ActivityCenterTests {
         #expect(queue.current(at: t0)?.id == "first")
         queue.remove(id: "first")
         #expect(queue.current(at: t0)?.id == "second")
+    }
+}
+
+@MainActor
+struct ActivityCenterTests {
+    @Test func transientActivityIsCurrentUntilItExpires() async throws {
+        let center = ActivityCenter()
+        center.post(LiveActivity(id: "music", kind: .nowPlaying, priority: .ongoing, updatedAt: .now, expiresAt: nil))
+        center.postTransient(id: "charging", kind: .charging, duration: 0.2, priority: .charging)
+        #expect(center.current?.id == "charging")
+        try await Task.sleep(for: .milliseconds(600))
+        #expect(center.current?.id == "music")
     }
 }
