@@ -73,7 +73,7 @@ struct MeniscusFocusFilter: SetFocusFilterIntent {
 
     func perform() async throws -> some IntentResult {
         Logger.focus.notice("Focus filter performed: \(kind?.rawValue ?? "off", privacy: .public)")
-        ActivityServices.shared.focusFilterPerformed(kind: kind, name: name)
+        await ActivityServices.shared.focusFilterPerformed(kind: kind, name: name)
         return .result()
     }
 }
