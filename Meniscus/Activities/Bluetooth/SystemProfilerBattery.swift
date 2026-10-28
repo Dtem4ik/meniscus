@@ -22,17 +22,22 @@ nonisolated enum SystemProfilerBattery {
         return battery.isEmpty ? nil : battery
     }
 
-    /// Every `device_batteryLevel…` key: Left, Right and Case for earbuds, Main or no suffix for
-    /// a single level.
+    /// Every key that names a battery (`device_batteryLevelMain`, `device_batteryLevel`,
+    /// `device_batteryPercentCombined`, `Battery Level`, …): Left, Right and Case for earbuds,
+    /// anything else as the single level.
     static func battery(of info: [String: Any]) -> DeviceBattery {
         var battery = DeviceBattery()
-        for (key, value) in info where key.hasPrefix(batteryPrefix) {
-            guard let level = level(value) else { continue }
-            switch key.dropFirst(batteryPrefix.count).lowercased() {
-            case "left": battery.left = level
-            case "right": battery.right = level
-            case "case": battery.case = level
-            default: battery.main = battery.main ?? level
+        for key in info.keys.sorted() where key.lowercased().contains("battery") {
+            guard let level = level(info[key]) else { continue }
+            let name = key.lowercased()
+            if name.contains("left") {
+                battery.left = level
+            } else if name.contains("right") {
+                battery.right = level
+            } else if name.contains("case") {
+                battery.case = level
+            } else {
+                battery.main = battery.main ?? level
             }
         }
         return battery
@@ -53,8 +58,6 @@ nonisolated enum SystemProfilerBattery {
         visitDevices(in: root, connected: nil) { devices.append(Device(name: $0, info: $1, isConnected: $2 ?? false)) }
         return devices
     }
-
-    private static let batteryPrefix = "device_batteryLevel"
 
     /// Connected devices only: a paired device that isn't connected has no live level.
     private static func device(in data: Data, address: String, name: String) -> [String: Any]? {

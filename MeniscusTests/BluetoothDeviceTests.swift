@@ -240,6 +240,9 @@ struct SystemProfilerLeniencyTests {
         #expect(SystemProfilerBattery.parse(data, address: "aa-bb-cc-dd-ee-05", name: "")?.lowest == 75)
         #expect(SystemProfilerBattery.parse(data, address: "", name: "MAJOR V")?.lowest == 81)
         #expect(SystemProfilerBattery.parse(data, address: "", name: "") == nil)
+        #expect(SystemProfilerBattery.battery(of: ["device_batteryPercentCombined": "64%"]).lowest == 64)
+        #expect(SystemProfilerBattery.battery(of: ["Left Battery Level": "70%", "Right Battery Level": "72%"]).lowest == 70)
+        #expect(SystemProfilerBattery.battery(of: ["device_minorType": "Mouse"]).isEmpty)
     }
 }
 

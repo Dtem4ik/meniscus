@@ -50,13 +50,13 @@ nonisolated enum BluetoothDiagnostics {
 
     /// `key=value` pairs, sorted; the address masked. `all` false keeps the type and battery keys.
     private static func fields(_ info: [String: Any], all: Bool) -> String {
-        let keys = info.keys.sorted().filter { all || $0.hasPrefix("device_battery") || $0 == "device_minorType" }
+        let keys = info.keys.sorted().filter { all || $0.lowercased().contains("battery") || $0 == "device_minorType" }
         let pairs = keys.map { key -> String in
             let isIdentifier = key == "device_address" || key.lowercased().contains("serial")
             let value = isIdentifier ? masked(info[key].map { value in "\(value)" }) : info[key].map { value in "\(value)" } ?? ""
             return "\(key)=\(value)"
         }
-        let battery = info.keys.contains { $0.hasPrefix("device_battery") } ? "" : " (no battery keys)"
+        let battery = info.keys.contains { $0.lowercased().contains("battery") } ? "" : " (no battery keys)"
         return pairs.joined(separator: ", ") + battery
     }
 
