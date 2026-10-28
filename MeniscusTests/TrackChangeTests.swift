@@ -92,11 +92,13 @@ struct TrackBannerTests {
         #expect((services.center.current?.expiresAt ?? .distantPast) >= (first?.expiresAt ?? .distantFuture))
     }
 
-    @Test func artworkIsRoundedLikeThePlayers() {
+    @Test func cornersAreConcentricWithTheIsland() {
         let metrics = IslandMetrics.standard
-        #expect(metrics.artworkCornerRadius(forSize: metrics.playerArtworkSize) == metrics.playerArtworkCornerRadius)
-        #expect(metrics.artworkCornerRadius(forSize: 30) < metrics.playerArtworkCornerRadius)
-        #expect(metrics.bannerArtworkFallbackSize < metrics.bannerContentHeight)
+        #expect(IslandMetrics.concentricRadius(outer: 22, inset: 14) == 8)
+        #expect(IslandMetrics.concentricRadius(outer: 10, inset: 14) == 4)
+        #expect(metrics.bannerLeadingCornerRadius == metrics.bannerBottomRadius - metrics.bannerHorizontalPadding)
+        #expect(metrics.playerArtworkCornerRadius == metrics.expandedBottomRadius - metrics.playerHorizontalPadding)
+        #expect(metrics.bannerLeadingFallbackSize < metrics.bannerContentHeight)
     }
 
     @Test func bannerKindRestsInTheBanner() {

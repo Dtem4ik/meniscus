@@ -38,7 +38,7 @@ struct NowPlayingView: View {
                 controls(isPlaying: info.isPlaying)
                     .padding(.top, 2)
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, metrics.playerHorizontalPadding)
             .padding(.top, 6)
             .frame(maxHeight: .infinity, alignment: .top)
         }

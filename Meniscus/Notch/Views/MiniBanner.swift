@@ -12,14 +12,10 @@ struct MiniBanner: Equatable {
     var trailing: Trailing?
 
     enum Leading: Equatable {
+        /// A symbol on a soft tile.
         case symbol(String, color: Color = .white)
-        /// An album cover as tall as both lines of text, rounded like the player's; a note until
-        /// it arrives.
+        /// An album cover; a note on the same tile until it arrives.
         case artwork(NSImage?)
-
-        var isArtwork: Bool {
-            if case .artwork = self { true } else { false }
-        }
     }
 
     enum Trailing: Equatable {
@@ -32,17 +28,14 @@ struct MiniBanner: Equatable {
 struct MiniBannerView: View {
     let banner: MiniBanner
     let metrics: IslandMetrics
-    /// The title and second line together, for artwork as tall as both.
+    /// The title and second line together: the tile on the left is as tall as both.
     @State private var textHeight: CGFloat?
 
-    private var leadingSize: CGFloat {
-        banner.leading.isArtwork ? (textHeight ?? metrics.bannerArtworkFallbackSize) : metrics.bannerLeadingSize
-    }
+    private var leadingSize: CGFloat { textHeight ?? metrics.bannerLeadingFallbackSize }
 
     var body: some View {
         HStack(spacing: metrics.bannerSpacing) {
-            leading
-                .frame(width: leadingSize, height: leadingSize)
+            leadingTile
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: banner.title)
@@ -72,33 +65,32 @@ struct MiniBannerView: View {
         .accessibilityElement(children: .combine)
     }
 
-    @ViewBuilder
-    private var leading: some View {
-        switch banner.leading {
-        case .symbol(let name, let color):
-            Image(systemName: name)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(color)
-                .accessibilityHidden(true)
-        case .artwork(let image):
-            ZStack {
-                if let image {
-                    Image(nsImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .transition(.opacity)
-                } else {
-                    Image(systemName: "music.note")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.5))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(.white.opacity(0.1))
-                        .transition(.opacity)
-                }
+    /// One square tile for every kind of leading content, framed before it is clipped (artwork
+    /// fills past its frame), with the island's concentric corner radius: artwork and the
+    /// placeholder note are rounded alike.
+    private var leadingTile: some View {
+        ZStack {
+            Color.white.opacity(0.1)
+            switch banner.leading {
+            case .symbol(let name, let color):
+                Image(systemName: name)
+                    .font(.system(size: leadingSize * 0.5, weight: .medium))
+                    .foregroundStyle(color)
+            case .artwork(let image?):
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .transition(.opacity)
+            case .artwork(nil):
+                Image(systemName: "music.note")
+                    .font(.system(size: leadingSize * 0.45, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .transition(.opacity)
             }
-            .clipShape(RoundedRectangle(cornerRadius: metrics.artworkCornerRadius(forSize: leadingSize), style: .continuous))
-            .accessibilityHidden(true)
         }
+        .frame(width: leadingSize, height: leadingSize)
+        .clipShape(RoundedRectangle(cornerRadius: metrics.bannerLeadingCornerRadius, style: .continuous))
+        .accessibilityHidden(true)
     }
 }
 

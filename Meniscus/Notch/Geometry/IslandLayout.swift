@@ -62,10 +62,9 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var bannerShoulderRadius: CGFloat = 8
     var bannerHorizontalPadding: CGFloat = 14
     var bannerSpacing: CGFloat = 10
-    /// The symbol on the left. Artwork instead takes the height of both lines of text.
-    var bannerLeadingSize: CGFloat = 26
-    /// Artwork's size until the text beside it has been measured.
-    var bannerArtworkFallbackSize: CGFloat = 30
+    /// The tile on the left (artwork, or a symbol) is as tall as both lines of text; this is
+    /// its size until the text has been measured.
+    var bannerLeadingFallbackSize: CGFloat = 30
     /// The battery ring on the right.
     var bannerRingDiameter: CGFloat = 26
     var bannerRingLineWidth: CGFloat = 2.5
@@ -83,14 +82,9 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var expandedBottomRadius: CGFloat = 30
     var expandedShoulderRadius: CGFloat = 12
 
-    /// The artwork in the open player, and its rounding; artwork elsewhere is rounded in the same
-    /// proportion.
+    /// The artwork in the open player, and the player's distance from the island's sides.
     var playerArtworkSize: CGFloat = 44
-    var playerArtworkCornerRadius: CGFloat = 9
-
-    func artworkCornerRadius(forSize size: CGFloat) -> CGFloat {
-        size * playerArtworkCornerRadius / playerArtworkSize
-    }
+    var playerHorizontalPadding: CGFloat = 18
 
     /// The player's area below the notch. Its width follows the rule above.
     var nowPlayingContentHeight: CGFloat = 126
@@ -123,6 +117,25 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var windowMargin: CGFloat = 28
 
     static let standard = IslandMetrics()
+
+    // MARK: Concentric corners
+
+    /// The radius of a corner set `inset` in from a corner of radius `outer`, so both curves
+    /// share a center, as macOS draws nested corners. Every rounded element that sits near the
+    /// island's edge takes its radius from here.
+    static func concentricRadius(outer: CGFloat, inset: CGFloat, minimum: CGFloat = 4) -> CGFloat {
+        max(outer - inset, minimum)
+    }
+
+    /// The tile on the left of a mini banner (artwork, a placeholder or a symbol).
+    var bannerLeadingCornerRadius: CGFloat {
+        Self.concentricRadius(outer: bannerBottomRadius, inset: bannerHorizontalPadding)
+    }
+
+    /// The artwork in the open player.
+    var playerArtworkCornerRadius: CGFloat {
+        Self.concentricRadius(outer: expandedBottomRadius, inset: playerHorizontalPadding)
+    }
 }
 
 /// Where the island and its window go for a given notch. Pure, so it is unit tested.
