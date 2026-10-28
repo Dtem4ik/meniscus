@@ -13,8 +13,13 @@ struct MiniBanner: Equatable {
 
     enum Leading: Equatable {
         case symbol(String, color: Color = .white)
-        /// A picture, like an album cover, with rounded corners.
-        case image(NSImage)
+        /// An album cover as tall as both lines of text, rounded like the player's; a note until
+        /// it arrives.
+        case artwork(NSImage?)
+
+        var isArtwork: Bool {
+            if case .artwork = self { true } else { false }
+        }
     }
 
     enum Trailing: Equatable {
@@ -27,11 +32,17 @@ struct MiniBanner: Equatable {
 struct MiniBannerView: View {
     let banner: MiniBanner
     let metrics: IslandMetrics
+    /// The title and second line together, for artwork as tall as both.
+    @State private var textHeight: CGFloat?
+
+    private var leadingSize: CGFloat {
+        banner.leading.isArtwork ? (textHeight ?? metrics.bannerArtworkFallbackSize) : metrics.bannerLeadingSize
+    }
 
     var body: some View {
         HStack(spacing: metrics.bannerSpacing) {
             leading
-                .frame(width: metrics.bannerLeadingSize, height: metrics.bannerLeadingSize)
+                .frame(width: leadingSize, height: leadingSize)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: banner.title)
@@ -45,6 +56,8 @@ struct MiniBannerView: View {
             }
             .lineLimit(1)
             .truncationMode(.tail)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height.rounded(.up) } action: { textHeight = $0 }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             if case .battery(let level) = banner.trailing {
@@ -67,12 +80,24 @@ struct MiniBannerView: View {
                 .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(color)
                 .accessibilityHidden(true)
-        case .image(let image):
-            Image(nsImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .clipShape(RoundedRectangle(cornerRadius: metrics.bannerLeadingCornerRadius, style: .continuous))
-                .accessibilityHidden(true)
+        case .artwork(let image):
+            ZStack {
+                if let image {
+                    Image(nsImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .transition(.opacity)
+                } else {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.5))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(.white.opacity(0.1))
+                        .transition(.opacity)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: metrics.artworkCornerRadius(forSize: leadingSize), style: .continuous))
+            .accessibilityHidden(true)
         }
     }
 }

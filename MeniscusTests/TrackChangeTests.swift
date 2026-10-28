@@ -67,7 +67,7 @@ struct TrackBannerTests {
     @Test func showsArtworkTitleAndArtistWithoutAnIndicator() {
         let image = NSImage(size: NSSize(width: 10, height: 10))
         let banner = MiniBanner.track(TrackBanner(title: "Song", artist: "Band", artwork: image))
-        #expect(banner.leading == .image(image))
+        #expect(banner.leading == .artwork(image))
         #expect(banner.title == "Song")
         #expect(banner.subtitle == "Band")
         #expect(banner.trailing == nil)
@@ -75,7 +75,7 @@ struct TrackBannerTests {
 
     @Test func aNoteUntilTheArtworkArrives() {
         let banner = MiniBanner.track(TrackBanner(title: "Song", artist: ""))
-        #expect(banner.leading == .symbol("music.note"))
+        #expect(banner.leading == .artwork(nil))
         #expect(banner.subtitle == nil)
     }
 
@@ -90,6 +90,13 @@ struct TrackBannerTests {
         #expect(services.center.current?.id == first?.id)
         #expect(services.trackBanner?.title != firstTitle)
         #expect((services.center.current?.expiresAt ?? .distantPast) >= (first?.expiresAt ?? .distantFuture))
+    }
+
+    @Test func artworkIsRoundedLikeThePlayers() {
+        let metrics = IslandMetrics.standard
+        #expect(metrics.artworkCornerRadius(forSize: metrics.playerArtworkSize) == metrics.playerArtworkCornerRadius)
+        #expect(metrics.artworkCornerRadius(forSize: 30) < metrics.playerArtworkCornerRadius)
+        #expect(metrics.bannerArtworkFallbackSize < metrics.bannerContentHeight)
     }
 
     @Test func bannerKindRestsInTheBanner() {

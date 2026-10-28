@@ -41,7 +41,7 @@ extension MiniBanner {
     /// The artwork on the left (a note until it arrives), title and artist; nothing on the right.
     static func track(_ track: TrackBanner) -> MiniBanner {
         MiniBanner(
-            leading: track.artwork.map { .image($0) } ?? .symbol("music.note"),
+            leading: .artwork(track.artwork),
             title: track.title,
             subtitle: track.artist.flatMap { $0.isEmpty ? nil : $0 },
             trailing: nil

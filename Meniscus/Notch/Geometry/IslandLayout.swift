@@ -62,9 +62,10 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var bannerShoulderRadius: CGFloat = 8
     var bannerHorizontalPadding: CGFloat = 14
     var bannerSpacing: CGFloat = 10
-    /// The symbol or picture on the left.
+    /// The symbol on the left. Artwork instead takes the height of both lines of text.
     var bannerLeadingSize: CGFloat = 26
-    var bannerLeadingCornerRadius: CGFloat = 6
+    /// Artwork's size until the text beside it has been measured.
+    var bannerArtworkFallbackSize: CGFloat = 30
     /// The battery ring on the right.
     var bannerRingDiameter: CGFloat = 26
     var bannerRingLineWidth: CGFloat = 2.5
@@ -81,6 +82,15 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var maximumContentHeight: CGFloat = 132
     var expandedBottomRadius: CGFloat = 30
     var expandedShoulderRadius: CGFloat = 12
+
+    /// The artwork in the open player, and its rounding; artwork elsewhere is rounded in the same
+    /// proportion.
+    var playerArtworkSize: CGFloat = 44
+    var playerArtworkCornerRadius: CGFloat = 9
+
+    func artworkCornerRadius(forSize size: CGFloat) -> CGFloat {
+        size * playerArtworkCornerRadius / playerArtworkSize
+    }
 
     /// The player's area below the notch. Its width follows the rule above.
     var nowPlayingContentHeight: CGFloat = 126
