@@ -93,7 +93,7 @@ nonisolated enum HeadphonesBatteryReader {
         } catch {
             return nil
         }
-        nonisolated(unsafe) let running = process
+        let running = process
         DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
             if running.isRunning { running.terminate() }
         }
