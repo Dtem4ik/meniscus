@@ -178,6 +178,7 @@ struct LiveActivitySettingsTests {
         #expect(settings.showInputSource)
         #expect(settings.showCaptureConfirmation)
         #expect(settings.showHeadphones)
+        #expect(settings.showFocus)
         #expect(settings.hideFromScreenCapture)
     }
 }
@@ -206,6 +207,7 @@ struct CompactWingTests {
         "Saved", "Сохранено",                          // quick capture
         "12",                                          // shelf
         "Off", "Откл.", "On", "Вкл.", "AirPods",       // headphones
+        "Work", "Работа", "Чтение", "Reading",         // focus
     ])
     func valueFitsItsSide(text: String) {
         let layout = layout()

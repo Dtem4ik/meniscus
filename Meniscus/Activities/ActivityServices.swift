@@ -26,6 +26,10 @@ final class ActivityServices {
     private(set) var meetingMoment: MeetingReminder.Moment = .soon
     /// The headphones that just connected or disconnected.
     private(set) var headphonesEvent: HeadphonesEvent?
+    /// The Focus that just turned on or off.
+    private(set) var focusEvent: FocusEvent?
+    /// When macOS last called the Focus filter, shown in Developer settings.
+    private(set) var lastFocusFilterCall: Date?
 
     /// How long the charging activity stays in the notch after the charger is connected.
     static let chargingActivityDuration: TimeInterval = 4
@@ -34,6 +38,7 @@ final class ActivityServices {
     static let captureSavedActivityDuration: TimeInterval = 1.6
     static let meetingActivityDuration: TimeInterval = 5
     static let headphonesActivityDuration: TimeInterval = 4
+    static let focusActivityDuration: TimeInterval = 3
     /// A battery reading later than this after the connection is old news and is dropped.
     static let headphonesBatteryWindow: TimeInterval = 8
 
@@ -116,6 +121,34 @@ final class ActivityServices {
             withBattery.battery = HeadphonesBattery(left: 80, right: 75, case: 60)
             self?.showHeadphones(withBattery)
         }
+    }
+
+    /// Called by the Focus filter: with the Focus chosen for it when that Focus turns on, with
+    /// nothing when it turns off.
+    func focusFilterPerformed(kind: FocusKind?, name: String?) {
+        lastFocusFilterCall = Date()
+        let isOn = kind != nil || !(name ?? "").isEmpty
+        let event = isOn
+            ? FocusEvent(kind: kind ?? .other, name: name, isOn: true)
+            : FocusEvent(kind: focusEvent?.kind ?? .other, name: focusEvent?.name, isOn: false)
+        showFocus(event)
+    }
+
+    /// Developer menu: Work turning on, then off a few seconds later.
+    func simulateFocus() {
+        showFocus(FocusEvent(kind: .work, name: nil, isOn: true))
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.focusActivityDuration + 1))
+            self?.showFocus(FocusEvent(kind: .work, name: nil, isOn: false))
+        }
+    }
+
+    private func showFocus(_ event: FocusEvent) {
+        guard settings.showFocus else { return }
+        // Turning off a Focus that was never seen turning on says nothing useful.
+        if !event.isOn, focusEvent?.isOn != true { return }
+        focusEvent = event
+        center.postTransient(id: ActivityID.focus, kind: .focus, duration: Self.focusActivityDuration, priority: .confirmation)
     }
 
     /// Shown after a quick capture is saved.
@@ -209,10 +242,24 @@ nonisolated enum ActivityID {
     static let inputSource = "input-source"
     static let captureSaved = "capture-saved"
     static let headphones = "headphones"
+    static let focus = "focus"
 }
 
 extension Logger {
     /// Power source snapshots and charger events. In Console, filter by subsystem
     /// `io.github.dtem4ik.meniscus` and category `power`.
     nonisolated static let power = Logger(subsystem: "io.github.dtem4ik.meniscus", category: "power")
+}
+
+/// A Focus turning on or off, for the live activity.
+nonisolated struct FocusEvent: Equatable, Sendable {
+    var kind: FocusKind
+    /// The name chosen in the filter, shown instead of the Focus's.
+    var name: String?
+    var isOn: Bool
+
+    var title: String {
+        if let name, !name.isEmpty { return name }
+        return kind.title
+    }
 }

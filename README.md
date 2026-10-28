@@ -219,6 +219,7 @@ the right, both sides as wide as the wider one needs, the notch centered between
 | Keyboard layout | Keyboard, EN / РУ / DE… | For about a second after the input source changes (read a moment after the system's notification, shown only for a real change). |
 | Quick capture saved | Check mark, "Saved" | After a quick capture is saved. |
 | Headphones | AirPods / AirPods Pro / AirPods Max / headphones symbol, the lower bud's battery (or the name), "Off" | For 4 seconds when Bluetooth headphones connect or disconnect. |
+| Focus | The Focus's symbol, its name, "Off" | For 3 seconds when a Focus with the Meniscus filter turns on or off. |
 
 The most important one shows: meeting, then low battery, then charging, then the keyboard
 layout, then the rest. Short activities show over music and then give the notch back to it.
@@ -234,6 +235,17 @@ window frames, which need no permission). macOS doesn't tell apps when the scree
 shared, so **Settings → General → Hide from screenshots and screen sharing** (on by default) leaves the island out of
 screenshots, recordings and screen sharing where the system honors it; turn it off to take a
 screenshot of the island.
+
+### Showing a Focus
+
+macOS tells apps about a Focus only through a Focus filter (public App Intents, no special
+permission), so each Focus you want in the notch needs the filter once:
+
+1. Open **System Settings → Focus** and choose the Focus, for example Work.
+2. Under **Focus Filters**, click **Add Filter** and choose **Meniscus**.
+3. Pick the same Focus in the list (or type a short name), then click **Add**.
+
+**Settings → Live Activities** has the same steps and a button that opens Focus settings.
 
 ## Languages
 

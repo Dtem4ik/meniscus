@@ -77,6 +77,9 @@ struct CompactSlot: View {
             let event = ActivityServices.shared.headphonesEvent
             CompactSymbol(name: event?.symbol ?? "headphones", color: event?.isConnected == false ? .white.opacity(0.5) : .white)
                 .contentTransition(.symbolEffect(.replace))
+        case .focus:
+            let event = ActivityServices.shared.focusEvent
+            CompactSymbol(name: event?.kind.symbol ?? "moon.fill", color: event?.isOn == false ? .white.opacity(0.5) : .indigo)
         }
     }
 
@@ -123,6 +126,19 @@ struct CompactSlot: View {
             }
         case .headphones:
             HeadphonesValue(event: ActivityServices.shared.headphonesEvent)
+        case .focus:
+            let event = ActivityServices.shared.focusEvent
+            Group {
+                if event?.isOn == false {
+                    CompactValue(text: String(localized: "Off"), color: .white.opacity(0.6))
+                } else {
+                    ViewThatFits(in: .horizontal) {
+                        CompactValue(text: event?.title ?? "")
+                        CompactValue(text: String(localized: "On"))
+                    }
+                }
+            }
+            .accessibilityLabel(Text(event?.title ?? ""))
         }
     }
 }

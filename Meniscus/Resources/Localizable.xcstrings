@@ -431,6 +431,16 @@
         }
       }
     },
+    "Do Not Disturb": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не беспокоить"
+          }
+        }
+      }
+    },
     "Drag files to the notch to keep them at hand. Off, Meniscus doesn't watch file drags at all; files already on the shelf come back when you turn it on again.": {
       "localizations": {
         "ru": {
@@ -447,6 +457,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Перетащите, чтобы изменить порядок"
+          }
+        }
+      }
+    },
+    "Driving": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вождение"
           }
         }
       }
@@ -521,12 +541,52 @@
         }
       }
     },
+    "Fitness": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фитнес"
+          }
+        }
+      }
+    },
+    "Focus": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фокус"
+          }
+        }
+      }
+    },
+    "Focus filter": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фильтр Фокуса"
+          }
+        }
+      }
+    },
     "Folder": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Папка"
+          }
+        }
+      }
+    },
+    "Gaming": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Игры"
           }
         }
       }
@@ -631,6 +691,16 @@
         }
       }
     },
+    "Last Focus filter call": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последний вызов фильтра Фокуса"
+          }
+        }
+      }
+    },
     "License": {
       "localizations": {
         "ru": {
@@ -697,6 +767,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Meniscus"
+          }
+        }
+      }
+    },
+    "Meniscus briefly shows this Focus in the notch when it turns on and off.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meniscus ненадолго показывает этот Фокус в вырезе, когда он включается и выключается."
+          }
+        }
+      }
+    },
+    "Mindfulness": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осознанность"
           }
         }
       }
@@ -797,6 +887,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Название"
+          }
+        }
+      }
+    },
+    "Never": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ни разу"
           }
         }
       }
@@ -971,6 +1071,16 @@
         }
       }
     },
+    "Open Focus Settings": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки Фокуса"
+          }
+        }
+      }
+    },
     "Open URL": {
       "localizations": {
         "ru": {
@@ -1051,6 +1161,16 @@
         }
       }
     },
+    "Other Focus": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другой режим"
+          }
+        }
+      }
+    },
     "Outline Computed Notch": {
       "localizations": {
         "ru": {
@@ -1077,6 +1197,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пауза"
+          }
+        }
+      }
+    },
+    "Personal": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Личное"
           }
         }
       }
@@ -1147,6 +1277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Завершить Meniscus"
+          }
+        }
+      }
+    },
+    "Reading": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Чтение"
           }
         }
       }
@@ -1311,12 +1451,12 @@
         }
       }
     },
-    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, headphones connecting with their battery. They stay hidden while an app is in full screen.": {
+    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, headphones connecting with their battery, a Focus turning on and off. They stay hidden while an app is in full screen.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись, подключение наушников с их зарядом. Пока приложение развёрнуто на весь экран, они не показываются."
+            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись, подключение наушников с их зарядом, включение и выключение Фокуса. Пока приложение развёрнуто на весь экран, они не показываются."
           }
         }
       }
@@ -1371,6 +1511,16 @@
         }
       }
     },
+    "Show in the notch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать в вырезе"
+          }
+        }
+      }
+    },
     "Show on": {
       "localizations": {
         "ru": {
@@ -1397,6 +1547,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показывать, что играет"
+          }
+        }
+      }
+    },
+    "Shown instead of the Focus name, if set.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если задано, показывается вместо названия Фокуса."
           }
         }
       }
@@ -1431,6 +1591,16 @@
         }
       }
     },
+    "Simulate Focus": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать Фокус"
+          }
+        }
+      }
+    },
     "Simulate Headphones": {
       "localizations": {
         "ru": {
@@ -1457,6 +1627,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Имитировать скорую встречу"
+          }
+        }
+      }
+    },
+    "Sleep": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сон"
           }
         }
       }
@@ -1661,6 +1841,16 @@
         }
       }
     },
+    "Work": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Работа"
+          }
+        }
+      }
+    },
     "Wrong value at %@: %@": {
       "localizations": {
         "ru": {
@@ -1697,6 +1887,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "macOS не сообщает приложениям о демонстрации экрана, поэтому, чтобы остров не попал в презентацию, его можно скрыть со снимков экрана, записей и демонстрации (там, где система это учитывает). Выключите это, чтобы сделать снимок острова."
+          }
+        }
+      }
+    },
+    "macOS tells apps about a Focus only through a Focus filter. To show a Focus in the notch: System Settings → Focus → choose the Focus → Focus Filters → Add Filter → Meniscus, then pick the same Focus (or type a short name) and click Add.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS сообщает приложениям о Фокусе только через фильтр Фокуса. Чтобы Фокус показывался в вырезе: Системные настройки → Фокусирование → выберите режим → Фильтры фокусирования → Добавить фильтр → Meniscus, затем выберите тот же режим (или введите короткое название) и нажмите «Добавить»."
           }
         }
       }

@@ -33,6 +33,7 @@ nonisolated enum SettingsKey {
     static let showInputSource = "activities.inputSource"
     static let showCaptureConfirmation = "activities.captureSaved"
     static let showHeadphones = "activities.headphones"
+    static let showFocus = "activities.focus"
     static let hideFromScreenCapture = "hideFromScreenCapture"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
@@ -90,6 +91,9 @@ final class AppSettings {
     var showHeadphones: Bool {
         didSet { defaults.set(showHeadphones, forKey: SettingsKey.showHeadphones) }
     }
+    var showFocus: Bool {
+        didSet { defaults.set(showFocus, forKey: SettingsKey.showFocus) }
+    }
     /// Leaves the island out of screenshots, recordings and screen sharing, where the system
     /// honors it. macOS can't tell apps when the screen is being shared, so this is the way to
     /// keep live activities out of a presentation.
@@ -121,6 +125,7 @@ final class AppSettings {
             SettingsKey.showInputSource: true,
             SettingsKey.showCaptureConfirmation: true,
             SettingsKey.showHeadphones: true,
+            SettingsKey.showFocus: true,
             SettingsKey.hideFromScreenCapture: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
@@ -137,6 +142,7 @@ final class AppSettings {
         showInputSource = defaults.bool(forKey: SettingsKey.showInputSource)
         showCaptureConfirmation = defaults.bool(forKey: SettingsKey.showCaptureConfirmation)
         showHeadphones = defaults.bool(forKey: SettingsKey.showHeadphones)
+        showFocus = defaults.bool(forKey: SettingsKey.showFocus)
         hideFromScreenCapture = defaults.bool(forKey: SettingsKey.hideFromScreenCapture)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)

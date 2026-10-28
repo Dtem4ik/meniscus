@@ -66,9 +66,19 @@ struct LiveActivitiesSettingsView: View {
                 Toggle("Quick capture saved", isOn: $settings.showCaptureConfirmation)
                 Toggle("Headphones", isOn: $settings.showHeadphones)
                     .onChange(of: settings.showHeadphones) { ActivityServices.shared.updateHeadphones(settings: settings) }
+                Toggle("Focus", isOn: $settings.showFocus)
             } footer: {
-                Text("Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, headphones connecting with their battery. They stay hidden while an app is in full screen.")
+                Text("Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, headphones connecting with their battery, a Focus turning on and off. They stay hidden while an app is in full screen.")
                     .foregroundStyle(.secondary)
+            }
+            Section("Focus filter") {
+                Text("macOS tells apps about a Focus only through a Focus filter. To show a Focus in the notch: System Settings → Focus → choose the Focus → Focus Filters → Add Filter → Meniscus, then pick the same Focus (or type a short name) and click Add.")
+                    .foregroundStyle(.secondary)
+                Button("Open Focus Settings") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.Focus-Settings.extension") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
             }
         }
         .settingsPage()
@@ -190,6 +200,14 @@ struct DeveloperSettingsView: View {
                 Button("Simulate Low Battery") { ActivityServices.shared.simulateLowBattery() }
                 Button("Simulate Upcoming Meeting") { ActivityServices.shared.calendar.simulateStartingSoon() }
                 Button("Simulate Headphones") { ActivityServices.shared.simulateHeadphones() }
+                Button("Simulate Focus") { ActivityServices.shared.simulateFocus() }
+                LabeledContent("Last Focus filter call") {
+                    if let date = ActivityServices.shared.lastFocusFilterCall {
+                        Text(date, format: .dateTime.hour().minute().second())
+                    } else {
+                        Text("Never")
+                    }
+                }
             }
             Section {
                 Button {

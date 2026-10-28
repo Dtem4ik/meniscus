@@ -73,6 +73,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         developer.addItem(item(String(localized: "Simulate Headphones")) {
             ActivityServices.shared.simulateHeadphones()
         })
+        developer.addItem(item(String(localized: "Simulate Focus")) {
+            ActivityServices.shared.simulateFocus()
+        })
         developer.addItem(.separator())
         slowAnimationsItem = addAction(to: developer, String(localized: "Slow Animations")) { [settings] in
             settings.slowAnimations.toggle()
