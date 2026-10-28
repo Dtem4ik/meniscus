@@ -1,24 +1,56 @@
 import SwiftUI
 
-/// What a live activity shows left and right of the notch in the compact island.
+/// What a live activity shows left and right of the notch in the compact island. Every activity
+/// follows one pattern: a symbol on the left, a short value on the right. Both sides are as wide
+/// as the wider of the two (measured, see `CompactSlotMeasure`), so the notch stays centered.
 struct CompactActivityView: View {
     let activity: LiveActivity
     let layout: IslandLayout
+    let wing: CGFloat
 
     var body: some View {
-        let wing = layout.metrics.compactWingWidth
+        let slot = max(wing - 2 * layout.metrics.compactSlotPadding, 0)
         HStack(spacing: 0) {
-            leading
+            CompactSlot(activity: activity, side: .leading)
+                .frame(width: slot)
                 .frame(width: wing)
             // The camera housing: nothing can be seen here.
             Color.clear
                 .frame(width: layout.geometry.notchRect.width)
-            trailing
+            CompactSlot(activity: activity, side: .trailing)
+                .frame(width: slot)
                 .frame(width: wing)
         }
         .frame(height: layout.notchHeight)
         .offset(x: layout.centerOffset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+}
+
+/// Both sides of an activity at their natural width, never shown: the island takes the wider one.
+struct CompactSlotMeasure: View {
+    let activity: LiveActivity
+
+    var body: some View {
+        ZStack {
+            CompactSlot(activity: activity, side: .leading).fixedSize()
+            CompactSlot(activity: activity, side: .trailing).fixedSize()
+        }
+    }
+}
+
+/// One side of a compact activity.
+struct CompactSlot: View {
+    enum Side { case leading, trailing }
+
+    let activity: LiveActivity
+    let side: Side
+
+    var body: some View {
+        switch side {
+        case .leading: leading
+        case .trailing: trailing
+        }
     }
 
     @ViewBuilder
@@ -31,7 +63,7 @@ struct CompactActivityView: View {
         case .shelf, .dropHint:
             CompactSymbol(name: "paperclip")
         case .meeting:
-            CompactSymbol(name: "calendar", color: ActivityServices.shared.meeting?.calendarColor.map {
+            CompactSymbol(name: "calendar", color: ActivityServices.shared.meetingEvent?.calendarColor.map {
                 Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue)
             } ?? .white)
         case .lowBattery:
@@ -48,12 +80,7 @@ struct CompactActivityView: View {
     private var trailing: some View {
         switch activity.kind {
         case .charging:
-            if let level = ActivityServices.shared.chargingLevel {
-                Text((Double(level) / 100).formatted(.percent.precision(.fractionLength(0))))
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.green)
-            }
+            CompactValue(text: CompactText.percent(ActivityServices.shared.chargingLevel ?? 0), color: .green)
         case .nowPlaying:
             let nowPlaying = ActivityServices.shared.nowPlaying
             let shelfCount = ShelfController.shared.visibleCount
@@ -69,36 +96,66 @@ struct CompactActivityView: View {
             }
         case .shelf:
             let count = ShelfController.shared.items.count
-            Text(count.formatted())
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(.white)
+            CompactValue(text: count.formatted())
                 .contentTransition(.numericText())
                 .accessibilityLabel(Text("Files on the shelf: \(count)"))
         case .dropHint:
             DropHint()
         case .meeting:
-            if let meeting = ActivityServices.shared.meeting {
-                MeetingCountdown(start: meeting.start)
-                    .accessibilityLabel(Text(meeting.title))
-            }
+            let services = ActivityServices.shared
+            CompactValue(text: CompactText.meeting(start: services.meetingEvent?.start ?? Date(), moment: services.meetingMoment, at: Date()))
+                .accessibilityLabel(Text(services.meetingEvent?.title ?? ""))
         case .lowBattery:
             let level = ActivityServices.shared.lowBatteryLevel ?? 0
-            Text((Double(level) / 100).formatted(.percent.precision(.fractionLength(0))))
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(BatteryWarningStyle.color(level: level))
+            CompactValue(text: CompactText.percent(level), color: BatteryWarningStyle.color(level: level))
         case .inputSource:
-            Text(verbatim: ActivityServices.shared.inputSourceLabel ?? "")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+            CompactValue(text: ActivityServices.shared.inputSourceLabel ?? "")
                 .contentTransition(.opacity)
         case .captureSaved:
-            Text("Saved")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+            // Shortened, never cut: the check mark on the left already says it.
+            ViewThatFits(in: .horizontal) {
+                CompactValue(text: String(localized: "Saved"))
+                CompactValue(text: "✓")
+            }
+        }
+    }
+}
+
+/// The short value on the right: one line, digits that don't jump.
+private struct CompactValue: View {
+    let text: String
+    var color: Color = .white
+
+    var body: some View {
+        Text(verbatim: text)
+            .font(CompactText.font)
+            .monospacedDigit()
+            .foregroundStyle(color)
+            .lineLimit(1)
+            .fixedSize()
+    }
+}
+
+/// The short values, kept apart so tests can check that they fit.
+enum CompactText {
+    static let font = Font.system(size: 13, weight: .semibold, design: .rounded)
+    static let fontSize: CGFloat = 13
+
+    static func percent(_ level: Int) -> String {
+        (Double(level) / 100).formatted(.percent.precision(.fractionLength(0)))
+    }
+
+    private static func minutesText(_ minutes: Int) -> String {
+        String(localized: "\(minutes) min")
+    }
+
+    /// "6 min" before the meeting, "now" when it starts.
+    static func meeting(start: Date, moment: MeetingReminder.Moment, at date: Date) -> String {
+        switch moment {
+        case .starting:
+            String(localized: "now")
+        case .soon:
+            minutesText(max(MeetingReminder.minutesUntil(start, from: date), 1))
         }
     }
 }
@@ -113,22 +170,6 @@ private struct CompactSymbol: View {
             .font(.system(size: 13, weight: .semibold))
             .foregroundStyle(color)
             .accessibilityHidden(true)
-    }
-}
-
-/// "in 5 min", then "now", counting down once a minute while it shows.
-private struct MeetingCountdown: View {
-    let start: Date
-
-    var body: some View {
-        TimelineView(.everyMinute) { context in
-            let minutes = MeetingReminder.minutesUntil(start, from: context.date)
-            Text(minutes > 0 ? String(localized: "in \(minutes) min") : String(localized: "now"))
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-        }
     }
 }
 

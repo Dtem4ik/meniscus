@@ -19,6 +19,8 @@ final class NotchState {
     var pageMovesForward = true
     /// The home content's own size, measured off screen so the island can open to it directly.
     var homeContentSize: CGSize?
+    /// Each side of the compact island, measured from the activity's content.
+    var compactWing: CGFloat?
     /// The live activity shown while not expanded; `nil` leaves the plain notch.
     var compactActivity: LiveActivity?
 
@@ -29,7 +31,7 @@ final class NotchState {
     var isExpanded: Bool { phase == .expanded }
     /// Where the island returns when it isn't expanded.
     var restingPhase: IslandPhase { compactActivity == nil ? .collapsed : .compact }
-    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content) }
+    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content, compactWing: compactWing) }
 }
 
 /// What views inside the island can ask the controller to do.

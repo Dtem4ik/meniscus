@@ -41,8 +41,14 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var collapsedBottomRadius: CGFloat = 9
     var collapsedShoulderRadius: CGFloat = 4
 
-    /// Width of each side of the compact island, left and right of the notch.
+    /// Width of each side of the compact island, left and right of the notch, until its content
+    /// is measured.
     var compactWingWidth: CGFloat = 64
+    /// Room around the content on each side of the compact island.
+    var compactSlotPadding: CGFloat = 10
+    /// Each side is as wide as its content needs, within these bounds.
+    var compactMinWingWidth: CGFloat = 36
+    var compactMaxWingWidth: CGFloat = 104
 
     /// The expanded island is always wider than the compact one, so opening grows it sideways as
     /// well as down: by this share of the compact width…
@@ -143,7 +149,13 @@ nonisolated struct IslandLayout: Equatable, Sendable {
         return 2 * metrics.shelfHorizontalPadding + tiles + metrics.shelfTileSpacing + metrics.shelfControlsWidth
     }
 
-    func shape(for phase: IslandPhase, content: IslandContent = .home(nil)) -> IslandShapeSpec {
+    /// Each side of the compact island for content this wide: both sides the same, so the notch
+    /// stays centered.
+    func compactWing(contentWidth: CGFloat) -> CGFloat {
+        min(max((contentWidth + 2 * metrics.compactSlotPadding).rounded(.up), metrics.compactMinWingWidth), metrics.compactMaxWingWidth)
+    }
+
+    func shape(for phase: IslandPhase, content: IslandContent = .home(nil), compactWing: CGFloat? = nil) -> IslandShapeSpec {
         switch phase {
         case .collapsed:
             IslandShapeSpec(
@@ -154,7 +166,7 @@ nonisolated struct IslandLayout: Equatable, Sendable {
             )
         case .compact:
             IslandShapeSpec(
-                width: compactWidth,
+                width: geometry.notchRect.width + 2 * (compactWing ?? metrics.compactWingWidth),
                 height: notchHeight + metrics.collapsedOutset,
                 bottomRadius: metrics.collapsedBottomRadius + 4,
                 shoulderRadius: metrics.collapsedShoulderRadius
@@ -197,8 +209,8 @@ nonisolated struct IslandLayout: Equatable, Sendable {
     }
 
     /// The area that reacts to the pointer, in screen coordinates.
-    func interactiveScreenRect(for phase: IslandPhase, content: IslandContent = .home(nil)) -> CGRect {
-        let spec = shape(for: phase, content: content)
+    func interactiveScreenRect(for phase: IslandPhase, content: IslandContent = .home(nil), compactWing: CGFloat? = nil) -> CGRect {
+        let spec = shape(for: phase, content: content, compactWing: compactWing)
         return CGRect(
             x: geometry.notchRect.midX - spec.totalWidth / 2,
             y: geometry.screenFrame.maxY - spec.height,

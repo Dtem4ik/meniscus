@@ -7,6 +7,7 @@ struct IslandContext {
     var isContentVisible: Bool
     var reduceMotion: Bool
     var compactActivity: LiveActivity?
+    var compactWing: CGFloat
     var content: IslandContent
     var pages: [IslandPage]
     var page: IslandPage
@@ -16,7 +17,7 @@ struct IslandContext {
     var isExpanded: Bool { phase == .expanded }
     var contentSize: CGSize { layout.contentSize(for: content) }
     var shape: NotchShape {
-        NotchShape(layout.shape(for: phase, content: content), centerOffset: layout.centerOffset)
+        NotchShape(layout.shape(for: phase, content: content, compactWing: compactWing), centerOffset: layout.centerOffset)
     }
 }
 
@@ -41,6 +42,23 @@ struct NotchRootView: View {
             .allowsHitTesting(false)
     }
 
+    /// The compact activity's two sides at their natural width, never shown. The island's sides
+    /// follow the wider one with the same spring as the rest of the morph.
+    @ViewBuilder
+    private var compactMeasure: some View {
+        if let activity = state.compactActivity {
+            CompactSlotMeasure(activity: activity)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
+                    let wing = state.layout.compactWing(contentWidth: width)
+                    guard wing != state.compactWing else { return }
+                    withAnimation(reduceMotion ? Motion.reducedMotionFade : Motion.expand) { state.compactWing = wing }
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                .allowsHitTesting(false)
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             if reduceMotion {
@@ -61,6 +79,7 @@ struct NotchRootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(alignment: .top) { homeContentMeasure }
+        .background(alignment: .top) { compactMeasure }
         // The panel is never the key window; keep glass in its active look anyway.
         .environment(\.materialActiveAppearance, .active)
     }
@@ -73,6 +92,7 @@ struct NotchRootView: View {
             isContentVisible: isContentVisible,
             reduceMotion: reduceMotion,
             compactActivity: state.compactActivity,
+            compactWing: state.compactWing ?? state.layout.metrics.compactWingWidth,
             content: state.content,
             pages: state.pages,
             page: state.page,

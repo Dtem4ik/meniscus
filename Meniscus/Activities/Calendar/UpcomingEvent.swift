@@ -76,11 +76,45 @@ nonisolated enum MeetingLink {
     }
 }
 
-/// When to remind of an event: from a few minutes before it starts until shortly after.
+/// When to remind of an event. The closed notch says so twice, briefly: 5 minutes ahead and
+/// when it starts. In between, the open island shows the event with Join.
 nonisolated enum MeetingReminder {
     static let lead: TimeInterval = 5 * 60
-    /// Keeps saying "now" for a moment after the start.
+    /// The event stays on the home view this long after the start.
     static let afterStart: TimeInterval = 60
+    /// A moment still counts if the Mac wakes or the calendar syncs this late.
+    static let announceWindow: TimeInterval = 60
+
+    nonisolated enum Moment: Equatable, Sendable {
+        /// 5 minutes before the start.
+        case soon
+        /// The start.
+        case starting
+    }
+
+    static func time(of moment: Moment, for event: CalendarEventSnapshot) -> Date {
+        switch moment {
+        case .soon: event.start - lead
+        case .starting: event.start
+        }
+    }
+
+    /// Moments that are due at `date` and weren't announced yet, oldest first. A missed moment
+    /// is dropped after `announceWindow` rather than shown late.
+    static func dueMoments(in events: [CalendarEventSnapshot], at date: Date, announced: Set<String>) -> [(event: CalendarEventSnapshot, moment: Moment)] {
+        events
+            .filter { !$0.isAllDay }
+            .flatMap { event in [Moment.soon, .starting].map { (event: event, moment: $0) } }
+            .filter { item in
+                let time = time(of: item.moment, for: item.event)
+                return time <= date && date < time + announceWindow && !announced.contains(key(item.event, item.moment))
+            }
+            .sorted { time(of: $0.moment, for: $0.event) < time(of: $1.moment, for: $1.event) }
+    }
+
+    static func key(_ event: CalendarEventSnapshot, _ moment: Moment) -> String {
+        "\(event.id)|\(moment)"
+    }
 
     /// The timed event to remind of at `date`: the soonest one starting within the lead time.
     static func select(from events: [CalendarEventSnapshot], at date: Date) -> CalendarEventSnapshot? {
@@ -91,7 +125,7 @@ nonisolated enum MeetingReminder {
 
     /// The moments the reminder can change by itself.
     static func boundaries(of events: [CalendarEventSnapshot]) -> [Date] {
-        events.filter { !$0.isAllDay }.flatMap { [$0.start - lead, $0.start + afterStart] }
+        events.filter { !$0.isAllDay }.flatMap { [$0.start - lead, $0.start, $0.start + afterStart] }
     }
 
     /// Whole minutes until the start, rounded up; 0 once it started.

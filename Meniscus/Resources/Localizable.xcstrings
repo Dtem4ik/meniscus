@@ -31,6 +31,16 @@
         }
       }
     },
+    "%lld min": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld мин"
+          }
+        }
+      }
+    },
     "A line in one note": {
       "localizations": {
         "ru": {
@@ -197,6 +207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bundle ID, например com.apple.Notes"
+          }
+        }
+      }
+    },
+    "Calendar": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Календарь"
           }
         }
       }
@@ -751,6 +771,16 @@
         }
       }
     },
+    "Music": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Музыка"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "ru": {
@@ -917,6 +947,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Открыть ссылку"
+          }
+        }
+      }
+    },
+    "Open at login": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открывать при входе в систему"
           }
         }
       }
@@ -1241,12 +1281,12 @@
         }
       }
     },
-    "Short notices in the notch: a meeting 5 minutes ahead (with Join for Zoom, Meet and Teams), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen. macOS doesn't tell apps when the screen is shared, so to keep the island out of a presentation it can be left out of screenshots, recordings and screen sharing (where the system honors it); turn that off to take a screenshot of the island.": {
+    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Короткие уведомления в вырезе: встреча за 5 минут (с кнопкой «Подключиться» для Zoom, Meet и Teams), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись. Пока приложение развёрнуто на весь экран, они не показываются. macOS не сообщает приложениям о демонстрации экрана, поэтому, чтобы остров не попал в презентацию, его можно скрыть со снимков экрана, записей и демонстрации (там, где система это учитывает); выключите это, чтобы сделать снимок острова."
+            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись. Пока приложение развёрнуто на весь экран, они не показываются."
           }
         }
       }
@@ -1611,12 +1651,12 @@
         }
       }
     },
-    "in %lld min": {
+    "macOS doesn't tell apps when the screen is shared, so to keep the island out of a presentation it can be left out of screenshots, recordings and screen sharing (where the system honors it). Turn this off to take a screenshot of the island.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "через %lld мин"
+            "value": "macOS не сообщает приложениям о демонстрации экрана, поэтому, чтобы остров не попал в презентацию, его можно скрыть со снимков экрана, записей и демонстрации (там, где система это учитывает). Выключите это, чтобы сделать снимок острова."
           }
         }
       }

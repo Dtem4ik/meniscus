@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 import Foundation
 import Testing
@@ -39,6 +40,28 @@ struct MeetingReminderTests {
         #expect(MeetingReminder.select(from: [event("over", startsIn: -2)], at: now) == nil)
     }
 
+    @Test func announcesTwiceBrieflyNotContinuously() {
+        let meeting = event("call", startsIn: 5)
+        // Five minutes ahead: "soon", once.
+        let soon = MeetingReminder.dueMoments(in: [meeting], at: now, announced: [])
+        #expect(soon.map(\.moment) == [.soon])
+        let announced: Set<String> = [MeetingReminder.key(meeting, .soon)]
+        #expect(MeetingReminder.dueMoments(in: [meeting], at: now.addingTimeInterval(30), announced: announced).isEmpty)
+        // Nothing in between.
+        #expect(MeetingReminder.dueMoments(in: [meeting], at: now.addingTimeInterval(120), announced: announced).isEmpty)
+        // At the start: "starting", once.
+        #expect(MeetingReminder.dueMoments(in: [meeting], at: meeting.start, announced: announced).map(\.moment) == [.starting])
+        // A moment missed by more than the window isn't shown late.
+        #expect(MeetingReminder.dueMoments(in: [meeting], at: meeting.start.addingTimeInterval(120), announced: announced).isEmpty)
+    }
+
+    @Test func compactTextIsShort() {
+        let start = now.addingTimeInterval(5 * 60 + 10)
+        #expect(CompactText.meeting(start: start, moment: .soon, at: now).hasPrefix("6"))
+        #expect(CompactText.meeting(start: now, moment: .starting, at: now) == String(localized: "now"))
+        #expect(CompactText.percent(20).hasPrefix("20"))
+    }
+
     @Test func countdownRoundsUp() {
         #expect(MeetingReminder.minutesUntil(now.addingTimeInterval(4 * 60 + 1), from: now) == 5)
         #expect(MeetingReminder.minutesUntil(now.addingTimeInterval(60), from: now) == 1)
@@ -47,7 +70,7 @@ struct MeetingReminderTests {
 
     @Test func wakesUpAtTheReminderBoundaries() {
         let soon = event("soon", startsIn: 20)
-        #expect(MeetingReminder.boundaries(of: [soon]) == [soon.start - 300, soon.start + 60])
+        #expect(MeetingReminder.boundaries(of: [soon]) == [soon.start - 300, soon.start, soon.start + 60])
         #expect(MeetingReminder.boundaries(of: [event("day", startsIn: 20, allDay: true)]).isEmpty)
     }
 
@@ -89,6 +112,22 @@ struct LowBatteryWarningsTests {
     @Test func colorsFollowTheLevel() {
         #expect(BatteryWarningStyle.symbol(level: 10) == "battery.0percent")
         #expect(BatteryWarningStyle.symbol(level: 20) == "battery.25percent")
+    }
+}
+
+struct InputSourceChangeFilterTests {
+    @Test func showsOnlyRealChanges() {
+        var filter = InputSourceChangeFilter()
+        // The baseline at start is not shown.
+        _ = filter.accept("com.apple.keylayout.Russian")
+        let notifications = [
+            "com.apple.keylayout.ABC", "com.apple.keylayout.ABC",
+            "com.apple.keylayout.Russian",
+            "com.apple.keylayout.Russian",
+        ]
+        let shown = notifications.filter { filter.accept($0) }
+        // РУ → EN → РУ: each change once, always the layout switched to.
+        #expect(shown == ["com.apple.keylayout.ABC", "com.apple.keylayout.Russian"])
     }
 }
 
@@ -139,5 +178,85 @@ struct LiveActivitySettingsTests {
         #expect(settings.showInputSource)
         #expect(settings.showCaptureConfirmation)
         #expect(settings.hideFromScreenCapture)
+    }
+}
+
+struct CompactWingTests {
+    private func layout() -> IslandLayout {
+        let screen = CGRect(x: 0, y: 0, width: 1512, height: 982)
+        return IslandLayout(geometry: NotchGeometry(
+            kind: .hardware,
+            screenFrame: screen,
+            notchRect: CGRect(x: 661, y: 950, width: 190, height: 32),
+            backingScale: 2
+        ))
+    }
+
+    private func width(_ text: String) -> CGFloat {
+        let font = NSFont.systemFont(ofSize: CompactText.fontSize, weight: .semibold)
+        return ceil((text as NSString).size(withAttributes: [.font: font]).width)
+    }
+
+    /// The longest value each activity shows, in English and Russian, and its symbol.
+    @Test(arguments: [
+        "6 min", "6 мин", "88 мин", "now", "сейчас",   // meeting
+        "100%", "20%", "10%",                          // charging, low battery
+        "EN", "РУ", "УК", "DE",                        // keyboard layout
+        "Saved", "Сохранено",                          // quick capture
+        "12",                                          // shelf
+    ])
+    func valueFitsItsSide(text: String) {
+        let layout = layout()
+        let content = max(width(text), 16)
+        let wing = layout.compactWing(contentWidth: content)
+        let slot = wing - 2 * layout.metrics.compactSlotPadding
+        #expect(slot >= content, "\(text) is \(content) pt, the side holds \(slot) pt")
+    }
+
+    @Test func sidesAreSymmetricAndTheNotchCentered() {
+        let layout = layout()
+        for content: CGFloat in [10, 30, 60, 200] {
+            let wing = layout.compactWing(contentWidth: content)
+            let spec = layout.shape(for: .compact, compactWing: wing)
+            #expect(spec.width == layout.geometry.notchRect.width + 2 * wing)
+            let rect = layout.interactiveScreenRect(for: .compact, compactWing: wing)
+            #expect(abs(rect.midX - layout.geometry.notchRect.midX) < 0.01)
+            #expect(wing >= layout.metrics.compactMinWingWidth && wing <= layout.metrics.compactMaxWingWidth)
+        }
+    }
+
+    @Test func widerContentWidensTheSides() {
+        let layout = layout()
+        #expect(layout.compactWing(contentWidth: 50) > layout.compactWing(contentWidth: 20))
+    }
+}
+
+@MainActor
+struct NoActivityHangsTests {
+    @Test func everySimulationEndsByItself() {
+        let services = ActivityServices.shared
+        services.simulateLowBattery()
+        #expect(services.center.current?.kind == .lowBattery)
+        #expect(services.center.current?.expiresAt != nil)
+        services.calendar.simulateStartingSoon()
+        let meeting = services.center.current
+        #expect(meeting?.kind == .meeting)
+        if let expiresAt = meeting?.expiresAt {
+            #expect(expiresAt.timeIntervalSinceNow <= ActivityServices.meetingActivityDuration + 1)
+        } else {
+            Issue.record("The meeting reminder never ends")
+        }
+    }
+
+    @Test func lowerActivitiesShowAfterAHigherOneEnds() async throws {
+        let center = ActivityCenter()
+        center.post(LiveActivity(id: "music", kind: .nowPlaying, priority: .ongoing, updatedAt: .now, expiresAt: nil))
+        center.postTransient(id: "meeting", kind: .meeting, duration: 0.2, priority: .meeting)
+        center.postTransient(id: "battery", kind: .lowBattery, duration: 0.5, priority: .lowBattery)
+        #expect(center.current?.id == "meeting")
+        try await Task.sleep(for: .milliseconds(350))
+        #expect(center.current?.id == "battery")
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(center.current?.id == "music")
     }
 }

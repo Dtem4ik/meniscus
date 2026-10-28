@@ -126,9 +126,7 @@ struct CaptureSettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
-        .frame(width: 460)
-        .fixedSize(horizontal: false, vertical: true)
+        .settingsPage()
     }
 
     private var footer: String {

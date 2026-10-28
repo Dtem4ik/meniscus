@@ -20,18 +20,25 @@ final class ActivityServices {
     private(set) var lowBatteryLevel: Int?
     /// Short name of the keyboard input source just switched to, like EN or РУ.
     private(set) var inputSourceLabel: String?
-    /// The event the meeting reminder is about.
-    var meeting: CalendarEventSnapshot? { calendar.startingSoon }
+    /// The event the meeting reminder is about, and whether it is about to start or starting.
+    private(set) var meetingEvent: CalendarEventSnapshot?
+    private(set) var meetingMoment: MeetingReminder.Moment = .soon
 
     /// How long the charging activity stays in the notch after the charger is connected.
     static let chargingActivityDuration: TimeInterval = 4
     static let lowBatteryActivityDuration: TimeInterval = 4
     static let inputSourceActivityDuration: TimeInterval = 1.2
     static let captureSavedActivityDuration: TimeInterval = 1.6
+    static let meetingActivityDuration: TimeInterval = 5
 
     @ObservationIgnored private let logger = Logger.power
     @ObservationIgnored private var lowBatteryWarnings = LowBatteryWarnings()
     @ObservationIgnored private var settings: AppSettings = .shared
+
+    init() {
+        // Wired here rather than in start(), so the Developer simulations (and tests) work too.
+        calendar.onMeetingMoment = { [weak self] event, moment in self?.showMeeting(event, moment) }
+    }
 
     func start(settings: AppSettings) {
         self.settings = settings
@@ -39,7 +46,6 @@ final class ActivityServices {
         power.onStateChange = { [weak self] state in self?.checkLowBattery(state) }
         power.start()
         calendar.hiddenCalendarIDs = { settings.hiddenCalendarIDs }
-        calendar.onStartingSoonChange = { [weak self] event in self?.showMeeting(event) }
         updateCalendar(settings: settings)
         inputSource.onChange = { [weak self] label in self?.showInputSource(label) }
         updateInputSource(settings: settings)
@@ -91,18 +97,11 @@ final class ActivityServices {
         showLowBattery(level: 10)
     }
 
-    private func showMeeting(_ event: CalendarEventSnapshot?) {
-        guard let event, settings.showMeetingReminders else {
-            center.remove(id: ActivityID.meeting)
-            return
-        }
-        center.post(LiveActivity(
-            id: ActivityID.meeting,
-            kind: .meeting,
-            priority: .meeting,
-            updatedAt: Date(),
-            expiresAt: event.start.addingTimeInterval(MeetingReminder.afterStart)
-        ))
+    private func showMeeting(_ event: CalendarEventSnapshot, _ moment: MeetingReminder.Moment) {
+        guard settings.showMeetingReminders else { return }
+        meetingEvent = event
+        meetingMoment = moment
+        center.postTransient(id: ActivityID.meeting, kind: .meeting, duration: Self.meetingActivityDuration, priority: .meeting)
         playHaptic()
     }
 

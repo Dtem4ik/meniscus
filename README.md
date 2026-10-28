@@ -207,15 +207,16 @@ briefly checks the pointer and the drag pasteboard, and stops as soon as it is r
 
 ## Live activities
 
-Short notices in the closed notch, each with its own switch in **Settings → General → Live
-Activities** (all on by default):
+Short notices in the closed notch, each with its own switch in **Settings → Live Activities**
+(all on by default). Every one follows the same pattern: a symbol on the left, a short value on
+the right, both sides as wide as the wider one needs, the notch centered between them.
 
 | Activity | Shows | When |
 | --- | --- | --- |
-| Upcoming meeting | Calendar symbol, "in 5 min" | 5 minutes before a timed calendar event. Opening the island shows it with **Join** for Zoom, Google Meet and Microsoft Teams links. |
+| Upcoming meeting | Calendar symbol, "5 min", then "now" | For 5 seconds 5 minutes before a timed calendar event, and for 5 seconds when it starts. In between, the open island shows it with **Join** for Zoom, Google Meet and Microsoft Teams links. |
 | Low battery | Yellow or red battery, percent | At 20% and 10% on battery, each once per discharge, for 4 seconds. |
 | Charging | Bolt, percent | When a charger is connected, for 4 seconds. |
-| Keyboard layout | Keyboard, EN / РУ / DE… | For about a second after the input source changes. |
+| Keyboard layout | Keyboard, EN / РУ / DE… | For about a second after the input source changes (read a moment after the system's notification, shown only for a real change). |
 | Quick capture saved | Check mark, "Saved" | After a quick capture is saved. |
 
 The most important one shows: meeting, then low battery, then charging, then the keyboard
@@ -225,7 +226,7 @@ source notification.
 
 Live activities stay hidden while an app is in full screen on the island's screen (seen from
 window frames, which need no permission). macOS doesn't tell apps when the screen is being
-shared, so **Hide from screenshots and screen sharing** (on by default) leaves the island out of
+shared, so **Settings → General → Hide from screenshots and screen sharing** (on by default) leaves the island out of
 screenshots, recordings and screen sharing where the system honors it; turn it off to take a
 screenshot of the island.
 
