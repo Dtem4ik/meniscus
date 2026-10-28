@@ -10,8 +10,9 @@ import OSLog
 /// CoreBluetooth calls back on this monitor's own queue; all its state lives there. Levels are
 /// handed to the main actor by device name.
 nonisolated final class BLEBatteryMonitor: NSObject, @unchecked Sendable {
-    static let batteryService = CBUUID(string: "180F")
-    static let batteryLevel = CBUUID(string: "2A19")
+    // CBUUID isn't Sendable, so these are made when needed rather than stored.
+    static var batteryService: CBUUID { CBUUID(string: "180F") }
+    static var batteryLevel: CBUUID { CBUUID(string: "2A19") }
 
     /// Called on the main actor with the device's name and level.
     var onLevel: (@MainActor @Sendable (String, Int) -> Void)? {
