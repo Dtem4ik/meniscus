@@ -1,9 +1,10 @@
 # External API — design
 
-Status: **draft for review**, nothing implemented yet. The API is a thin entry point into
-machinery Meniscus already has: the mini banner, the compact wing pattern, the live activity
-queue, the quiet rules and the per-activity toggles. It adds no layout system, colors or timing
-model of its own.
+Status: **agreed**, open questions answered (section 11); implementation next.
+
+The API is a thin entry point into machinery Meniscus already has: the mini banner, the compact
+wing pattern, the live activity queue, the quiet rules and the per-activity toggles. It adds no
+layout system, colors or timing model of its own.
 
 ## 1. Goals and non-goals
 
@@ -41,8 +42,8 @@ A short notice, shown as one mini banner (`MiniBanner`). Fields:
 
 A task that runs for a while, addressed by the caller's `id`:
 
-- `start(id, title, state = info)` registers it. Starting an id that is already running restarts
-  it (new title, state and start time).
+- `start(id, title, subtitle?, state = info, timeout?)` registers it. Starting an id that is
+  already running restarts it (new title, state and start time).
 - `update(id, title?, subtitle?, state?)` changes what it says. An update also counts as a sign
   of life for the timeout.
 - `end(id, state = success, title?, subtitle?)` finishes it, maybe with a closing banner (section
@@ -50,6 +51,27 @@ A task that runs for a while, addressed by the caller's `id`:
 
 Ids are scoped by source (section 7): two sources can use the same id without touching each
 other's activities. An id is at most 128 characters.
+
+Text fields are always `title` and `subtitle`, in every primitive and channel. There is no
+`message` field.
+
+### Event order
+
+Callers such as Claude Code hooks run asynchronously, so their calls can arrive out of order: an
+`end` can reach Meniscus before the `start` it ends, and the late `start` would then leave an
+activity running with nothing left to end it. So:
+
+- Every `activity` call carries `at`, the time the event happened, in milliseconds since 1970
+  (wall clock, the same on every process of the Mac). The CLI takes it when it starts, before it
+  reads its input; `--at` overrides it. A call without `at` (Shortcuts) gets the time it arrives.
+- Meniscus keeps, for each source and id, the time of the last event it applied, and ignores any
+  event older than that. A `start` older than an `end` already applied is dropped, so it can't
+  bring the activity back.
+- At equal times, `end` wins over `update`, and `update` over `start`.
+- An ended id's last time is kept for 10 minutes, then forgotten; at most 1,000 per source, oldest
+  first.
+
+`notify` has no id, so it has no ordering; deduplication (section 7) handles repeats.
 
 ## 3. States
 
@@ -82,7 +104,7 @@ bundle, for example Terminal, iTerm, Ghostty or Visual Studio Code. If the walk 
 first (tmux and screen servers, `ssh`, launch agents, cron), the source is unknown and the icon
 is neutral. Nothing the CLI says about itself is used for the icon.
 
-The neutral icon is an SF Symbol on the banner tile (`app.badge`, to be confirmed in review).
+The neutral icon is the SF Symbol `app.badge` on the banner tile.
 Pictures are never taken from the caller.
 
 ## 5. Nothing stays forever; no flicker
@@ -119,16 +141,17 @@ visible, shows the attention glyph until the state changes again.
 
 ### In the compact island
 
-A visible activity uses the wing pattern: the source icon on the left, a short value on the
-right, both sides as wide as the wider one, shortened rather than cut (`ViewThatFits`):
+A visible activity uses the wing pattern, with no text in the wings:
 
-1. title and count, `Claude is working · 2`
-2. the count alone, `2`, with a small activity indicator
-3. the indicator alone
+- left: the source's icon (section 4);
+- right: a small activity indicator, or the attention glyph when the state is `attention`;
+- when one source has several activities running: the indicator and their number, for example
+  `2`, shortened rather than cut.
 
-When a source has several activities running with the same title, the island shows **one**
-grouped activity with the count. Banners are never grouped: each activity that ends gets its own
-banner, one after another (section 6).
+The title and subtitle show in banners and when the island is opened (the expanded island lists
+running activities with their titles), never in the wings. Several activities of one source are
+always one grouped activity in the compact island. Banners are never grouped: each activity that
+ends gets its own banner, one after another (section 6).
 
 ## 6. Priorities and the queue
 
@@ -180,8 +203,11 @@ three additions:
    banners of one source (for example several Claude sessions ending), Meniscus keeps its own
    FIFO and posts only the head to the queue, so they show one after another, each for its full
    time.
-3. **Grouping.** Running activities of one source with the same title are posted as one
-   `LiveActivity` whose id is the group key; the count lives beside it like the shelf count does.
+3. **Grouping.** All running activities of one source are posted as one `LiveActivity` whose id is
+   the source; the count lives beside it like the shelf count does.
+4. **At most three end banners in a row.** When a source's FIFO holds more than three end banners
+   in a row, the first three show one after another and the rest collapse into one banner,
+   "Claude finished · 2 more" (the adapter's title with the count of those left).
 
 ### Quiet rules
 
@@ -193,7 +219,11 @@ External notices obey the same rules as built-in ones, with no exceptions:
 - Each channel and each source has a switch (section 10); when off, calls succeed and nothing
   shows.
 
-macOS doesn't tell apps about Focus, so external notices don't follow it (see open questions).
+These are the "smart silence" rules: the existing ones, nothing new. Schedules and silence
+during calls are not in v1. macOS doesn't tell apps about Focus, so external notices ignore it.
+
+With music playing, a running activity's indicator (45) stays behind the equalizer (50); an
+`attention` notice (65) shows over music and gives the notch back to it.
 
 ## 7. Channels and trust
 
@@ -208,13 +238,13 @@ macOS doesn't tell apps about Focus, so external notices don't follow it (see op
 - **Global rate limit** (the source can't be told apart): at most 3 banners in 10 s and 20 per
   hour; more are dropped.
 - **Deduplication**: the same title, subtitle and state within 60 s shows once.
-- Its own switch, **off by default** (proposed; see open questions).
+- Its own switch, **off by default**.
 
 ### CLI `meniscus` — trusted
 
 ```
 meniscus notify "Build finished" --subtitle api --state success
-meniscus activity start  --id build-42 "Building api"
+meniscus activity start  --id build-42 "Building api" --timeout 1h
 meniscus activity update --id build-42 --subtitle "Linking"
 meniscus activity end    --id build-42 --state success "Build finished"
 meniscus activity end    --id build-42 --quiet          # ends without a banner
@@ -229,8 +259,10 @@ system, so this channel can't be reached from a browser. Messages are one JSON o
 with an answer per request. The app checks the peer's user id (`getpeereid`) and drops anything
 not from the logged-in user.
 
-The CLI binary ships inside the app (`Contents/Helpers/meniscus`). Settings offers to link it to
-`/usr/local/bin/meniscus`, or the user adds it to `PATH`.
+The CLI binary ships inside the app (`Contents/Helpers/meniscus`). Installing it needs no
+administrator rights: **Install Command Line Tool** links it as `~/.local/bin/meniscus`, and if
+that folder isn't on `PATH`, Settings shows the line to add to `~/.zshrc`. **Copy Path** copies the
+binary's full path for anyone who'd rather call it directly or link it elsewhere.
 
 **The CLI never gets in the way of the tool calling it:** it answers within 0.5 s, never prompts,
 and exits 0 when a notice was accepted, queued or silenced. It exits non-zero only for invalid
@@ -239,8 +271,10 @@ input (2) or when Meniscus isn't running (3). It never launches Meniscus.
 **Trusted extras:**
 
 - `action` on click, one of: open an `https` URL, open a file in its default app, or bring the
-  source app forward. A banner with an action takes clicks only within its own area while shown;
-  everywhere else the island keeps letting clicks through as today.
+  source app forward. Without an `action`, a click brings the source app forward, as macOS
+  notifications do; with an unknown source, a click does nothing. A banner takes clicks only
+  within its own area while shown; everywhere else the island keeps letting clicks through as
+  today. URL scheme banners never take clicks.
 - Rate limit per source (the verified app, or "unknown" as one shared source): 10 banners per
   minute, 100 per hour.
 - Deduplication as for the URL scheme, but per source.
@@ -254,81 +288,111 @@ Shortcuts. Actions on click: open a URL or a file.
 
 ## 8. Claude Code
 
-Checked against the current hooks reference (October 2026).
+Checked against the current hooks reference and agent view documentation (October 2026).
 
 ### Hooks used
 
 | Hook | When Claude Code runs it | Meniscus call |
 | --- | --- | --- |
-| `UserPromptSubmit` | A prompt starts a turn (also scheduled tasks, `/loop` iterations, reports from background subagents and messages from other sessions). | `activity start --id <session_id>` "Claude is working" |
+| `UserPromptSubmit` | A prompt starts a turn (also scheduled tasks, `/loop` iterations, reports from background subagents and messages from other sessions). | `activity start --id <session_id> --timeout 2h` "Claude is working" |
 | `Stop` | Claude finished responding. Not after an interrupt (Esc); API errors run `StopFailure` instead. | `activity end --id <session_id> --state success` "Claude finished" |
 | `StopFailure` | The turn ended on an API error (`error` holds the type, for example a rate limit). | `activity end --id <session_id> --state attention` "Claude stopped", subtitle from the error type |
-| `Notification`, `permission_prompt` | Claude waits for a permission. | `activity update --id <session_id> --state attention` "Claude is waiting for you" |
-| `Notification`, `elicitation_dialog` | An MCP server asks the user something. | same as `permission_prompt` |
-| `Notification`, `agent_needs_input` | A background session waits for input (only while agent view is open in a terminal). | `notify --state attention` "Claude is waiting for you" |
-| `Notification`, `agent_completed` | A background session finished or failed (only while agent view is open). | `notify --state success` "Claude finished" |
 | `SessionEnd` | The session ends (`/clear`, exit, logout, resume elsewhere). | `activity end --id <session_id> --quiet` |
+| `Notification`, `permission_prompt` | Claude waits for a permission and the prompt has waited about six seconds without typing. | `activity update --id <session_id> --state attention` "Claude is waiting for you" |
+| `Notification`, `elicitation_dialog` | An MCP server asks the user something, after the same six seconds. | same as `permission_prompt` |
+| `Notification`, `agent_needs_input` | A background session starts waiting for input, while agent view is open in a terminal. | `notify --state attention` "Claude is waiting for you" |
+| `Notification`, `agent_completed` | A background session finished or failed, while agent view is open. | `notify --state success` "Claude finished", only as a fallback (below) |
 
 Every hook input carries `session_id`, so it is the activity id: parallel sessions never update
 or end each other's activities. The subtitle is the project folder's name (the last part of
-`cwd`), so banners from parallel sessions can be told apart; full paths are never shown.
+`cwd`), so banners from parallel sessions can be told apart; full paths are never shown. The
+hook's own `message` and `title` (on `Notification`) are not shown as they are; they map at most
+to our `subtitle`.
 
 ### The ordinary turn
 
-1. The user sends a prompt: `UserPromptSubmit` starts the activity. Nothing shows yet.
+1. The user sends a prompt: `UserPromptSubmit` starts the activity with a 2-hour timeout, so a
+   long task doesn't vanish quietly. Nothing shows yet.
 2. A short answer: `Stop` comes before the indicator delay. `end(success)` on an activity whose
    indicator never appeared shows **nothing**. This is what keeps everyday back-and-forth silent;
    no separate rule is needed.
-3. A long task: after 10 s the compact island shows "Claude is working". On `Stop`, the indicator
-   goes away and a short "Claude finished" banner shows.
+3. A long task: after 10 s the compact island shows the terminal's icon and the indicator. On
+   `Stop`, the indicator goes away and a short "Claude finished" banner shows.
 4. Claude needs a permission mid-task: `permission_prompt` turns the activity to `attention` and
    shows "Claude is waiting for you" at once, even for a task under 10 s, because the user has to
    act.
 5. The user interrupts with Esc: no `Stop` comes. The next `UserPromptSubmit` of the same session
-   restarts the activity; if none comes, the activity times out quietly. To keep a long task from
-   timing out, the adapter refreshes it from `PostToolUse` at most once a minute (optional).
-6. Two sessions work at once: the compact island shows one grouped "Claude is working · 2". When
-   they finish, each gets its own banner, one after another, with its project name.
+   restarts the activity; `SessionEnd` ends it; otherwise it times out quietly after 2 hours.
+6. Two sessions work at once: the compact island shows one grouped activity, the indicator and
+   `2`. When they finish, each gets its own banner, one after another, with its project name;
+   from the fourth in a row on, the rest collapse into "Claude finished · N more".
+7. Hooks are asynchronous, so a quick turn's `Stop` can reach Meniscus before its
+   `UserPromptSubmit`. Each call carries the time its hook started (section 2), and the late
+   `start` is ignored.
 
-"Claude is waiting for your answer" after a finished turn (Claude asked a question) can't be told
-apart reliably from "Claude finished": `Stop` doesn't say whether the last message is a question.
-`idle_prompt` fires after about a minute without input after any turn, so using it would bring
-back a notice after every short answer. Both are left out of v1 (see open questions).
+There is no "Claude is waiting for your answer" after a finished turn: `Stop` doesn't say whether
+Claude asked a question, and `idle_prompt` would bring back a notice after every short answer.
+Neither a question mark heuristic nor `idle_prompt` is used.
 
 ### Background sessions
 
-`agent_needs_input` and `agent_completed` add `attention` and `success` notices for background
-sessions, and only while agent view is open. A background session also runs its own `Stop` hooks,
-so the same finish could be reported twice; the adapter drops `agent_completed` when an activity
-with the same session id ended within the last 10 s. Which `session_id` these two notifications
-carry (the background session's or the viewing one's) isn't documented; it has to be checked
-before relying on the deduplication.
+`agent_needs_input` and `agent_completed` are sent by the Claude Code process that shows agent
+view, not by the background session itself. The documentation doesn't say which `session_id`
+they carry; since the hook runs in the agent view process, it is most likely that session's own
+id, not the background session's. So:
+
+- They never touch activities: they are plain `notify` calls and don't use their `session_id`.
+- Background sessions run their own hooks, so their own `UserPromptSubmit` and `Stop` already
+  drive their activities by their real `session_id`. `agent_completed` is then a duplicate, and
+  the adapter drops it when any Claude activity of the same source ended in the last 10 seconds.
+  It still helps when a background session's hooks can't reach Meniscus.
+- `agent_needs_input` also fires for an agent team teammate's setup question and for auto mode's
+  billing notice; both deserve `attention` too, so it is used as is.
+- The adapter logs the raw fields of these two events (in the `api` log category, without paths
+  or text) so the guess about `session_id` can be confirmed on a real Mac before relying on it.
+
+Background sessions are started by a supervisor process, not from a terminal, so their parent
+chain may end at `launchd`; their activities then show the neutral icon (section 4).
+
+### Texts
+
+The adapter's texts are in the app's string catalog and follow the user's language, like the
+rest of Meniscus (the CLI reads them from the app bundle it ships in):
+
+| English | Russian |
+| --- | --- |
+| Claude is working | Claude работает |
+| Claude finished | Claude закончил |
+| Claude finished · %lld more | Claude закончил · ещё %lld |
+| Claude is waiting for you | Claude ждёт вас |
+| Claude stopped | Claude остановился |
 
 ### Setup
 
 The CLI has a built-in adapter that reads the hook's JSON from standard input, so users need no
-`jq` or scripts:
+`jq` or scripts. The command uses the full path, because hooks don't always get the shell's
+`PATH`:
 
 ```json
 {
   "hooks": {
-    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "meniscus hook claude-code", "async": true }] }],
-    "Stop":             [{ "hooks": [{ "type": "command", "command": "meniscus hook claude-code", "async": true }] }],
-    "StopFailure":      [{ "hooks": [{ "type": "command", "command": "meniscus hook claude-code", "async": true }] }],
-    "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "meniscus hook claude-code", "async": true }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/meniscus hook claude-code", "async": true }] }],
+    "Stop":             [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/meniscus hook claude-code", "async": true }] }],
+    "StopFailure":      [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/meniscus hook claude-code", "async": true }] }],
+    "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "$HOME/.local/bin/meniscus hook claude-code", "async": true }] }],
     "Notification": [{
       "matcher": "permission_prompt|elicitation_dialog|agent_needs_input|agent_completed",
-      "hooks": [{ "type": "command", "command": "meniscus hook claude-code", "async": true }]
+      "hooks": [{ "type": "command", "command": "$HOME/.local/bin/meniscus hook claude-code", "async": true }]
     }]
   }
 }
 ```
 
-`async` keeps the hooks from ever delaying Claude. The adapter maps `hook_event_name` and
-`notification_type` to the calls in the table above, always exits 0, and prints nothing (a
-`UserPromptSubmit` hook's output would otherwise be added to the conversation). The same mapping
-can be written with plain `meniscus activity …` commands and `jq` for users who want to change
-it. Settings can copy this snippet; it never edits the user's Claude Code settings itself.
+`async` keeps the hooks from ever delaying Claude; the event times (section 2) put their calls back
+in order. The adapter maps `hook_event_name` and `notification_type` to the calls in the table
+above, always exits 0 and prints nothing. The same mapping can be written with plain
+`meniscus activity …` commands and `jq` for users who want to change it. Settings can copy this
+snippet; it never edits the user's Claude Code settings itself.
 
 The source for these calls is the terminal app Claude Code runs in, verified as in section 4.
 
@@ -357,33 +421,28 @@ In **Settings → Live Activities**, a section **External notices**:
 - **Sources** — every source seen so far (verified app, Shortcuts, "Unknown", "Links") with its
   own switch and last time seen. Sources appear only after their first call; there are no
   presets.
-- **Install command line tool…** and **Copy Claude Code hooks**.
+- **Install Command Line Tool** (to `~/.local/bin`, with the `PATH` hint), **Copy Path** and
+  **Copy Claude Code Hooks**.
 
-Developer: simulations for a notice in each state, a short and a long activity, and two parallel
-activities ending.
+Developer: simulations for a notice in each state, a short and a long activity, four parallel
+activities ending (three banners and a collapsed one), and a late `start` after its `end`.
 
-## 11. Open questions
+## 11. Decisions
 
-1. **Smart silence.** There is no feature by that name yet; this design reads it as the existing
-   quiet rules (full screen, screen capture, banners waiting while the island is open, switches).
-   Did you mean something more, for example a do-not-disturb schedule or muting external notices
-   during calls?
-2. **Focus.** macOS doesn't tell apps about Focus (we dropped the filter). Is it fine that external
-   notices ignore Focus?
-3. **URL scheme off by default?** It is the channel a web page could use. Off by default is safer
-   but means a setup step for every user who wants it.
-4. **Activities over the URL scheme.** The design allows only `notify` there. Is that enough?
-5. **Grouped activity and music.** With both a running task and music, which wins in the compact
-   island? The design puts external indicators (45) below music (50), so music wins.
-6. **"Claude is waiting for your answer" after a finished turn.** Leave it out (as designed), or
-   guess from the last message ending in a question mark, or use `idle_prompt` despite the extra
-   notices?
-7. **Default click for trusted banners without an action.** Bring the source app forward (for
-   Claude Code: the terminal it runs in), or do nothing?
-8. **Many sessions ending at once.** Each gets its own banner, one after another. Above some number
-   (say three), should the rest collapse into one "Claude finished · 3 more"?
-9. **Neutral icon.** `app.badge`, `bell` or the Meniscus icon?
-10. **Long tasks and the 30-minute timeout.** Refresh from `PostToolUse` (one extra quick process
-    per tool call, run in the background), or just a longer default timeout for Claude Code?
-11. **Banner times.** 3 s for `info`/`success` and 5 s for `attention`, with `attention` waiting up
-    to 2 minutes behind other notices. Good, or should `attention` wait longer?
+Answers to the open questions of the first draft:
+
+1. Smart silence is the existing quiet rules; schedules and calls are not in v1.
+2. Focus is ignored.
+3. The URL scheme is off by default.
+4. The URL scheme offers only `notify`.
+5. With music, music wins over a running activity; `attention` shows over music by priority.
+6. No "waiting for your answer" after a finished turn: no question mark heuristic, no
+   `idle_prompt`.
+7. A click on a trusted banner without an `action` brings the source app forward.
+8. After three end banners in a row, the rest collapse into "Claude finished · N more".
+9. The neutral icon is `app.badge`.
+10. No `PostToolUse` refresh. The default activity timeout is 30 minutes; the Claude Code adapter
+    starts activities with a 2-hour timeout. They restart on `UserPromptSubmit` and end on
+    `Stop`, `StopFailure` or `SessionEnd`.
+11. Banner times as proposed: 3 s for `info` and `success`, 5 s for `attention`; waits of 15 s and
+    2 minutes.
