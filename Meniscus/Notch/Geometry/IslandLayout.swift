@@ -58,7 +58,7 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var expandedShoulderRadius: CGFloat = 12
 
     /// The player's area below the notch. Its width follows the rule above.
-    var nowPlayingContentHeight: CGFloat = 120
+    var nowPlayingContentHeight: CGFloat = 126
     /// The quick capture field below the notch.
     var captureContentWidth: CGFloat = 420
     var captureContentHeight: CGFloat = 56

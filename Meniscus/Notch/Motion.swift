@@ -36,6 +36,9 @@ nonisolated enum Motion {
     /// stays open.
     static let fileDragSettle: Duration = .milliseconds(350)
 
+    /// The page dots follow the selected page.
+    static let pageDots = Animation.smooth(duration: 0.2)
+
     /// How long "Saved" shows after a quick capture before the island closes.
     static let captureSavedHold: Duration = .milliseconds(900)
 

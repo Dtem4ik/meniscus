@@ -19,7 +19,14 @@ struct IslandView: View {
                 height: context.contentSize.height,
                 horizontalOffset: layout.centerOffset
             ) {
-                IslandContentView(content: context.content, metrics: layout.metrics, actions: context.actions)
+                IslandContentView(context: context)
+                    .overlay(alignment: .bottom) {
+                        if context.pages.count > 1, context.content != .capture, context.content != .dropZone {
+                            PageDots(pages: context.pages, selected: context.page, select: context.actions.selectPage)
+                                .padding(.bottom, 2)
+                                .transition(.opacity)
+                        }
+                    }
             }
             .mask { shape }
 
@@ -34,34 +41,39 @@ struct IslandView: View {
     }
 }
 
-/// The expanded content. Nothing but the content itself: Settings live in the menu bar.
+/// The expanded content. Nothing but the content itself: Settings live in the menu bar. A new
+/// page slides in from the side it was swiped from.
 struct IslandContentView: View {
-    let content: IslandContent
-    let metrics: IslandMetrics
-    let actions: NotchActions
+    let context: IslandContext
 
     var body: some View {
+        let metrics = context.layout.metrics
         ZStack {
-            switch content {
+            switch context.content {
             case .home:
                 HomeIslandContent(metrics: metrics)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .transition(.opacity)
+                    .transition(pageTransition)
             case .nowPlaying:
                 NowPlayingView(service: ActivityServices.shared.nowPlaying)
-                    .transition(.opacity)
+                    .transition(pageTransition)
             case .capture:
-                CaptureField(capture: .shared, onFinish: actions.endCapture)
+                CaptureField(capture: .shared, onFinish: context.actions.endCapture)
                     .transition(.opacity)
             case .shelf:
                 ShelfView(shelf: .shared, metrics: metrics)
-                    .transition(.opacity)
+                    .transition(pageTransition)
             case .dropZone:
                 ShelfDropZone(isTargeted: ShelfController.shared.isDropTargeted)
                     .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var pageTransition: AnyTransition {
+        guard !context.reduceMotion else { return .opacity }
+        return .push(from: context.pageMovesForward ? .trailing : .leading).combined(with: .opacity)
     }
 }
 

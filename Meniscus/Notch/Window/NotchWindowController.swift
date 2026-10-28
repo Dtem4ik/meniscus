@@ -33,6 +33,11 @@ final class NotchWindowController {
     /// ends without a drop closes the island it opened, wherever the pointer is.
     private var isOpenForFileDrag = false
     private var didDropFiles = false
+    private var pageSwipe = PageSwipeTracker()
+    private var pageMemory = IslandPageMemory()
+    /// The track last seen in Now Playing; a different one asks for the player page.
+    private var lastTrack: String?
+    private var scrollMonitor: Any?
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -47,7 +52,8 @@ final class NotchWindowController {
     func start() {
         let actions = NotchActions(
             expand: { [weak self] in self?.expand() },
-            endCapture: { [weak self] in self?.collapse() }
+            endCapture: { [weak self] in self?.collapse() },
+            selectPage: { [weak self] page in self?.selectPage(page) }
         )
         let hostingView = NotchHostingView(rootView: NotchRootView(state: state, settings: settings, actions: actions))
         // The controller sizes the panel; SwiftUI must not resize it to fit its content.
@@ -74,6 +80,13 @@ final class NotchWindowController {
         hotZoneView.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.01).cgColor
         hotZone.ignoresMouseEvents = false
 
+        // Two-finger swipes over the open island turn its pages. A local monitor sees them even
+        // where SwiftUI views (like the shelf's scroll view) would otherwise take them.
+        scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+            guard let self else { return event }
+            return self.handleScroll(event) ? nil : event
+        }
+
         // Clicking anywhere else ends quick capture.
         NotificationCenter.default.addObserver(
             forName: NSWindow.didResignKeyNotification,
@@ -97,6 +110,7 @@ final class NotchWindowController {
         observeShelfSetting()
         observeActivities()
         observeContent()
+        observeTrack()
         refreshGeometry()
     }
 
@@ -116,6 +130,12 @@ final class NotchWindowController {
         guard !state.isExpanded else { return }
         transitionID += 1
 
+        // The last page looked at, or what something newer asks for.
+        let page = pageMemory.pageToOpen(in: currentChoice().pages)
+        state.page = page
+        pageMemory.viewed(page)
+        applyChoice(currentChoice())
+
         panel.ignoresMouseEvents = false
         let islandRect = state.layout.interactiveScreenRect(for: .expanded, content: state.content)
         container.resetTracking(pointerIsInside: islandRect.contains(NSEvent.mouseLocation))
@@ -133,7 +153,7 @@ final class NotchWindowController {
     func beginCapture() {
         CaptureController.shared.begin()
         // Size the island for the field before it opens, not after.
-        applyContent(currentContent())
+        applyChoice(currentChoice())
         expand(pinned: true)
         panel.allowsKey = true
         panel.makeKeyAndOrderFront(nil)
@@ -251,26 +271,68 @@ final class NotchWindowController {
 
     // MARK: Content
 
-    /// Quick capture comes first. Otherwise the player replaces the home content while something
-    /// plays; Now Playing itself rides out short gaps (like a track change), so this doesn't
-    /// flicker between the two. The home content also changes size with the date and the next
-    /// event.
-    private func currentContent() -> IslandContent {
-        if CaptureController.shared.isActive { return .capture }
+    private struct ContentChoice {
+        var content: IslandContent
+        var pages: [IslandPage]
+        var page: IslandPage
+    }
+
+    /// The pages there is something to show on and what the island shows. Quick capture comes
+    /// first, then a file drag (the drop target), then the selected page. Now Playing itself rides out
+    /// short gaps (like a track change), so the player page doesn't flicker away. The home
+    /// content also changes size with the date and the next event.
+    private func currentChoice() -> ContentChoice {
         let shelf = ShelfController.shared
-        if shelf.isDropTargeted || shelf.isDragApproaching { return .dropZone }
-        if shelf.visibleCount > 0 { return .shelf(itemCount: shelf.visibleCount) }
-        return ActivityServices.shared.nowPlaying.current == nil ? .home(state.homeContentSize) : .nowPlaying
+        let pages = IslandPages.available(
+            isPlaying: ActivityServices.shared.nowPlaying.current != nil,
+            hasShelfItems: shelf.visibleCount > 0
+        )
+        let page = IslandPages.resolve(state.page, in: pages)
+        let content: IslandContent
+        if CaptureController.shared.isActive {
+            content = .capture
+        } else if shelf.isDropTargeted || shelf.isDragApproaching {
+            content = .dropZone
+        } else {
+            switch page {
+            case .nowPlaying: content = .nowPlaying
+            case .home: content = .home(state.homeContentSize)
+            case .shelf: content = .shelf(itemCount: shelf.visibleCount)
+            }
+        }
+        return ContentChoice(content: content, pages: pages, page: page)
+    }
+
+    /// A new track asks for the player page the next time the island opens. Pausing, resuming
+    /// or a short gap between tracks is not a new track.
+    private func observeTrack() {
+        let track = withObservationTracking {
+            ActivityServices.shared.nowPlaying.current.map { "\($0.title)\u{1F}\($0.artist ?? "")" }
+        } onChange: { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in self.observeTrack() }
+        }
+        guard let track, track != lastTrack else { return }
+        lastTrack = track
+        pageMemory.request(.nowPlaying)
     }
 
     private func observeContent() {
-        let content = withObservationTracking {
-            currentContent()
+        let choice = withObservationTracking {
+            currentChoice()
         } onChange: { [weak self] in
             guard let self else { return }
             Task { @MainActor in self.observeContent() }
         }
-        applyContent(content)
+        applyChoice(choice)
+    }
+
+    private func applyChoice(_ choice: ContentChoice) {
+        if state.pages != choice.pages {
+            withAnimation(currentMotion().expand) { state.pages = choice.pages }
+        }
+        if state.page != choice.page { state.page = choice.page }
+        applyContent(choice.content)
     }
 
     private func applyContent(_ content: IslandContent) {
@@ -285,6 +347,45 @@ final class NotchWindowController {
         let pointerIsInside = islandRect.contains(NSEvent.mouseLocation)
         container.resetTracking(pointerIsInside: pointerIsInside)
         if !pointerIsInside { islandPointerDidChange(inside: false) }
+    }
+
+    // MARK: Pages
+
+    private func selectPage(_ page: IslandPage) {
+        guard page != state.page,
+              let from = state.pages.firstIndex(of: state.page),
+              let to = state.pages.firstIndex(of: page)
+        else { return }
+        state.pageMovesForward = to > from
+        state.page = page
+        pageMemory.viewed(page)
+        applyChoice(currentChoice())
+        if settings.hapticsEnabled {
+            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        }
+    }
+
+    /// Returns `true` when the event turned a page and should go no further.
+    private func handleScroll(_ event: NSEvent) -> Bool {
+        guard event.window === panel,
+              state.isExpanded,
+              !CaptureController.shared.isActive,
+              state.pages.count > 1,
+              event.hasPreciseScrollingDeltas
+        else { return false }
+        let phase: PageSwipeTracker.Phase =
+            if !event.momentumPhase.isEmpty { .momentum }
+            else if event.phase.contains(.began) { .began }
+            else if event.phase.contains(.changed) { .changed }
+            else if event.phase.contains(.ended) || event.phase.contains(.cancelled) { .ended }
+            else { .other }
+        // With natural scrolling the deltas follow the fingers; otherwise they are reversed.
+        let fingerDeltaX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
+        guard let turn = pageSwipe.handle(phase, fingerDeltaX: fingerDeltaX, deltaY: event.scrollingDeltaY),
+              let page = IslandPages.page(from: state.page, by: turn == .next ? 1 : -1, in: state.pages)
+        else { return false }
+        selectPage(page)
+        return true
     }
 
     // MARK: File drags
@@ -331,6 +432,13 @@ final class NotchWindowController {
     private func dropFiles(_ urls: [URL]) {
         didDropFiles = true
         ShelfController.shared.add(urls)
+        // Show what was just dropped.
+        if !ShelfController.shared.items.isEmpty {
+            let pages = currentChoice().pages
+            state.pageMovesForward = (pages.firstIndex(of: .shelf) ?? 0) > (pages.firstIndex(of: state.page) ?? 0)
+            state.page = .shelf
+            pageMemory.viewed(.shelf)
+        }
         fileDragChanged(isTargeted: false)
     }
 
@@ -340,7 +448,7 @@ final class NotchWindowController {
             didDropFiles = false
         }
         // Size the island for the drop target before it opens, not after.
-        applyContent(currentContent())
+        applyChoice(currentChoice())
         expand(pinned: true)
     }
 
