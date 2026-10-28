@@ -223,6 +223,7 @@ right), then folds back.
 | Quick capture saved | Check mark, "Saved" | After a quick capture is saved. |
 | Bluetooth device | A mini banner as wide as it needs: the device's symbol, its full name with "Connected" or "Disconnected" below in grey, and a battery ring (green, yellow below 20%, red below 10%) when the battery is known | For 3 seconds when a third-party Bluetooth device connects or disconnects. AirPods, Beats and Magic devices are left to macOS's own window. |
 | Bluetooth device low battery | The device's symbol in yellow or red, percent | At 20% and 10%, each once until the device is charged above 25%, for 4 seconds. |
+| Track change | A mini banner: the artwork, the title and the artist, no controls | For about 3 seconds when a new track starts playing, then the compact view with the equalizer comes back. Not when the same track resumes after a pause, and not while the island is open. Quick skips update the banner and restart its time instead of closing and reopening it. |
 
 The most important one shows: meeting, then low battery, then charging, then a Bluetooth
 device's low battery, then the keyboard layout, then the rest. Short activities show over music and then give the notch back to it.

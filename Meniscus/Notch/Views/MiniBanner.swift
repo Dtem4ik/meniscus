@@ -12,9 +12,10 @@ struct MiniBanner: Equatable {
     var trailing: Trailing?
 
     enum Leading: Equatable {
+        /// A symbol on a soft tile.
         case symbol(String, color: Color = .white)
-        /// A picture, like an album cover, with rounded corners.
-        case image(NSImage)
+        /// An album cover; a note on the same tile until it arrives.
+        case artwork(NSImage?)
     }
 
     enum Trailing: Equatable {
@@ -27,11 +28,11 @@ struct MiniBanner: Equatable {
 struct MiniBannerView: View {
     let banner: MiniBanner
     let metrics: IslandMetrics
+    private var leadingSize: CGFloat { metrics.bannerLeadingSize }
 
     var body: some View {
         HStack(spacing: metrics.bannerSpacing) {
-            leading
-                .frame(width: metrics.bannerLeadingSize, height: metrics.bannerLeadingSize)
+            leadingTile
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: banner.title)
@@ -59,21 +60,32 @@ struct MiniBannerView: View {
         .accessibilityElement(children: .combine)
     }
 
-    @ViewBuilder
-    private var leading: some View {
-        switch banner.leading {
-        case .symbol(let name, let color):
-            Image(systemName: name)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(color)
-                .accessibilityHidden(true)
-        case .image(let image):
-            Image(nsImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .clipShape(RoundedRectangle(cornerRadius: metrics.bannerLeadingCornerRadius, style: .continuous))
-                .accessibilityHidden(true)
+    /// One square tile for every kind of leading content, framed before it is clipped (artwork
+    /// fills past its frame), with its corner concentric with the island's (`bannerCorner`):
+    /// artwork and the placeholder note are rounded alike.
+    private var leadingTile: some View {
+        ZStack {
+            Color.white.opacity(0.1)
+            switch banner.leading {
+            case .symbol(let name, let color):
+                Image(systemName: name)
+                    .font(.system(size: leadingSize * 0.5, weight: .medium))
+                    .foregroundStyle(color)
+            case .artwork(let image?):
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .transition(.opacity)
+            case .artwork(nil):
+                Image(systemName: "music.note")
+                    .font(.system(size: leadingSize * 0.45, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .transition(.opacity)
+            }
         }
+        .frame(width: leadingSize, height: leadingSize)
+        .clipShape(RoundedRectangle(cornerRadius: metrics.bannerCorner.radius, style: .continuous))
+        .accessibilityHidden(true)
     }
 }
 

@@ -73,7 +73,7 @@ struct CompactSlot: View {
             CompactSymbol(name: "keyboard")
         case .captureSaved:
             CompactSymbol(name: "checkmark.circle.fill", color: .green)
-        case .bluetoothDevice:
+        case .bluetoothDevice, .trackChange:
             // Shown as a mini banner, not on the sides.
             EmptyView()
         case .deviceLowBattery:
@@ -123,7 +123,7 @@ struct CompactSlot: View {
                 CompactValue(text: String(localized: "Saved"))
                 CompactValue(text: "✓")
             }
-        case .bluetoothDevice:
+        case .bluetoothDevice, .trackChange:
             EmptyView()
         case .deviceLowBattery:
             let device = ActivityServices.shared.deviceLowBattery

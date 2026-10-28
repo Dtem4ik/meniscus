@@ -108,6 +108,7 @@ final class NotchWindowController {
             MainThread.run { self?.refreshGeometry() }
         }
         ActivityServices.shared.presentation.screenFrame = { [weak self] in self?.screen?.frame }
+        ActivityServices.shared.isIslandExpanded = { [weak self] in self?.state.isExpanded ?? false }
         observeScreenCaptureSetting()
         observeSettings()
         observeShelfSetting()

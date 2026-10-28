@@ -30,6 +30,11 @@ final class ActivityServices {
     private(set) var bluetoothDevice: (device: BluetoothDevice, isConnected: Bool)?
     /// The Bluetooth device whose battery is low, with the level in `battery.main`.
     private(set) var deviceLowBattery: BluetoothDevice?
+    /// The track the track change banner shows.
+    private(set) var trackBanner: TrackBanner?
+    /// Whether the island is open; a track change then shows nothing. Set by the window
+    /// controller.
+    @ObservationIgnored var isIslandExpanded: () -> Bool = { false }
 
     /// How long the charging activity stays in the notch after the charger is connected.
     static let chargingActivityDuration: TimeInterval = 4
@@ -39,11 +44,16 @@ final class ActivityServices {
     static let meetingActivityDuration: TimeInterval = 5
     /// How long a mini banner stays before the island folds back.
     static let bannerDuration: TimeInterval = 3
+    /// A new track's artwork often comes a moment after it; the banner waits this long for it.
+    static let trackArtworkWait: Duration = .milliseconds(600)
 
     @ObservationIgnored private let logger = Logger.power
     @ObservationIgnored private var lowBatteryWarnings = LowBatteryWarnings()
     @ObservationIgnored private var settings: AppSettings = .shared
     @ObservationIgnored private var deviceBatteryWarnings = DeviceBatteryWarnings()
+    @ObservationIgnored private var trackChanges = TrackChangeDetector()
+    @ObservationIgnored private var pendingTrack: TrackBanner?
+    @ObservationIgnored private var pendingTrackTask: Task<Void, Never>?
     /// Connected devices by name, for battery levels that arrive by name (CoreBluetooth).
     @ObservationIgnored private var connectedDevices: [String: BluetoothDevice] = [:]
 
@@ -76,7 +86,12 @@ final class ActivityServices {
             } else {
                 center.remove(id: "now-playing")
             }
+            // Followed even with the banner off, so turning it on doesn't announce an old track.
+            if trackChanges.check(info), let info {
+                trackChanged(TrackBanner(title: info.title, artist: info.artist))
+            }
         }
+        nowPlaying.onArtworkChange = { [weak self] image in self?.artworkChanged(image) }
         if settings.showNowPlaying { nowPlaying.start() }
 
         // A reminder that files wait on the shelf; anything else in the notch comes first.
@@ -153,6 +168,61 @@ final class ActivityServices {
     /// Developer menu: a keyboard warning about its battery.
     func simulateDeviceLowBattery() {
         showDeviceLowBattery(BluetoothDevice(id: "simulated-keyboard", name: String(localized: "Wireless Keyboard"), kind: .keyboard), level: 10)
+    }
+
+    /// Developer menu: a track change, as if a song just started. Pressing it again while the
+    /// banner is up shows how quick skips update it in place.
+    func simulateTrackChange() {
+        let number = (trackBanner?.title.split(separator: " ").last.flatMap { Int($0) } ?? 0) + 1
+        showTrackBanner(TrackBanner(title: String(localized: "Simulated Track \(number)"), artist: "Meniscus"))
+    }
+
+    private var isShowingTrackBanner: Bool {
+        center.current?.id == ActivityID.trackChange
+    }
+
+    private func trackChanged(_ track: TrackBanner) {
+        guard settings.showTrackChange, !isIslandExpanded() else { return }
+        if isShowingTrackBanner {
+            // Quick skips: the banner stays and takes the new track; its artwork follows.
+            pendingTrackTask?.cancel()
+            pendingTrack = nil
+            showTrackBanner(track)
+            return
+        }
+        pendingTrack = track
+        pendingTrackTask?.cancel()
+        pendingTrackTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.trackArtworkWait)
+            guard !Task.isCancelled, let self else { return }
+            // No new artwork came: the new track shares the old one (same album), or has none.
+            self.showPendingTrack(artwork: self.nowPlaying.artwork)
+        }
+    }
+
+    private func artworkChanged(_ image: NSImage?) {
+        if pendingTrack != nil {
+            showPendingTrack(artwork: image)
+        } else if isShowingTrackBanner {
+            trackBanner?.artwork = image
+        }
+    }
+
+    private func showPendingTrack(artwork: NSImage?) {
+        pendingTrackTask?.cancel()
+        pendingTrackTask = nil
+        guard var track = pendingTrack else { return }
+        pendingTrack = nil
+        guard !isIslandExpanded() else { return }
+        track.artwork = artwork
+        showTrackBanner(track)
+    }
+
+    /// Posting again with the same id updates the banner in place and restarts its time, so
+    /// quick skips don't make it close and reopen.
+    private func showTrackBanner(_ track: TrackBanner) {
+        trackBanner = track
+        center.postTransient(id: ActivityID.trackChange, kind: .trackChange, duration: Self.bannerDuration, priority: .confirmation)
     }
 
     /// Shown after a quick capture is saved.
@@ -290,6 +360,7 @@ nonisolated enum ActivityID {
     static let captureSaved = "capture-saved"
     static let bluetoothDevice = "bluetooth-device"
     static let deviceLowBattery = "device-low-battery"
+    static let trackChange = "track-change"
 }
 
 extension Logger {

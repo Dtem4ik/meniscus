@@ -57,14 +57,15 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var bannerMaximumWidth: CGFloat = 360
     /// At least this much wider than the notch on each side.
     var bannerMinimumWingWidth: CGFloat = 36
-    var bannerContentHeight: CGFloat = 46
-    var bannerBottomRadius: CGFloat = 22
+    /// Softer than the open island's corners, so the tile inside can follow them closely.
+    var bannerBottomRadius: CGFloat = 18
     var bannerShoulderRadius: CGFloat = 8
-    var bannerHorizontalPadding: CGFloat = 14
+    /// The tile is never closer than this to the island's edge.
+    var bannerMinimumInset: CGFloat = 8
     var bannerSpacing: CGFloat = 10
-    /// The symbol or picture on the left.
-    var bannerLeadingSize: CGFloat = 26
-    var bannerLeadingCornerRadius: CGFloat = 6
+    /// The tile on the left (artwork, or a symbol): as tall as the title and second line together
+    /// (13 pt and 11 pt type).
+    var bannerLeadingSize: CGFloat = 30
     /// The battery ring on the right.
     var bannerRingDiameter: CGFloat = 26
     var bannerRingLineWidth: CGFloat = 2.5
@@ -81,6 +82,14 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var maximumContentHeight: CGFloat = 132
     var expandedBottomRadius: CGFloat = 30
     var expandedShoulderRadius: CGFloat = 12
+
+    /// The artwork in the open player, and its least distance from the island's sides.
+    var playerArtworkSize: CGFloat = 44
+    var playerMinimumInset: CGFloat = 16
+
+    /// A rounded element is rounded at most this share of its side; more and artwork starts to
+    /// read as a circle.
+    var elementMaximumCornerFraction: CGFloat = 0.24
 
     /// The player's area below the notch. Its width follows the rule above.
     var nowPlayingContentHeight: CGFloat = 126
@@ -113,6 +122,44 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     var windowMargin: CGFloat = 28
 
     static let standard = IslandMetrics()
+
+    // MARK: Concentric corners
+
+    /// The tile on the left of a mini banner (artwork, a placeholder or a symbol).
+    var bannerCorner: ConcentricCorner {
+        ConcentricCorner(outer: bannerBottomRadius, size: bannerLeadingSize, minimumInset: bannerMinimumInset, maximumFraction: elementMaximumCornerFraction)
+    }
+
+    /// The banner's tile sits `bannerCorner.inset` from the side and from the bottom, so its
+    /// height follows.
+    var bannerContentHeight: CGFloat { (bannerLeadingSize + 2 * bannerCorner.inset).rounded(.up) }
+    var bannerHorizontalPadding: CGFloat { bannerCorner.inset }
+
+    /// The artwork in the open player.
+    var playerCorner: ConcentricCorner {
+        ConcentricCorner(outer: expandedBottomRadius, size: playerArtworkSize, minimumInset: playerMinimumInset, maximumFraction: elementMaximumCornerFraction)
+    }
+
+    var playerHorizontalPadding: CGFloat { playerCorner.inset }
+}
+
+/// A rounded element near a rounded corner of the island, drawn concentric with it as macOS
+/// draws nested corners: the element's radius plus its inset equals the island's radius, so
+/// both curves share a center and run parallel.
+///
+/// Its radius is `outer - minimumInset`, but at most `maximumFraction` of its side; when that
+/// cap applies, the element moves further in instead of getting rounder. Every rounded element
+/// at the island's edge takes its corner from here.
+nonisolated struct ConcentricCorner: Equatable, Sendable {
+    var radius: CGFloat
+    var inset: CGFloat
+
+    init(outer: CGFloat, size: CGFloat, minimumInset: CGFloat, maximumFraction: CGFloat) {
+        let radius = max(min(outer - minimumInset, size * maximumFraction), 0)
+        // On half points, so edges stay crisp; rounding the inset up keeps the radius in its cap.
+        inset = ((outer - radius) * 2).rounded(.up) / 2
+        self.radius = outer - inset
+    }
 }
 
 /// Where the island and its window go for a given notch. Pure, so it is unit tested.

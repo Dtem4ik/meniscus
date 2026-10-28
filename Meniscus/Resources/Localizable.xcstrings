@@ -1351,12 +1351,12 @@
         }
       }
     },
-    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, a Bluetooth headset, mouse, keyboard or gamepad connecting (with its battery) and at 20% and 10%. AirPods and other Apple devices are left to macOS's own window. They stay hidden while an app is in full screen.": {
+    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, a Bluetooth headset, mouse, keyboard or gamepad connecting (with its battery) and at 20% and 10%, a new track with its artwork. AirPods and other Apple devices are left to macOS's own window. They stay hidden while an app is in full screen.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись, подключение Bluetooth-наушников, мыши, клавиатуры или геймпада (с зарядом) и их заряд 20% и 10%. AirPods и другие устройства Apple показывает сама macOS. Пока приложение развёрнуто на весь экран, уведомления не показываются."
+            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись, подключение Bluetooth-наушников, мыши, клавиатуры или геймпада (с зарядом) и их заряд 20% и 10%, новый трек с обложкой. AirPods и другие устройства Apple показывает сама macOS. Пока приложение развёрнуто на весь экран, уведомления не показываются."
           }
         }
       }
@@ -1501,12 +1501,32 @@
         }
       }
     },
+    "Simulate Track Change": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать смену трека"
+          }
+        }
+      }
+    },
     "Simulate Upcoming Meeting": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Имитировать скорую встречу"
+          }
+        }
+      }
+    },
+    "Simulated Track %lld": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пробный трек %lld"
           }
         }
       }
@@ -1647,6 +1667,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Чтобы открыть настройки, снова откройте Meniscus из папки «Программы» или через Spotlight."
+          }
+        }
+      }
+    },
+    "Track changes": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Смена трека"
           }
         }
       }

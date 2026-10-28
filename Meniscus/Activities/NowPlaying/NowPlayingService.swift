@@ -24,6 +24,8 @@ final class NowPlayingService {
 
     /// Called whenever `current` changes, to drive the live activity.
     @ObservationIgnored var onChange: ((NowPlayingInfo?) -> Void)?
+    /// Called when the artwork changes; a new track's artwork often comes a moment after it.
+    @ObservationIgnored var onArtworkChange: ((NSImage?) -> Void)?
 
     @ObservationIgnored private var adapter: MediaRemoteAdapter?
     @ObservationIgnored private var stream: AdapterStream?
@@ -224,5 +226,6 @@ final class NowPlayingService {
     private func setArtwork(_ image: NSImage?) {
         artwork = image
         artworkTint = image.flatMap(ArtworkTint.color(of:))
+        onArtworkChange?(image)
     }
 }

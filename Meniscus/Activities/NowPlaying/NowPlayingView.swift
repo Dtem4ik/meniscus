@@ -5,14 +5,15 @@ import SwiftUI
 /// playing app's icon in the corner, then the progress, then the controls.
 struct NowPlayingView: View {
     let service: NowPlayingService
+    private let metrics = IslandMetrics.standard
 
     var body: some View {
         if let info = service.current {
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 12) {
                     PlayerArtwork(image: service.artwork)
-                        .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                        .frame(width: metrics.playerArtworkSize, height: metrics.playerArtworkSize)
+                        .clipShape(RoundedRectangle(cornerRadius: metrics.playerCorner.radius, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(info.title)
@@ -24,7 +25,7 @@ struct NowPlayingView: View {
                     }
                     .lineLimit(1)
                     .contentTransition(.opacity)
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .frame(maxWidth: .infinity, minHeight: metrics.playerArtworkSize, alignment: .leading)
 
                     sourceApplication
                 }
@@ -37,7 +38,7 @@ struct NowPlayingView: View {
                 controls(isPlaying: info.isPlaying)
                     .padding(.top, 2)
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, metrics.playerHorizontalPadding)
             .padding(.top, 6)
             .frame(maxHeight: .infinity, alignment: .top)
         }

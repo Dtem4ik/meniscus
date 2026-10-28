@@ -179,6 +179,7 @@ struct LiveActivitySettingsTests {
         #expect(settings.showCaptureConfirmation)
         #expect(settings.showBluetoothDevices)
         #expect(settings.showDeviceLowBattery)
+        #expect(settings.showTrackChange)
         #expect(settings.hideFromScreenCapture)
     }
 }
