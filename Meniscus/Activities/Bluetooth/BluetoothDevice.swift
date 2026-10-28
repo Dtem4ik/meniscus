@@ -134,6 +134,8 @@ extension MiniBanner {
         case .bluetoothDevice:
             guard let shown = ActivityServices.shared.bluetoothDevice else { return nil }
             return .bluetooth(shown.device, isConnected: shown.isConnected)
+        case .trackChange:
+            return ActivityServices.shared.trackBanner.map(MiniBanner.track)
         default:
             return nil
         }

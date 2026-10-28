@@ -34,6 +34,7 @@ nonisolated enum SettingsKey {
     static let showCaptureConfirmation = "activities.captureSaved"
     static let showBluetoothDevices = "activities.bluetoothDevices"
     static let showDeviceLowBattery = "activities.deviceLowBattery"
+    static let showTrackChange = "activities.trackChange"
     static let hideFromScreenCapture = "hideFromScreenCapture"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
@@ -94,6 +95,9 @@ final class AppSettings {
     var showDeviceLowBattery: Bool {
         didSet { defaults.set(showDeviceLowBattery, forKey: SettingsKey.showDeviceLowBattery) }
     }
+    var showTrackChange: Bool {
+        didSet { defaults.set(showTrackChange, forKey: SettingsKey.showTrackChange) }
+    }
     /// Leaves the island out of screenshots, recordings and screen sharing, where the system
     /// honors it. macOS can't tell apps when the screen is being shared, so this is the way to
     /// keep live activities out of a presentation.
@@ -126,6 +130,7 @@ final class AppSettings {
             SettingsKey.showCaptureConfirmation: true,
             SettingsKey.showBluetoothDevices: true,
             SettingsKey.showDeviceLowBattery: true,
+            SettingsKey.showTrackChange: true,
             SettingsKey.hideFromScreenCapture: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
@@ -143,6 +148,7 @@ final class AppSettings {
         showCaptureConfirmation = defaults.bool(forKey: SettingsKey.showCaptureConfirmation)
         showBluetoothDevices = defaults.bool(forKey: SettingsKey.showBluetoothDevices)
         showDeviceLowBattery = defaults.bool(forKey: SettingsKey.showDeviceLowBattery)
+        showTrackChange = defaults.bool(forKey: SettingsKey.showTrackChange)
         hideFromScreenCapture = defaults.bool(forKey: SettingsKey.hideFromScreenCapture)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)

@@ -76,6 +76,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         developer.addItem(item(String(localized: "Simulate Device Low Battery")) {
             ActivityServices.shared.simulateDeviceLowBattery()
         })
+        developer.addItem(item(String(localized: "Simulate Track Change")) {
+            ActivityServices.shared.simulateTrackChange()
+        })
         developer.addItem(item(String(localized: "Bluetooth Diagnostics")) {
             ActivityServices.shared.copyBluetoothDiagnostics()
         })
