@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// The default expanded content: time and date on the left, the next calendar event on the right.
@@ -21,7 +22,8 @@ struct HomeContent: View {
                 }
             }
 
-            if showCalendar {
+            // A meeting about to start shows even with the next event turned off.
+            if showCalendar || calendar.startingSoon != nil {
                 Spacer(minLength: 18)
                 Divider().frame(height: 40)
                 UpcomingEventView(calendar: calendar)
@@ -51,7 +53,8 @@ struct UpcomingEventView: View {
             }
             .buttonStyle(.borderless)
         case .granted:
-            if let event = calendar.upcoming {
+            // A meeting about to start comes first, with Join.
+            if let event = calendar.startingSoon ?? calendar.upcoming {
                 EventSummary(event: event)
             } else {
                 Label("No more events today", systemImage: "calendar")
@@ -65,20 +68,31 @@ private struct EventSummary: View {
     let event: CalendarEventSnapshot
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(color)
-                    .frame(width: 7, height: 7)
-                Text(event.title)
-                    .font(.headline)
-                    .lineLimit(1)
-            }
-            TimelineView(.everyMinute) { context in
-                Text(subtitle(at: context.date))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+        TimelineView(.everyMinute) { context in
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(color)
+                            .frame(width: 7, height: 7)
+                        Text(event.title)
+                            .font(.headline)
+                            .lineLimit(1)
+                    }
+                    Text(subtitle(at: context.date))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                if let url = event.meetingURL, MeetingJoin.isOffered(for: event, at: context.date) {
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Label("Join", systemImage: "video.fill")
+                    }
+                    .buttonStyle(JoinButtonStyle())
+                    .help(url.host() ?? url.absoluteString)
+                }
             }
         }
     }
@@ -96,5 +110,28 @@ private struct EventSummary: View {
         }
         let relative = event.start.formatted(.relative(presentation: .named, unitsStyle: .wide))
         return "\(event.start.formatted(time)) · \(relative)"
+    }
+}
+
+/// When Join shows: from 10 minutes before the meeting until it ends.
+nonisolated enum MeetingJoin {
+    static let lead: TimeInterval = 10 * 60
+
+    static func isOffered(for event: CalendarEventSnapshot, at date: Date) -> Bool {
+        event.meetingURL != nil && !event.isAllDay && event.start - lead <= date && date < event.end
+    }
+}
+
+/// A small green capsule, like the join buttons of the system's call notifications.
+private struct JoinButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(.green.opacity(configuration.isPressed ? 0.7 : 1), in: .capsule)
+            .scaleEffect(configuration.isPressed ? Motion.controlPressScale : 1)
+            .animation(Motion.controlPress, value: configuration.isPressed)
     }
 }

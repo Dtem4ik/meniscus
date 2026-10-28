@@ -29,10 +29,18 @@ struct CompactActivityView: View {
         case .nowPlaying:
             CompactArtwork(service: ActivityServices.shared.nowPlaying)
         case .shelf, .dropHint:
-            Image(systemName: "paperclip")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-                .accessibilityHidden(true)
+            CompactSymbol(name: "paperclip")
+        case .meeting:
+            CompactSymbol(name: "calendar", color: ActivityServices.shared.meeting?.calendarColor.map {
+                Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue)
+            } ?? .white)
+        case .lowBattery:
+            let level = ActivityServices.shared.lowBatteryLevel ?? 0
+            CompactSymbol(name: BatteryWarningStyle.symbol(level: level), color: BatteryWarningStyle.color(level: level))
+        case .inputSource:
+            CompactSymbol(name: "keyboard")
+        case .captureSaved:
+            CompactSymbol(name: "checkmark.circle.fill", color: .green)
         }
     }
 
@@ -69,7 +77,69 @@ struct CompactActivityView: View {
                 .accessibilityLabel(Text("Files on the shelf: \(count)"))
         case .dropHint:
             DropHint()
+        case .meeting:
+            if let meeting = ActivityServices.shared.meeting {
+                MeetingCountdown(start: meeting.start)
+                    .accessibilityLabel(Text(meeting.title))
+            }
+        case .lowBattery:
+            let level = ActivityServices.shared.lowBatteryLevel ?? 0
+            Text((Double(level) / 100).formatted(.percent.precision(.fractionLength(0))))
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(BatteryWarningStyle.color(level: level))
+        case .inputSource:
+            Text(verbatim: ActivityServices.shared.inputSourceLabel ?? "")
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .contentTransition(.opacity)
+        case .captureSaved:
+            Text("Saved")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
+    }
+}
+
+/// A symbol on one side of the compact island.
+private struct CompactSymbol: View {
+    let name: String
+    var color: Color = .white
+
+    var body: some View {
+        Image(systemName: name)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(color)
+            .accessibilityHidden(true)
+    }
+}
+
+/// "in 5 min", then "now", counting down once a minute while it shows.
+private struct MeetingCountdown: View {
+    let start: Date
+
+    var body: some View {
+        TimelineView(.everyMinute) { context in
+            let minutes = MeetingReminder.minutesUntil(start, from: context.date)
+            Text(minutes > 0 ? String(localized: "in \(minutes) min") : String(localized: "now"))
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+    }
+}
+
+/// Yellow at 20%, red at 10%, like the battery in the menu bar.
+nonisolated enum BatteryWarningStyle {
+    static func symbol(level: Int) -> String {
+        level <= 10 ? "battery.0percent" : "battery.25percent"
+    }
+
+    static func color(level: Int) -> Color {
+        level <= 10 ? .red : .yellow
     }
 }
 

@@ -22,7 +22,7 @@ final class ActivityCenter {
     }
 
     /// Posts an activity that disappears after `duration`.
-    func postTransient(id: String, kind: LiveActivity.Kind, duration: TimeInterval, priority: LiveActivity.Priority = .alert) {
+    func postTransient(id: String, kind: LiveActivity.Kind, duration: TimeInterval, priority: LiveActivity.Priority) {
         let date = now()
         post(LiveActivity(id: id, kind: kind, priority: priority, updatedAt: date, expiresAt: date.addingTimeInterval(duration)))
     }

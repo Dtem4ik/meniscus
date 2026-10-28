@@ -54,7 +54,12 @@ struct CaptureField: View {
     private func submit() {
         Task {
             guard await capture.submit() else { return }
-            try? await Task.sleep(for: Motion.captureSavedHold)
+            if AppSettings.shared.showCaptureConfirmation {
+                // Close right away; the closed notch confirms, like the other live activities.
+                ActivityServices.shared.showCaptureSaved()
+            } else {
+                try? await Task.sleep(for: Motion.captureSavedHold)
+            }
             onFinish()
         }
     }

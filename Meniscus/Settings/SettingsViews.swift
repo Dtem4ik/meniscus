@@ -13,10 +13,7 @@ struct GeneralSettingsView: View {
             }
             Section {
                 Toggle("Show the next calendar event", isOn: $settings.showCalendar)
-                    .onChange(of: settings.showCalendar) { _, isOn in
-                        let calendar = ActivityServices.shared.calendar
-                        if isOn { calendar.start() } else { calendar.stop() }
-                    }
+                    .onChange(of: settings.showCalendar) { ActivityServices.shared.updateCalendar(settings: settings) }
             } footer: {
                 Text("Calendar access is requested the first time you open the island with this on.")
                     .foregroundStyle(.secondary)
@@ -32,6 +29,21 @@ struct GeneralSettingsView: View {
                     }
             } footer: {
                 NowPlayingStatus(availability: ActivityServices.shared.nowPlaying.availability)
+            }
+            Section {
+                Toggle("Upcoming meetings", isOn: $settings.showMeetingReminders)
+                    .onChange(of: settings.showMeetingReminders) { ActivityServices.shared.updateCalendar(settings: settings) }
+                Toggle("Low battery", isOn: $settings.showLowBattery)
+                Toggle("Charging", isOn: $settings.showCharging)
+                Toggle("Keyboard layout", isOn: $settings.showInputSource)
+                    .onChange(of: settings.showInputSource) { ActivityServices.shared.updateInputSource(settings: settings) }
+                Toggle("Quick capture saved", isOn: $settings.showCaptureConfirmation)
+                Toggle("Hide from screenshots and screen sharing", isOn: $settings.hideFromScreenCapture)
+            } header: {
+                Text("Live Activities")
+            } footer: {
+                Text("Short notices in the notch: a meeting 5 minutes ahead (with Join for Zoom, Meet and Teams), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen. macOS doesn't tell apps when the screen is shared, so to keep the island out of a presentation it can be left out of screenshots, recordings and screen sharing (where the system honors it); turn that off to take a screenshot of the island.")
+                    .foregroundStyle(.secondary)
             }
             Section {
                 Toggle("Keep dropped files on a shelf", isOn: $settings.showShelf)
@@ -114,6 +126,8 @@ struct DeveloperSettingsView: View {
                 Toggle("Outline the computed notch in red", isOn: $settings.showGeometryOverlay)
                 Toggle("Use a virtual notch on this screen", isOn: $settings.forceVirtualNotch)
                 Button("Simulate Charging") { ActivityServices.shared.simulateCharging() }
+                Button("Simulate Low Battery") { ActivityServices.shared.simulateLowBattery() }
+                Button("Simulate Upcoming Meeting") { ActivityServices.shared.calendar.simulateStartingSoon() }
             }
             Section {
                 Button {
