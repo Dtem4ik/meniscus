@@ -85,6 +85,9 @@ targets:
     settings:
       base:
         PRODUCT_NAME: meniscus
+        # The binary is `meniscus`; its module must not collide with the app's `Meniscus` on a
+        # case-insensitive disk.
+        PRODUCT_MODULE_NAME: MeniscusCLI
         PRODUCT_BUNDLE_IDENTIFIER: io.github.dtem4ik.meniscus.cli
         SKIP_INSTALL: YES
         # A small single-threaded tool: everything runs on the main thread.
