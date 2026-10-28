@@ -57,7 +57,7 @@ nonisolated enum FocusKind: String, AppEnum, CaseIterable, Sendable {
 /// A Focus filter (public App Intents, no entitlement). macOS calls `perform()` when a Focus that
 /// has this filter turns on, with the values chosen for it, and again when it turns off, with the
 /// values unset.
-nonisolated struct MeniscusFocusFilter: SetFocusFilterIntent {
+struct MeniscusFocusFilter: SetFocusFilterIntent {
     static let title: LocalizedStringResource = "Show in the notch"
     static let description: IntentDescription? = "Meniscus briefly shows this Focus in the notch when it turns on and off."
 
@@ -72,12 +72,8 @@ nonisolated struct MeniscusFocusFilter: SetFocusFilterIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        let kind = kind
-        let name = name
         Logger.focus.notice("Focus filter performed: \(kind?.rawValue ?? "off", privacy: .public)")
-        await MainActor.run {
-            ActivityServices.shared.focusFilterPerformed(kind: kind, name: name)
-        }
+        ActivityServices.shared.focusFilterPerformed(kind: kind, name: name)
         return .result()
     }
 }
