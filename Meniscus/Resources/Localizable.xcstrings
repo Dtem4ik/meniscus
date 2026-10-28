@@ -31,6 +31,16 @@
         }
       }
     },
+    "%lld min": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld мин"
+          }
+        }
+      }
+    },
     "A line in one note": {
       "localizations": {
         "ru": {
@@ -197,6 +207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bundle ID, например com.apple.Notes"
+          }
+        }
+      }
+    },
+    "Calendar": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Календарь"
           }
         }
       }
@@ -531,6 +551,16 @@
         }
       }
     },
+    "Hide from screenshots and screen sharing": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скрывать на снимках экрана и при демонстрации"
+          }
+        }
+      }
+    },
     "Home": {
       "localizations": {
         "ru": {
@@ -561,12 +591,32 @@
         }
       }
     },
+    "Join": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключиться"
+          }
+        }
+      }
+    },
     "Keep dropped files on a shelf": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Полка для файлов"
+          }
+        }
+      }
+    },
+    "Keyboard layout": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Смена раскладки"
           }
         }
       }
@@ -597,6 +647,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ссылки могут сразу открывать приложения. Приложение Claude: claude://claude.ai/new начинает чат (добавьте ?q= с текстом в URL-кодировке, чтобы заполнить запрос), claude://claude.ai/project/ID открывает проект, а claude://claude.ai/chat/ID — чат. ID — это конец адреса проекта или чата на claude.ai."
+          }
+        }
+      }
+    },
+    "Live Activities": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Живые активности"
+          }
+        }
+      }
+    },
+    "Low battery": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Низкий заряд"
           }
         }
       }
@@ -697,6 +767,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вверх"
+          }
+        }
+      }
+    },
+    "Music": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Музыка"
           }
         }
       }
@@ -871,6 +951,16 @@
         }
       }
     },
+    "Open at login": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открывать при входе в систему"
+          }
+        }
+      }
+    },
     "Open or Close Island": {
       "localizations": {
         "ru": {
@@ -1011,6 +1101,16 @@
         }
       }
     },
+    "Quick capture saved": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Быстрая запись сохранена"
+          }
+        }
+      }
+    },
     "Quit Meniscus": {
       "localizations": {
         "ru": {
@@ -1077,6 +1177,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Запустить быструю команду"
+          }
+        }
+      }
+    },
+    "Sample meeting": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тестовая встреча"
           }
         }
       }
@@ -1167,6 +1277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Полка"
+          }
+        }
+      }
+    },
+    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись. Пока приложение развёрнуто на весь экран, они не показываются."
           }
         }
       }
@@ -1277,6 +1397,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Имитировать зарядку"
+          }
+        }
+      }
+    },
+    "Simulate Low Battery": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать низкий заряд"
+          }
+        }
+      }
+    },
+    "Simulate Upcoming Meeting": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать скорую встречу"
           }
         }
       }
@@ -1451,6 +1591,16 @@
         }
       }
     },
+    "Upcoming meetings": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скорые встречи"
+          }
+        }
+      }
+    },
     "Use Virtual Notch": {
       "localizations": {
         "ru": {
@@ -1497,6 +1647,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "https://…, claude://… или obsidian://…"
+          }
+        }
+      }
+    },
+    "macOS doesn't tell apps when the screen is shared, so to keep the island out of a presentation it can be left out of screenshots, recordings and screen sharing (where the system honors it). Turn this off to take a screenshot of the island.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS не сообщает приложениям о демонстрации экрана, поэтому, чтобы остров не попал в презентацию, его можно скрыть со снимков экрана, записей и демонстрации (там, где система это учитывает). Выключите это, чтобы сделать снимок острова."
+          }
+        }
+      }
+    },
+    "now": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "сейчас"
           }
         }
       }

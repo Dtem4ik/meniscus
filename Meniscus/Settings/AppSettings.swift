@@ -27,6 +27,12 @@ nonisolated enum SettingsKey {
     static let hiddenCalendarIDs = "calendar.hiddenCalendarIDs"
     static let showNowPlaying = "showNowPlaying"
     static let showShelf = "showShelf"
+    static let showMeetingReminders = "activities.meetings"
+    static let showLowBattery = "activities.lowBattery"
+    static let showCharging = "activities.charging"
+    static let showInputSource = "activities.inputSource"
+    static let showCaptureConfirmation = "activities.captureSaved"
+    static let hideFromScreenCapture = "hideFromScreenCapture"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
     static let forceVirtualNotch = "developer.forceVirtualNotch"
@@ -63,6 +69,29 @@ final class AppSettings {
     var showShelf: Bool {
         didSet { defaults.set(showShelf, forKey: SettingsKey.showShelf) }
     }
+
+    // Live activities, each with its own switch.
+    var showMeetingReminders: Bool {
+        didSet { defaults.set(showMeetingReminders, forKey: SettingsKey.showMeetingReminders) }
+    }
+    var showLowBattery: Bool {
+        didSet { defaults.set(showLowBattery, forKey: SettingsKey.showLowBattery) }
+    }
+    var showCharging: Bool {
+        didSet { defaults.set(showCharging, forKey: SettingsKey.showCharging) }
+    }
+    var showInputSource: Bool {
+        didSet { defaults.set(showInputSource, forKey: SettingsKey.showInputSource) }
+    }
+    var showCaptureConfirmation: Bool {
+        didSet { defaults.set(showCaptureConfirmation, forKey: SettingsKey.showCaptureConfirmation) }
+    }
+    /// Leaves the island out of screenshots, recordings and screen sharing, where the system
+    /// honors it. macOS can't tell apps when the screen is being shared, so this is the way to
+    /// keep live activities out of a presentation.
+    var hideFromScreenCapture: Bool {
+        didSet { defaults.set(hideFromScreenCapture, forKey: SettingsKey.hideFromScreenCapture) }
+    }
     var slowAnimations: Bool {
         didSet { defaults.set(slowAnimations, forKey: SettingsKey.slowAnimations) }
     }
@@ -82,6 +111,12 @@ final class AppSettings {
             SettingsKey.showCalendar: true,
             SettingsKey.showNowPlaying: true,
             SettingsKey.showShelf: true,
+            SettingsKey.showMeetingReminders: true,
+            SettingsKey.showLowBattery: true,
+            SettingsKey.showCharging: true,
+            SettingsKey.showInputSource: true,
+            SettingsKey.showCaptureConfirmation: true,
+            SettingsKey.hideFromScreenCapture: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
             .flatMap(DisplayPreference.init) ?? .notched
@@ -91,6 +126,12 @@ final class AppSettings {
         hiddenCalendarIDs = Set(defaults.stringArray(forKey: SettingsKey.hiddenCalendarIDs) ?? [])
         showNowPlaying = defaults.bool(forKey: SettingsKey.showNowPlaying)
         showShelf = defaults.bool(forKey: SettingsKey.showShelf)
+        showMeetingReminders = defaults.bool(forKey: SettingsKey.showMeetingReminders)
+        showLowBattery = defaults.bool(forKey: SettingsKey.showLowBattery)
+        showCharging = defaults.bool(forKey: SettingsKey.showCharging)
+        showInputSource = defaults.bool(forKey: SettingsKey.showInputSource)
+        showCaptureConfirmation = defaults.bool(forKey: SettingsKey.showCaptureConfirmation)
+        hideFromScreenCapture = defaults.bool(forKey: SettingsKey.hideFromScreenCapture)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)
         forceVirtualNotch = defaults.bool(forKey: SettingsKey.forceVirtualNotch)

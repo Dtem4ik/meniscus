@@ -10,6 +10,8 @@ final class PowerSourceMonitor {
     private(set) var state: PowerState?
     /// Called for every charger connect/disconnect and when the battery becomes full.
     @ObservationIgnored var onEvent: ((PowerEvent) -> Void)?
+    /// Called with every new snapshot, for the low battery warnings.
+    @ObservationIgnored var onStateChange: ((PowerState) -> Void)?
 
     @ObservationIgnored private var runLoopSource: CFRunLoopSource?
 
@@ -46,9 +48,11 @@ final class PowerSourceMonitor {
             Logger.power.notice("No internal battery reported")
         }
         state = current
-        if let current, let event = PowerEventDetector.event(from: previous, to: current) {
+        guard let current else { return }
+        if let event = PowerEventDetector.event(from: previous, to: current) {
             onEvent?(event)
         }
+        onStateChange?(current)
     }
 
     private static func readInternalBattery() -> PowerState? {

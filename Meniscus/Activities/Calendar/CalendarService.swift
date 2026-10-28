@@ -17,6 +17,12 @@ final class CalendarService {
 
     private(set) var access: Access
     private(set) var upcoming: CalendarEventSnapshot?
+    /// An event starting within a few minutes, for the meeting reminder.
+    private(set) var startingSoon: CalendarEventSnapshot?
+    /// Called 5 minutes before an event and when it starts, once each.
+    @ObservationIgnored var onMeetingMoment: ((CalendarEventSnapshot, MeetingReminder.Moment) -> Void)?
+    @ObservationIgnored private var announcedMoments: Set<String> = []
+    @ObservationIgnored private var simulationTask: Task<Void, Never>?
     /// Every calendar of every account, for the selection in Settings.
     private(set) var calendars: [CalendarInfo] = []
 
@@ -74,6 +80,35 @@ final class CalendarService {
         refreshTask?.cancel()
         nextChangeTask?.cancel()
         upcoming = nil
+        setStartingSoon(nil)
+    }
+
+    /// Developer menu: a reminder for a made-up meeting with a Meet link, starting in 5 minutes.
+    /// It ends by itself like a real one: the notch shows it briefly, the island keeps it (with
+    /// Join) for a minute.
+    func simulateStartingSoon() {
+        let start = Date().addingTimeInterval(MeetingReminder.lead)
+        let event = CalendarEventSnapshot(
+            id: "simulated-\(start.timeIntervalSince1970)",
+            title: String(localized: "Sample meeting"),
+            start: start,
+            end: start.addingTimeInterval(30 * 60),
+            isAllDay: false,
+            meetingURL: URL(string: "https://meet.google.com/abc-defg-hij")
+        )
+        setStartingSoon(event)
+        onMeetingMoment?(event, .soon)
+        simulationTask?.cancel()
+        simulationTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(60))
+            guard !Task.isCancelled, let self, self.startingSoon?.id == event.id else { return }
+            self.setStartingSoon(MeetingReminder.select(from: self.events, at: Date()))
+        }
+    }
+
+    private func setStartingSoon(_ event: CalendarEventSnapshot?) {
+        guard event != startingSoon else { return }
+        startingSoon = event
     }
 
     /// Opens Privacy & Security → Calendars, for when access was denied.
@@ -109,9 +144,16 @@ final class CalendarService {
         let now = Date()
         let selected = UpcomingEventSelector.select(from: events, at: now)
         if selected != upcoming { upcoming = selected }
+        setStartingSoon(MeetingReminder.select(from: events, at: now))
+        for (event, moment) in MeetingReminder.dueMoments(in: events, at: now, announced: announcedMoments) {
+            announcedMoments.insert(MeetingReminder.key(event, moment))
+            onMeetingMoment?(event, moment)
+        }
 
         nextChangeTask?.cancel()
-        guard let next = UpcomingEventSelector.nextChange(in: events, after: now) else { return }
+        let changes = [UpcomingEventSelector.nextChange(in: events, after: now)].compactMap { $0 }
+            + MeetingReminder.boundaries(of: events).filter { $0 > now }
+        guard let next = changes.min() else { return }
         nextChangeTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(next.timeIntervalSinceNow + 0.5))
             guard !Task.isCancelled else { return }

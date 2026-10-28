@@ -31,7 +31,7 @@ struct IslandView: View {
             .mask { shape }
 
             if context.phase == .compact, let activity = context.compactActivity {
-                CompactActivityView(activity: activity, layout: layout)
+                CompactActivityView(activity: activity, layout: layout, wing: context.compactWing)
                     .transition(context.reduceMotion ? .opacity : .contentReveal)
                     .mask { shape }
             }

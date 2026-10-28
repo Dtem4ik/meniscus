@@ -9,13 +9,30 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
         case shelf
         /// A file is being dragged: the notch says it takes drops.
         case dropHint
+        /// A calendar event starts in a few minutes.
+        case meeting
+        /// The battery fell to a warning threshold.
+        case lowBattery
+        /// The keyboard input source changed.
+        case inputSource
+        /// A quick capture was saved.
+        case captureSaved
     }
 
-    /// Higher wins. Transient alerts outrank ongoing activities.
+    /// Higher wins. Short activities outrank music; when they end, music comes back.
     nonisolated enum Priority: Int, Comparable, Sendable {
+        /// Reminders that can wait, like files on the shelf.
         case background = 0
+        /// Lasting activities, like music.
         case ongoing = 50
-        case alert = 100
+        /// Short confirmations, like a saved quick capture.
+        case confirmation = 55
+        case inputSource = 60
+        case charging = 70
+        case lowBattery = 80
+        case meeting = 90
+        /// The user is doing something with the notch right now, like dragging a file to it.
+        case interaction = 100
 
         static func < (lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
     }

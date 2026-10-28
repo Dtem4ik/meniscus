@@ -1,29 +1,83 @@
 import AppKit
 import SwiftUI
 
+/// Every Settings tab scrolls and grows with the window, which can be resized.
+extension View {
+    func settingsPage() -> some View {
+        formStyle(.grouped)
+            .frame(minWidth: 480, maxWidth: .infinity, minHeight: 260, maxHeight: .infinity)
+    }
+}
+
 struct GeneralSettingsView: View {
     @Bindable var settings: AppSettings
     @AppStorage(SettingsKey.showMenuBarIcon) private var showMenuBarIcon = true
+    @State private var opensAtLogin = LaunchAtLogin.isEnabled
+    @State private var loginError: String?
 
     var body: some View {
         Form {
             Section {
+                Toggle("Open at login", isOn: $opensAtLogin)
+                    .onChange(of: opensAtLogin) { _, isOn in
+                        loginError = LaunchAtLogin.set(isOn)
+                        opensAtLogin = LaunchAtLogin.isEnabled
+                    }
+                if let loginError {
+                    Text(loginError).foregroundStyle(.red)
+                }
+                Toggle("Show icon in the menu bar", isOn: $showMenuBarIcon)
+            } footer: {
+                if !showMenuBarIcon {
+                    Text("To open Settings, open Meniscus again from the Applications folder or Spotlight.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Section {
+                Picker("Show on", selection: $settings.displayPreference) {
+                    ForEach(DisplayPreference.allCases) { Text($0.title).tag($0) }
+                }
                 Toggle("Open when the pointer rests on the notch", isOn: $settings.expandOnHover)
                 Toggle("Haptic feedback on the trackpad", isOn: $settings.hapticsEnabled)
             }
             Section {
-                Toggle("Show the next calendar event", isOn: $settings.showCalendar)
-                    .onChange(of: settings.showCalendar) { _, isOn in
-                        let calendar = ActivityServices.shared.calendar
-                        if isOn { calendar.start() } else { calendar.stop() }
-                    }
+                Toggle("Hide from screenshots and screen sharing", isOn: $settings.hideFromScreenCapture)
             } footer: {
-                Text("Calendar access is requested the first time you open the island with this on.")
+                Text("macOS doesn't tell apps when the screen is shared, so to keep the island out of a presentation it can be left out of screenshots, recordings and screen sharing (where the system honors it). Turn this off to take a screenshot of the island.")
                     .foregroundStyle(.secondary)
             }
-            if settings.showCalendar {
-                CalendarSelectionSection(settings: settings, calendar: ActivityServices.shared.calendar)
+        }
+        .settingsPage()
+    }
+}
+
+struct LiveActivitiesSettingsView: View {
+    @Bindable var settings: AppSettings
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Upcoming meetings", isOn: $settings.showMeetingReminders)
+                    .onChange(of: settings.showMeetingReminders) { ActivityServices.shared.updateCalendar(settings: settings) }
+                Toggle("Low battery", isOn: $settings.showLowBattery)
+                Toggle("Charging", isOn: $settings.showCharging)
+                Toggle("Keyboard layout", isOn: $settings.showInputSource)
+                    .onChange(of: settings.showInputSource) { ActivityServices.shared.updateInputSource(settings: settings) }
+                Toggle("Quick capture saved", isOn: $settings.showCaptureConfirmation)
+            } footer: {
+                Text("Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen.")
+                    .foregroundStyle(.secondary)
             }
+        }
+        .settingsPage()
+    }
+}
+
+struct MusicSettingsView: View {
+    @Bindable var settings: AppSettings
+
+    var body: some View {
+        Form {
             Section {
                 Toggle("Show what's playing", isOn: $settings.showNowPlaying)
                     .onChange(of: settings.showNowPlaying) { _, isOn in
@@ -32,23 +86,6 @@ struct GeneralSettingsView: View {
                     }
             } footer: {
                 NowPlayingStatus(availability: ActivityServices.shared.nowPlaying.availability)
-            }
-            Section {
-                Toggle("Keep dropped files on a shelf", isOn: $settings.showShelf)
-            } footer: {
-                Text("Drag files to the notch to keep them at hand. Off, Meniscus doesn't watch file drags at all; files already on the shelf come back when you turn it on again.")
-                    .foregroundStyle(.secondary)
-            }
-            Section {
-                Picker("Show on", selection: $settings.displayPreference) {
-                    ForEach(DisplayPreference.allCases) { Text($0.title).tag($0) }
-                }
-                Toggle("Show icon in the menu bar", isOn: $showMenuBarIcon)
-            } footer: {
-                if !showMenuBarIcon {
-                    Text("To open Settings, open Meniscus again from the Applications folder or Spotlight.")
-                        .foregroundStyle(.secondary)
-                }
             }
             Section {
                 LabeledContent {
@@ -64,9 +101,43 @@ struct GeneralSettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
-        .frame(width: 460)
-        .fixedSize(horizontal: false, vertical: true)
+        .settingsPage()
+    }
+}
+
+struct CalendarSettingsView: View {
+    @Bindable var settings: AppSettings
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Show the next calendar event", isOn: $settings.showCalendar)
+                    .onChange(of: settings.showCalendar) { ActivityServices.shared.updateCalendar(settings: settings) }
+            } footer: {
+                Text("Calendar access is requested the first time you open the island with this on.")
+                    .foregroundStyle(.secondary)
+            }
+            if settings.showCalendar || settings.showMeetingReminders {
+                CalendarSelectionSection(settings: settings, calendar: ActivityServices.shared.calendar)
+            }
+        }
+        .settingsPage()
+    }
+}
+
+struct ShelfSettingsView: View {
+    @Bindable var settings: AppSettings
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Keep dropped files on a shelf", isOn: $settings.showShelf)
+            } footer: {
+                Text("Drag files to the notch to keep them at hand. Off, Meniscus doesn't watch file drags at all; files already on the shelf come back when you turn it on again.")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .settingsPage()
     }
 }
 
@@ -114,6 +185,8 @@ struct DeveloperSettingsView: View {
                 Toggle("Outline the computed notch in red", isOn: $settings.showGeometryOverlay)
                 Toggle("Use a virtual notch on this screen", isOn: $settings.forceVirtualNotch)
                 Button("Simulate Charging") { ActivityServices.shared.simulateCharging() }
+                Button("Simulate Low Battery") { ActivityServices.shared.simulateLowBattery() }
+                Button("Simulate Upcoming Meeting") { ActivityServices.shared.calendar.simulateStartingSoon() }
             }
             Section {
                 Button {
@@ -129,9 +202,7 @@ struct DeveloperSettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
-        .frame(width: 460)
-        .fixedSize(horizontal: false, vertical: true)
+        .settingsPage()
     }
 }
 

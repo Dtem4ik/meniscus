@@ -60,3 +60,23 @@ nonisolated enum PowerEventDetector {
         return nil
     }
 }
+
+/// Warns once per discharge at each threshold: 20% and 10%. Connecting a charger starts over.
+nonisolated struct LowBatteryWarnings: Equatable, Sendable {
+    static let thresholds = [20, 10]
+
+    private(set) var warned: Set<Int> = []
+
+    /// The threshold to warn about for this snapshot, if any. Falling past several thresholds at
+    /// once (say, waking from sleep at 8%) warns only for the lowest.
+    mutating func check(_ state: PowerState) -> Int? {
+        guard !state.isOnACPower else {
+            warned.removeAll()
+            return nil
+        }
+        let reached = Self.thresholds.filter { state.level <= $0 }
+        guard let lowest = reached.min(), !warned.contains(lowest) else { return nil }
+        warned.formUnion(reached)
+        return lowest
+    }
+}

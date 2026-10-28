@@ -35,6 +35,7 @@ final class NotchWindowController {
     private var didDropFiles = false
     private var pageSwipe = PageSwipeTracker()
     private var pageMemory = IslandPageMemory()
+    private var lastActivity: LiveActivity?
     /// The track last seen in Now Playing; a different one asks for the player page.
     private var lastTrack: String?
     private var scrollMonitor: Any?
@@ -106,6 +107,8 @@ final class NotchWindowController {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refreshGeometry() }
         }
+        ActivityServices.shared.presentation.screenFrame = { [weak self] in self?.screen?.frame }
+        observeScreenCaptureSetting()
         observeSettings()
         observeShelfSetting()
         observeActivities()
@@ -239,6 +242,7 @@ final class NotchWindowController {
             return
         }
         self.screen = screen
+        ActivityServices.shared.presentation.refresh()
         let geometry = NotchGeometry(screen: screen, forceVirtual: settings.forceVirtualNotch)
         let layout = IslandLayout(geometry: geometry)
         logger.debug("Notch geometry: \(String(describing: geometry.notchRect)), kind: \(geometry.kind.rawValue)")
@@ -407,7 +411,7 @@ final class NotchWindowController {
         }
         if !isShowingDropHint {
             isShowingDropHint = true
-            center.post(LiveActivity(id: Self.dropHintID, kind: .dropHint, priority: .alert, updatedAt: Date(), expiresAt: nil))
+            center.post(LiveActivity(id: Self.dropHintID, kind: .dropHint, priority: .interaction, updatedAt: Date(), expiresAt: nil))
         }
         let isNear = state.layout.isNearDropZone(location, isOpen: shelf.isDragApproaching)
         guard isNear != shelf.isDragApproaching else { return }
@@ -479,19 +483,37 @@ final class NotchWindowController {
 
     /// Follows the activity center: a live activity turns the resting notch into the compact
     /// island, and the island returns to the plain notch when it ends.
+    /// Live activities stay hidden while an app is in full screen on the island's screen.
     private func observeActivities() {
-        let activity = withObservationTracking {
-            ActivityServices.shared.center.current
+        let (current, isFullScreen) = withObservationTracking {
+            (ActivityServices.shared.center.current, ActivityServices.shared.presentation.isFullScreen)
         } onChange: { [weak self] in
             guard let self else { return }
             Task { @MainActor in self.observeActivities() }
         }
+        // A meeting about to start asks for the home view, which has its Join button.
+        if current?.kind == .meeting, current != lastActivity { pageMemory.request(.home) }
+        lastActivity = current
+        let activity = isFullScreen ? nil : current
         guard activity != state.compactActivity else { return }
         let motion = currentMotion()
         withAnimation(activity == nil ? motion.collapse : motion.expand) {
             state.compactActivity = activity
             if !state.isExpanded { state.phase = state.restingPhase }
         }
+    }
+
+    /// Screenshots, recordings and screen sharing leave the island out while the setting is on.
+    private func observeScreenCaptureSetting() {
+        let hide = withObservationTracking {
+            settings.hideFromScreenCapture
+        } onChange: { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in self.observeScreenCaptureSetting() }
+        }
+        let sharing: NSWindow.SharingType = hide ? .none : .readOnly
+        panel.sharingType = sharing
+        hotZone.sharingType = sharing
     }
 
     private func observeSettings() {

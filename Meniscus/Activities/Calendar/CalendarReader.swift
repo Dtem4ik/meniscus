@@ -64,7 +64,8 @@ actor CalendarReader {
                 end: end,
                 isAllDay: event.isAllDay,
                 location: event.location,
-                calendarColor: event.calendar?.color.flatMap(RGBColor.init)
+                calendarColor: event.calendar?.color.flatMap(RGBColor.init),
+                meetingURL: MeetingLink.find(in: [event.url?.absoluteString, event.location, event.notes])
             )
         }
     }

@@ -205,6 +205,31 @@ files are never copied or moved. A file drag is noticed with a
 global monitor for mouse presses, which needs no permission: while the button is held, Meniscus
 briefly checks the pointer and the drag pasteboard, and stops as soon as it is released.
 
+## Live activities
+
+Short notices in the closed notch, each with its own switch in **Settings → Live Activities**
+(all on by default). Every one follows the same pattern: a symbol on the left, a short value on
+the right, both sides as wide as the wider one needs, the notch centered between them.
+
+| Activity | Shows | When |
+| --- | --- | --- |
+| Upcoming meeting | Calendar symbol, "5 min", then "now" | For 5 seconds 5 minutes before a timed calendar event, and for 5 seconds when it starts. In between, the open island shows it with **Join** for Zoom, Google Meet and Microsoft Teams links. |
+| Low battery | Yellow or red battery, percent | At 20% and 10% on battery, each once per discharge, for 4 seconds. |
+| Charging | Bolt, percent | When a charger is connected, for 4 seconds. |
+| Keyboard layout | Keyboard, EN / РУ / DE… | For about a second after the input source changes (read a moment after the system's notification, shown only for a real change). |
+| Quick capture saved | Check mark, "Saved" | After a quick capture is saved. |
+
+The most important one shows: meeting, then low battery, then charging, then the keyboard
+layout, then the rest. Short activities show over music and then give the notch back to it.
+Everything is event driven: calendar timers, IOKit power notifications and the system's input
+source notification.
+
+Live activities stay hidden while an app is in full screen on the island's screen (seen from
+window frames, which need no permission). macOS doesn't tell apps when the screen is being
+shared, so **Settings → General → Hide from screenshots and screen sharing** (on by default) leaves the island out of
+screenshots, recordings and screen sharing where the system honors it; turn it off to take a
+screenshot of the island.
+
 ## Languages
 
 English and Russian, following the system language. Strings live in

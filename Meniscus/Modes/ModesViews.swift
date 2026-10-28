@@ -132,8 +132,7 @@ struct ModesSettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
-        .frame(width: 560, height: 520)
+        .settingsPage()
         .onAppear(perform: loadDraft)
         .onChange(of: store.modes) { loadDraft() }
     }
