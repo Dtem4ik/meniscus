@@ -17,6 +17,8 @@ final class NotchWindowController {
     private let container = NotchContainerView(frame: .zero)
     private let hotZone = NotchPanel()
     private let hotZoneView = NotchContainerView(frame: .zero)
+    /// The trusted external banner the hot zone takes clicks for, while it shows.
+    private var clickableBannerID: LiveActivity.ID?
     private let logger = Logger(subsystem: "io.github.dtem4ik.meniscus", category: "notch")
 
     private var screen: NSScreen?
@@ -65,7 +67,14 @@ final class NotchWindowController {
         panel.ignoresMouseEvents = true
 
         hotZoneView.onHoverChange = { [weak self] inside in self?.notchPointerDidChange(inside: inside) }
-        hotZoneView.onClick = { [weak self] in self?.expand() }
+        hotZoneView.onClick = { [weak self] in
+            guard let self else { return }
+            if let id = self.clickableBannerID {
+                ActivityServices.shared.external.click(id)
+            } else {
+                self.expand()
+            }
+        }
         // Dragging a file onto the notch opens the shelf; dropping right on the notch works too.
         hotZoneView.onFileDragChange = { [weak self] isTargeted in self?.fileDragChanged(isTargeted: isTargeted) }
         hotZoneView.onFileDrop = { [weak self] urls in self?.dropFiles(urls) }
@@ -207,7 +216,8 @@ final class NotchWindowController {
 
     /// From the hot zone: matters only while collapsed.
     private func notchPointerDidChange(inside: Bool) {
-        guard !state.isExpanded else { return }
+        // Over a clickable banner, the pointer is there to click it, not to open the island.
+        guard !state.isExpanded, clickableBannerID == nil else { return }
         pointerTask?.cancel()
         guard inside, settings.expandOnHover else { return }
         pointerTask = Task { [weak self] in
@@ -265,9 +275,11 @@ final class NotchWindowController {
         container.interactiveRect = layout.interactiveScreenRect(for: .expanded, content: state.content)
             .offsetBy(dx: -panelFrame.minX, dy: -panelFrame.minY)
 
+        clickableBannerID = nil
         let hotZoneFrame = layout.geometry.notchRect
         if hotZone.frame != hotZoneFrame { hotZone.setFrame(hotZoneFrame, display: true) }
         hotZoneView.interactiveRect = CGRect(origin: .zero, size: hotZoneFrame.size)
+        updateBannerClicks()
 
         // The island panel goes above the hot zone so it gets the mouse while expanded.
         hotZone.orderFrontRegardless()
@@ -502,6 +514,24 @@ final class NotchWindowController {
             state.compactActivity = activity
             if !state.isExpanded { state.phase = state.restingPhase }
         }
+        updateBannerClicks()
+    }
+
+    /// A trusted external banner takes a click on its own area while it shows: the hot zone,
+    /// which otherwise covers just the notch, grows to the banner (at its narrowest, so it never
+    /// reaches past the banner). Everywhere else clicks still pass through to the menu bar.
+    private func updateBannerClicks() {
+        let id = state.compactActivity.flatMap { activity in
+            activity.kind == .externalBanner && ActivityServices.shared.external.isClickable(activity.id) ? activity.id : nil
+        }
+        guard id != clickableBannerID else { return }
+        clickableBannerID = id
+        let layout = state.layout
+        let frame = id == nil
+            ? layout.geometry.notchRect
+            : layout.interactiveScreenRect(for: .banner, bannerWidth: layout.minimumBannerWidth)
+        if hotZone.frame != frame { hotZone.setFrame(frame, display: true) }
+        hotZoneView.interactiveRect = CGRect(origin: .zero, size: frame.size)
     }
 
     /// Screenshots, recordings and screen sharing leave the island out while the setting is on.

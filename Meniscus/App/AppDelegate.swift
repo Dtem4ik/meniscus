@@ -23,6 +23,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItemController = statusItem
     }
 
+    /// `meniscus://v1/notify?…` links: anonymous, so only text and state, off by default.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls where url.scheme?.lowercased() == "meniscus" {
+            ActivityServices.shared.external.handleLink(url)
+        }
+    }
+
     /// Opening Meniscus again (from Finder, Spotlight or the Dock) shows Settings, which is the
     /// way back when the menu bar icon is hidden.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

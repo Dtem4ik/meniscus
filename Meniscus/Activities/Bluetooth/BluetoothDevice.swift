@@ -136,6 +136,8 @@ extension MiniBanner {
             return .bluetooth(shown.device, isConnected: shown.isConnected)
         case .trackChange:
             return ActivityServices.shared.trackBanner.map(MiniBanner.track)
+        case .externalBanner:
+            return ActivityServices.shared.external.banners[activity.id].map(MiniBanner.external)
         default:
             return nil
         }
