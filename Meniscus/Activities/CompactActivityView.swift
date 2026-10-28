@@ -73,6 +73,12 @@ struct CompactSlot: View {
             CompactSymbol(name: "keyboard")
         case .captureSaved:
             CompactSymbol(name: "checkmark.circle.fill", color: .green)
+        case .bluetoothDevice:
+            // Shown as a mini banner, not on the sides.
+            EmptyView()
+        case .deviceLowBattery:
+            let device = ActivityServices.shared.deviceLowBattery
+            CompactSymbol(name: device?.kind.symbol ?? "battery.25percent", color: BatteryWarningStyle.color(level: device?.battery?.main ?? 0))
         }
     }
 
@@ -117,6 +123,13 @@ struct CompactSlot: View {
                 CompactValue(text: String(localized: "Saved"))
                 CompactValue(text: "✓")
             }
+        case .bluetoothDevice:
+            EmptyView()
+        case .deviceLowBattery:
+            let device = ActivityServices.shared.deviceLowBattery
+            let level = device?.battery?.main ?? 0
+            CompactValue(text: CompactText.percent(level), color: BatteryWarningStyle.color(level: level))
+                .accessibilityLabel(Text(device?.name ?? ""))
         }
     }
 }

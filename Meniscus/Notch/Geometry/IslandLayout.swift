@@ -4,6 +4,8 @@ nonisolated enum IslandPhase: Equatable, Sendable {
     case collapsed
     /// A live activity (like charging) widens the notch with content left and right of it.
     case compact
+    /// A short notice: the island opens a little way down for a few seconds (see `MiniBanner`).
+    case banner
     case expanded
 }
 
@@ -49,6 +51,23 @@ nonisolated struct IslandMetrics: Equatable, Sendable {
     /// Each side is as wide as its content needs, within these bounds.
     var compactMinWingWidth: CGFloat = 36
     var compactMaxWingWidth: CGFloat = 104
+
+    /// The mini banner: a short notice below the notch, smaller than the expanded island. As
+    /// wide as its content needs, up to this; longer titles end in an ellipsis.
+    var bannerMaximumWidth: CGFloat = 360
+    /// At least this much wider than the notch on each side.
+    var bannerMinimumWingWidth: CGFloat = 36
+    var bannerContentHeight: CGFloat = 46
+    var bannerBottomRadius: CGFloat = 22
+    var bannerShoulderRadius: CGFloat = 8
+    var bannerHorizontalPadding: CGFloat = 14
+    var bannerSpacing: CGFloat = 10
+    /// The symbol or picture on the left.
+    var bannerLeadingSize: CGFloat = 26
+    var bannerLeadingCornerRadius: CGFloat = 6
+    /// The battery ring on the right.
+    var bannerRingDiameter: CGFloat = 26
+    var bannerRingLineWidth: CGFloat = 2.5
 
     /// The expanded island is always wider than the compact one, so opening grows it sideways as
     /// well as down: by this share of the compact width…
@@ -155,7 +174,7 @@ nonisolated struct IslandLayout: Equatable, Sendable {
         min(max((contentWidth + 2 * metrics.compactSlotPadding).rounded(.up), metrics.compactMinWingWidth), metrics.compactMaxWingWidth)
     }
 
-    func shape(for phase: IslandPhase, content: IslandContent = .home(nil), compactWing: CGFloat? = nil) -> IslandShapeSpec {
+    func shape(for phase: IslandPhase, content: IslandContent = .home(nil), compactWing: CGFloat? = nil, bannerWidth: CGFloat? = nil) -> IslandShapeSpec {
         switch phase {
         case .collapsed:
             IslandShapeSpec(
@@ -171,9 +190,24 @@ nonisolated struct IslandLayout: Equatable, Sendable {
                 bottomRadius: metrics.collapsedBottomRadius + 4,
                 shoulderRadius: metrics.collapsedShoulderRadius
             )
+        case .banner:
+            IslandShapeSpec(
+                width: bannerWidth ?? minimumBannerWidth,
+                height: notchHeight + metrics.bannerContentHeight,
+                bottomRadius: metrics.bannerBottomRadius,
+                shoulderRadius: metrics.bannerShoulderRadius
+            )
         case .expanded:
             expandedShape(contentSize(for: content))
         }
+    }
+
+    /// The banner is always clear of the notch on both sides.
+    var minimumBannerWidth: CGFloat { geometry.notchRect.width + 2 * metrics.bannerMinimumWingWidth }
+
+    /// The banner's width for content this wide (padding included).
+    func bannerWidth(contentWidth: CGFloat) -> CGFloat {
+        min(max(contentWidth.rounded(.up), minimumBannerWidth), max(metrics.bannerMaximumWidth, minimumBannerWidth))
     }
 
     private func expandedShape(_ contentSize: CGSize) -> IslandShapeSpec {
@@ -209,8 +243,8 @@ nonisolated struct IslandLayout: Equatable, Sendable {
     }
 
     /// The area that reacts to the pointer, in screen coordinates.
-    func interactiveScreenRect(for phase: IslandPhase, content: IslandContent = .home(nil), compactWing: CGFloat? = nil) -> CGRect {
-        let spec = shape(for: phase, content: content, compactWing: compactWing)
+    func interactiveScreenRect(for phase: IslandPhase, content: IslandContent = .home(nil), compactWing: CGFloat? = nil, bannerWidth: CGFloat? = nil) -> CGRect {
+        let spec = shape(for: phase, content: content, compactWing: compactWing, bannerWidth: bannerWidth)
         return CGRect(
             x: geometry.notchRect.midX - spec.totalWidth / 2,
             y: geometry.screenFrame.maxY - spec.height,

@@ -177,6 +177,8 @@ struct LiveActivitySettingsTests {
         #expect(settings.showCharging)
         #expect(settings.showInputSource)
         #expect(settings.showCaptureConfirmation)
+        #expect(settings.showBluetoothDevices)
+        #expect(settings.showDeviceLowBattery)
         #expect(settings.hideFromScreenCapture)
     }
 }
@@ -246,6 +248,18 @@ struct NoActivityHangsTests {
         } else {
             Issue.record("The meeting reminder never ends")
         }
+    }
+
+    @Test func bluetoothSimulationsEndByThemselves() {
+        let services = ActivityServices()
+        services.simulateBluetoothDevice()
+        #expect(services.center.current?.kind == .bluetoothDevice)
+        #expect(services.center.current?.expiresAt != nil)
+        #expect(services.bluetoothDevice?.device.kind == .mouse)
+        #expect(ActivityServices.bannerDuration <= 3)
+        services.simulateDeviceLowBattery()
+        #expect(services.center.current?.kind == .deviceLowBattery)
+        #expect(services.center.current?.expiresAt != nil)
     }
 
     @Test func lowerActivitiesShowAfterAHigherOneEnds() async throws {

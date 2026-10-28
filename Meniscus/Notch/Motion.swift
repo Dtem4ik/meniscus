@@ -36,6 +36,9 @@ nonisolated enum Motion {
     /// stays open.
     static let fileDragSettle: Duration = .milliseconds(350)
 
+    /// Something a mini banner shows changes while it is up, like a battery that was just read.
+    static let bannerUpdate = Animation.smooth(duration: 0.3)
+
     /// The page dots follow the selected page.
     static let pageDots = Animation.smooth(duration: 0.2)
 

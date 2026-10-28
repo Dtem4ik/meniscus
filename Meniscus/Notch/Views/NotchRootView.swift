@@ -8,6 +8,7 @@ struct IslandContext {
     var reduceMotion: Bool
     var compactActivity: LiveActivity?
     var compactWing: CGFloat
+    var bannerWidth: CGFloat
     var content: IslandContent
     var pages: [IslandPage]
     var page: IslandPage
@@ -17,7 +18,7 @@ struct IslandContext {
     var isExpanded: Bool { phase == .expanded }
     var contentSize: CGSize { layout.contentSize(for: content) }
     var shape: NotchShape {
-        NotchShape(layout.shape(for: phase, content: content, compactWing: compactWing), centerOffset: layout.centerOffset)
+        NotchShape(layout.shape(for: phase, content: content, compactWing: compactWing, bannerWidth: bannerWidth), centerOffset: layout.centerOffset)
     }
 }
 
@@ -59,6 +60,23 @@ struct NotchRootView: View {
         }
     }
 
+    /// The mini banner at its natural width, never shown: the island is as wide as it needs.
+    @ViewBuilder
+    private var bannerMeasure: some View {
+        if let activity = state.compactActivity, activity.kind.isBanner, let banner = MiniBanner.for(activity) {
+            MiniBannerView(banner: banner, metrics: state.layout.metrics)
+                .fixedSize()
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
+                    let bannerWidth = state.layout.bannerWidth(contentWidth: width)
+                    guard bannerWidth != state.bannerWidth else { return }
+                    withAnimation(reduceMotion ? Motion.reducedMotionFade : Motion.expand) { state.bannerWidth = bannerWidth }
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                .allowsHitTesting(false)
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             if reduceMotion {
@@ -80,6 +98,7 @@ struct NotchRootView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(alignment: .top) { homeContentMeasure }
         .background(alignment: .top) { compactMeasure }
+        .background(alignment: .top) { bannerMeasure }
         // The panel is never the key window; keep glass in its active look anyway.
         .environment(\.materialActiveAppearance, .active)
     }
@@ -93,6 +112,7 @@ struct NotchRootView: View {
             reduceMotion: reduceMotion,
             compactActivity: state.compactActivity,
             compactWing: state.compactWing ?? state.layout.metrics.compactWingWidth,
+            bannerWidth: state.bannerWidth ?? state.layout.minimumBannerWidth,
             content: state.content,
             pages: state.pages,
             page: state.page,

@@ -27,7 +27,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         defaultsObserver = NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification, object: UserDefaults.standard, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.updateVisibility() }
+            MainThread.run { self?.updateVisibility() }
         }
     }
 
@@ -69,6 +69,15 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         })
         developer.addItem(item(String(localized: "Simulate Upcoming Meeting")) {
             ActivityServices.shared.calendar.simulateStartingSoon()
+        })
+        developer.addItem(item(String(localized: "Simulate Bluetooth Device")) {
+            ActivityServices.shared.simulateBluetoothDevice()
+        })
+        developer.addItem(item(String(localized: "Simulate Device Low Battery")) {
+            ActivityServices.shared.simulateDeviceLowBattery()
+        })
+        developer.addItem(item(String(localized: "Bluetooth Diagnostics")) {
+            ActivityServices.shared.copyBluetoothDiagnostics()
         })
         developer.addItem(.separator())
         slowAnimationsItem = addAction(to: developer, String(localized: "Slow Animations")) { [settings] in

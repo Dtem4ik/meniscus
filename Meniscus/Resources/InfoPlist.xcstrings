@@ -21,6 +21,16 @@
         }
       }
     },
+    "NSBluetoothAlwaysUsageDescription": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meniscus показывает в вырезе подключение Bluetooth-наушников и колонок и их заряд. Данные не покидают ваш Mac."
+          }
+        }
+      }
+    },
     "NSCalendarsFullAccessUsageDescription": {
       "localizations": {
         "ru": {

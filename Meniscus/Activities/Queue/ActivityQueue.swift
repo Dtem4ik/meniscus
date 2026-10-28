@@ -17,6 +17,18 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
         case inputSource
         /// A quick capture was saved.
         case captureSaved
+        /// A third-party Bluetooth device connected or disconnected.
+        case bluetoothDevice
+        /// A third-party Bluetooth device's battery fell to a warning threshold.
+        case deviceLowBattery
+
+        /// Shown as a mini banner below the notch rather than on its sides.
+        var isBanner: Bool {
+            switch self {
+            case .bluetoothDevice: true
+            default: false
+            }
+        }
     }
 
     /// Higher wins. Short activities outrank music; when they end, music comes back.
@@ -29,6 +41,7 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
         case confirmation = 55
         case inputSource = 60
         case charging = 70
+        case deviceLowBattery = 75
         case lowBattery = 80
         case meeting = 90
         /// The user is doing something with the notch right now, like dragging a file to it.

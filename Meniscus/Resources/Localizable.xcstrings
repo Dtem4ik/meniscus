@@ -191,6 +191,46 @@
         }
       }
     },
+    "Bluetooth Diagnostics": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Диагностика Bluetooth"
+          }
+        }
+      }
+    },
+    "Bluetooth device": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth-устройство"
+          }
+        }
+      }
+    },
+    "Bluetooth device low battery": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Низкий заряд Bluetooth-устройства"
+          }
+        }
+      }
+    },
+    "Bluetooth devices": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth-устройства"
+          }
+        }
+      }
+    },
     "Built-in display with notch": {
       "localizations": {
         "ru": {
@@ -381,12 +421,32 @@
         }
       }
     },
+    "Connected": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключено"
+          }
+        }
+      }
+    },
     "Copied": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Скопировано"
+          }
+        }
+      }
+    },
+    "Copies every battery value each source reports, per device, to the clipboard.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Копирует в буфер обмена все значения заряда, которые вернул каждый источник, по каждому устройству."
           }
         }
       }
@@ -427,6 +487,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Разработка"
+          }
+        }
+      }
+    },
+    "Disconnected": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отключено"
           }
         }
       }
@@ -1281,12 +1351,12 @@
         }
       }
     },
-    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen.": {
+    "Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, a Bluetooth headset, mouse, keyboard or gamepad connecting (with its battery) and at 20% and 10%. AirPods and other Apple devices are left to macOS's own window. They stay hidden while an app is in full screen.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись. Пока приложение развёрнуто на весь экран, они не показываются."
+            "value": "Короткие уведомления в свёрнутом вырезе: встреча за 5 минут и в момент начала (кнопка «Подключиться» для Zoom, Meet и Teams — в раскрытом острове), заряд 20% и 10%, зарядка, новая раскладка, сохранённая быстрая запись, подключение Bluetooth-наушников, мыши, клавиатуры или геймпада (с зарядом) и их заряд 20% и 10%. AirPods и другие устройства Apple показывает сама macOS. Пока приложение развёрнуто на весь экран, уведомления не показываются."
           }
         }
       }
@@ -1391,12 +1461,32 @@
         }
       }
     },
+    "Simulate Bluetooth Device": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать Bluetooth-устройство"
+          }
+        }
+      }
+    },
     "Simulate Charging": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Имитировать зарядку"
+          }
+        }
+      }
+    },
+    "Simulate Device Low Battery": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать низкий заряд устройства"
           }
         }
       }
@@ -1617,6 +1707,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Использовать виртуальный вырез на этом экране"
+          }
+        }
+      }
+    },
+    "Wireless Keyboard": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Беспроводная клавиатура"
+          }
+        }
+      }
+    },
+    "Wireless Mouse": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Беспроводная мышь"
           }
         }
       }

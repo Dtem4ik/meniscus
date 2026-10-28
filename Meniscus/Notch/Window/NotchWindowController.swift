@@ -94,7 +94,7 @@ final class NotchWindowController {
             object: panel,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated {
+            MainThread.run {
                 guard let self, CaptureController.shared.isActive else { return }
                 self.collapse()
             }
@@ -105,7 +105,7 @@ final class NotchWindowController {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refreshGeometry() }
+            MainThread.run { self?.refreshGeometry() }
         }
         ActivityServices.shared.presentation.screenFrame = { [weak self] in self?.screen?.frame }
         observeScreenCaptureSetting()
@@ -185,7 +185,7 @@ final class NotchWindowController {
         withAnimation(motion.collapse, completionCriteria: .removed) {
             state.phase = state.restingPhase
         } completion: { [weak self] in
-            MainActor.assumeIsolated {
+            MainThread.run {
                 guard let self, self.transitionID == id else { return }
                 // The pointer may already be back on the notch.
                 if self.state.layout.geometry.notchRect.contains(NSEvent.mouseLocation) {

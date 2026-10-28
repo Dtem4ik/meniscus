@@ -32,6 +32,8 @@ nonisolated enum SettingsKey {
     static let showCharging = "activities.charging"
     static let showInputSource = "activities.inputSource"
     static let showCaptureConfirmation = "activities.captureSaved"
+    static let showBluetoothDevices = "activities.bluetoothDevices"
+    static let showDeviceLowBattery = "activities.deviceLowBattery"
     static let hideFromScreenCapture = "hideFromScreenCapture"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
@@ -86,6 +88,12 @@ final class AppSettings {
     var showCaptureConfirmation: Bool {
         didSet { defaults.set(showCaptureConfirmation, forKey: SettingsKey.showCaptureConfirmation) }
     }
+    var showBluetoothDevices: Bool {
+        didSet { defaults.set(showBluetoothDevices, forKey: SettingsKey.showBluetoothDevices) }
+    }
+    var showDeviceLowBattery: Bool {
+        didSet { defaults.set(showDeviceLowBattery, forKey: SettingsKey.showDeviceLowBattery) }
+    }
     /// Leaves the island out of screenshots, recordings and screen sharing, where the system
     /// honors it. macOS can't tell apps when the screen is being shared, so this is the way to
     /// keep live activities out of a presentation.
@@ -116,6 +124,8 @@ final class AppSettings {
             SettingsKey.showCharging: true,
             SettingsKey.showInputSource: true,
             SettingsKey.showCaptureConfirmation: true,
+            SettingsKey.showBluetoothDevices: true,
+            SettingsKey.showDeviceLowBattery: true,
             SettingsKey.hideFromScreenCapture: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
@@ -131,6 +141,8 @@ final class AppSettings {
         showCharging = defaults.bool(forKey: SettingsKey.showCharging)
         showInputSource = defaults.bool(forKey: SettingsKey.showInputSource)
         showCaptureConfirmation = defaults.bool(forKey: SettingsKey.showCaptureConfirmation)
+        showBluetoothDevices = defaults.bool(forKey: SettingsKey.showBluetoothDevices)
+        showDeviceLowBattery = defaults.bool(forKey: SettingsKey.showDeviceLowBattery)
         hideFromScreenCapture = defaults.bool(forKey: SettingsKey.hideFromScreenCapture)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)

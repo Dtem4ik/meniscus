@@ -64,8 +64,12 @@ struct LiveActivitiesSettingsView: View {
                 Toggle("Keyboard layout", isOn: $settings.showInputSource)
                     .onChange(of: settings.showInputSource) { ActivityServices.shared.updateInputSource(settings: settings) }
                 Toggle("Quick capture saved", isOn: $settings.showCaptureConfirmation)
+                Toggle("Bluetooth devices", isOn: $settings.showBluetoothDevices)
+                    .onChange(of: settings.showBluetoothDevices) { ActivityServices.shared.updateBluetoothDevices(settings: settings) }
+                Toggle("Bluetooth device low battery", isOn: $settings.showDeviceLowBattery)
+                    .onChange(of: settings.showDeviceLowBattery) { ActivityServices.shared.updateBluetoothDevices(settings: settings) }
             } footer: {
-                Text("Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture. They stay hidden while an app is in full screen.")
+                Text("Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, a Bluetooth headset, mouse, keyboard or gamepad connecting (with its battery) and at 20% and 10%. AirPods and other Apple devices are left to macOS's own window. They stay hidden while an app is in full screen.")
                     .foregroundStyle(.secondary)
             }
         }
@@ -187,6 +191,10 @@ struct DeveloperSettingsView: View {
                 Button("Simulate Charging") { ActivityServices.shared.simulateCharging() }
                 Button("Simulate Low Battery") { ActivityServices.shared.simulateLowBattery() }
                 Button("Simulate Upcoming Meeting") { ActivityServices.shared.calendar.simulateStartingSoon() }
+                Button("Simulate Bluetooth Device") { ActivityServices.shared.simulateBluetoothDevice() }
+                Button("Simulate Device Low Battery") { ActivityServices.shared.simulateDeviceLowBattery() }
+                Button("Bluetooth Diagnostics") { ActivityServices.shared.copyBluetoothDiagnostics() }
+                    .help(Text("Copies every battery value each source reports, per device, to the clipboard."))
             }
             Section {
                 Button {

@@ -115,7 +115,7 @@ final class ModesStore {
         guard descriptor >= 0 else { return nil }
         let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: events, queue: .main)
         source.setEventHandler { [weak self] in
-            MainActor.assumeIsolated { self?.scheduleReload() }
+            MainThread.run { self?.scheduleReload() }
         }
         source.setCancelHandler { close(descriptor) }
         source.resume()
