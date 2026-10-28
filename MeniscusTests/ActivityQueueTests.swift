@@ -73,12 +73,15 @@ struct ActivityQueueTests {
     }
 
     @Test func priorityOrderOfLiveActivities() {
-        // Meeting > low battery > charging > keyboard layout > other short ones > music > shelf.
-        let order: [LiveActivity.Priority] = [.background, .ongoing, .confirmation, .inputSource, .charging, .lowBattery, .meeting, .interaction]
+        // docs/external-api.md, section 6.
+        let order: [LiveActivity.Priority] = [
+            .background, .externalActivity, .external, .ongoing, .confirmation, .charging,
+            .externalAttention, .directFeedback, .deviceLowBattery, .lowBattery, .meeting, .interaction,
+        ]
         #expect(order == order.sorted())
         var queue = ActivityQueue()
         queue.post(activity("music", .ongoing))
-        queue.post(activity("layout", .inputSource, updated: 5, expires: 1))
+        queue.post(activity("layout", .directFeedback, updated: 5, expires: 1))
         queue.post(activity("battery", .lowBattery, updated: 1, expires: 4))
         queue.post(activity("meeting", .meeting, updated: 0, expires: 300))
         #expect(queue.current(at: t0)?.id == "meeting")
@@ -96,6 +99,45 @@ struct ActivityQueueTests {
         #expect(queue.nextExpiration(after: t0) == t0.addingTimeInterval(3))
         #expect(queue.nextExpiration(after: t0.addingTimeInterval(3)) == t0.addingTimeInterval(8))
         #expect(queue.nextExpiration(after: t0.addingTimeInterval(8)) == nil)
+    }
+    @Test func aWaitingNoticeGetsItsFullTimeOnceShown() {
+        var queue = ActivityQueue()
+        queue.post(activity("meeting", .meeting, expires: 5))
+        var banner = activity("banner", .external, updated: 1)
+        banner.displayDuration = 3
+        banner.showBy = t0.addingTimeInterval(15)
+        queue.post(banner)
+        #expect(queue.current(at: t0.addingTimeInterval(4))?.id == "meeting")
+        // The meeting ends at 5; the banner starts its 3 s then, not when it was posted.
+        let shownAt = t0.addingTimeInterval(5)
+        #expect(queue.current(at: shownAt)?.id == "banner")
+        queue.startClock(of: "banner", at: shownAt)
+        #expect(queue.current(at: t0.addingTimeInterval(7.5))?.id == "banner")
+        #expect(queue.current(at: t0.addingTimeInterval(8)) == nil)
+    }
+
+    @Test func aNoticeNeverShownByItsDeadlineIsDropped() {
+        var queue = ActivityQueue()
+        queue.post(activity("meeting", .meeting, expires: 60))
+        var banner = activity("banner", .external, updated: 1)
+        banner.displayDuration = 3
+        banner.showBy = t0.addingTimeInterval(15)
+        queue.post(banner)
+        #expect(queue.nextExpiration(after: t0) == t0.addingTimeInterval(15))
+        queue.removeExpired(at: t0.addingTimeInterval(16))
+        #expect(!queue.contains(id: "banner"))
+    }
+
+    @Test func noticesThatWaitInLineShowOldestFirst() {
+        var queue = ActivityQueue()
+        for (index, id) in ["first", "second", "third"].enumerated() {
+            var banner = activity(id, .external, updated: Double(index))
+            banner.waitsInLine = true
+            queue.post(banner)
+        }
+        #expect(queue.current(at: t0)?.id == "first")
+        queue.remove(id: "first")
+        #expect(queue.current(at: t0)?.id == "second")
     }
 }
 

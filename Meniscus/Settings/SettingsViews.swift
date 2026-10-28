@@ -73,6 +73,7 @@ struct LiveActivitiesSettingsView: View {
                 Text("Short notices in the closed notch: a meeting 5 minutes ahead and when it starts (Join for Zoom, Meet and Teams is in the open island), the battery at 20% and 10%, the charger, a new keyboard layout, a saved quick capture, a Bluetooth headset, mouse, keyboard or gamepad connecting (with its battery) and at 20% and 10%, a new track with its artwork. AirPods and other Apple devices are left to macOS's own window. They stay hidden while an app is in full screen.")
                     .foregroundStyle(.secondary)
             }
+            ExternalNoticesSettingsSection(settings: settings, notices: ActivityServices.shared.external)
         }
         .settingsPage()
     }
@@ -195,6 +196,11 @@ struct DeveloperSettingsView: View {
                 Button("Simulate Bluetooth Device") { ActivityServices.shared.simulateBluetoothDevice() }
                 Button("Simulate Device Low Battery") { ActivityServices.shared.simulateDeviceLowBattery() }
                 Button("Simulate Track Change") { ActivityServices.shared.simulateTrackChange() }
+                Button("Simulate External Notices") { ActivityServices.shared.external.simulateNotices() }
+                Button("Simulate Short Task") { ActivityServices.shared.external.simulateActivity(long: false) }
+                Button("Simulate Long Task") { ActivityServices.shared.external.simulateActivity(long: true) }
+                Button("Simulate Parallel Tasks") { ActivityServices.shared.external.simulateParallelActivities() }
+                Button("Simulate Late Start") { ActivityServices.shared.external.simulateLateStart() }
                 Button("Bluetooth Diagnostics") { ActivityServices.shared.copyBluetoothDiagnostics() }
                     .help(Text("Copies every battery value each source reports, per device, to the clipboard."))
             }

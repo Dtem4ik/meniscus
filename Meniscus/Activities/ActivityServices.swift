@@ -7,7 +7,10 @@ import OSLog
 final class ActivityServices {
     static let shared = ActivityServices()
 
-    let center = ActivityCenter()
+    let center: ActivityCenter
+    /// Notices and tasks from other apps, scripts and Shortcuts.
+    let external: ExternalNotices
+    let apiServer = APIServer()
     let power = PowerSourceMonitor()
     let calendar = CalendarService()
     let nowPlaying = NowPlayingService()
@@ -58,6 +61,9 @@ final class ActivityServices {
     @ObservationIgnored private var connectedDevices: [String: BluetoothDevice] = [:]
 
     init() {
+        let center = ActivityCenter()
+        self.center = center
+        external = ExternalNotices(center: center)
         // Wired here rather than in start(), so the Developer simulations (and tests) work too.
         calendar.onMeetingMoment = { [weak self] event, moment in self?.showMeeting(event, moment) }
         audioDevices.onEvent = { [weak self] event in self?.handle(event) }
@@ -78,6 +84,8 @@ final class ActivityServices {
         updateInputSource(settings: settings)
         updateBluetoothDevices(settings: settings)
         presentation.start()
+        apiServer.onRequest = { [weak self] incoming, source in self?.receive(incoming, from: source) }
+        updateExternalAPI(settings: settings)
 
         nowPlaying.onChange = { [weak self] info in
             guard let self else { return }
@@ -225,10 +233,24 @@ final class ActivityServices {
         center.postTransient(id: ActivityID.trackChange, kind: .trackChange, duration: Self.bannerDuration, priority: .confirmation)
     }
 
+    /// The command line tool's socket is open only while its switch is on.
+    func updateExternalAPI(settings: AppSettings) {
+        if settings.externalCLI { apiServer.start() } else { apiServer.stop() }
+    }
+
+    private func receive(_ incoming: APIServer.Incoming, from source: APISource) {
+        switch incoming {
+        case .request(let request):
+            external.handle(request, from: source)
+        case .hook(_, let event, let at):
+            external.handleClaudeCode(event, at: at, from: source)
+        }
+    }
+
     /// Shown after a quick capture is saved.
     func showCaptureSaved() {
         guard settings.showCaptureConfirmation else { return }
-        center.postTransient(id: ActivityID.captureSaved, kind: .captureSaved, duration: Self.captureSavedActivityDuration, priority: .confirmation)
+        center.postTransient(id: ActivityID.captureSaved, kind: .captureSaved, duration: Self.captureSavedActivityDuration, priority: .directFeedback)
     }
 
     /// Developer menu: plays the low battery warning without draining the battery.
@@ -295,7 +317,7 @@ final class ActivityServices {
         Logger.bluetooth.notice("\(device.kind.rawValue, privacy: .public) \(isConnected ? "connected" : "disconnected", privacy: .public), battery \(device.battery?.lowest.map(String.init) ?? "unknown", privacy: .public)")
         guard settings.showBluetoothDevices else { return }
         bluetoothDevice = (device, isConnected)
-        center.postTransient(id: ActivityID.bluetoothDevice, kind: .bluetoothDevice, duration: Self.bannerDuration, priority: .confirmation)
+        center.postTransient(id: ActivityID.bluetoothDevice, kind: .bluetoothDevice, duration: Self.bannerDuration, priority: .directFeedback)
     }
 
     private func checkDeviceBattery(_ device: BluetoothDevice) {
@@ -316,7 +338,7 @@ final class ActivityServices {
 
     private func showInputSource(_ label: String) {
         inputSourceLabel = label
-        center.postTransient(id: ActivityID.inputSource, kind: .inputSource, duration: Self.inputSourceActivityDuration, priority: .inputSource)
+        center.postTransient(id: ActivityID.inputSource, kind: .inputSource, duration: Self.inputSourceActivityDuration, priority: .directFeedback)
     }
 
     private func playHaptic() {

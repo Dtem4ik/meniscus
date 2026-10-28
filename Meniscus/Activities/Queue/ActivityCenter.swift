@@ -32,9 +32,18 @@ final class ActivityCenter {
         update()
     }
 
+    /// Whether the activity is still waiting or showing.
+    func contains(id: LiveActivity.ID) -> Bool {
+        queue.contains(id: id)
+    }
+
     private func update() {
         let date = now()
         queue.removeExpired(at: date)
+        if let waiting = queue.current(at: date), waiting.isWaiting {
+            // Shown from now: a notice that waited behind others still gets its full time.
+            queue.startClock(of: waiting.id, at: date)
+        }
         let next = queue.current(at: date)
         if next != current { current = next }
 

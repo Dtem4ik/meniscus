@@ -16,11 +16,16 @@ struct MiniBanner: Equatable {
         case symbol(String, color: Color = .white)
         /// An album cover; a note on the same tile until it arrives.
         case artwork(NSImage?)
+        /// An app's own icon, which has its own shape: no tile behind it.
+        case appIcon(NSImage)
     }
 
     enum Trailing: Equatable {
         /// A battery ring with the percent inside.
         case battery(Int)
+        /// A notice's state: a check mark for success, the attention glyph in the system orange
+        /// (the island's only accent).
+        case state(NoticeState)
     }
 }
 
@@ -48,9 +53,14 @@ struct MiniBannerView: View {
             .truncationMode(.tail)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if case .battery(let level) = banner.trailing {
+            switch banner.trailing {
+            case .battery(let level):
                 BatteryRing(level: level, diameter: metrics.bannerRingDiameter, lineWidth: metrics.bannerRingLineWidth)
                     .transition(.opacity.combined(with: .scale(scale: 0.8)))
+            case .state(let state):
+                NoticeStateGlyph(state: state, size: 17)
+            case nil:
+                EmptyView()
             }
         }
         .padding(.horizontal, metrics.bannerHorizontalPadding)
@@ -63,7 +73,20 @@ struct MiniBannerView: View {
     /// One square tile for every kind of leading content, framed before it is clipped (artwork
     /// fills past its frame), with its corner concentric with the island's (`bannerCorner`):
     /// artwork and the placeholder note are rounded alike.
+    @ViewBuilder
     private var leadingTile: some View {
+        if case .appIcon(let icon) = banner.leading {
+            Image(nsImage: icon)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: leadingSize, height: leadingSize)
+                .accessibilityHidden(true)
+        } else {
+            tile
+        }
+    }
+
+    private var tile: some View {
         ZStack {
             Color.white.opacity(0.1)
             switch banner.leading {
@@ -81,11 +104,37 @@ struct MiniBannerView: View {
                     .font(.system(size: leadingSize * 0.45, weight: .medium))
                     .foregroundStyle(.white.opacity(0.5))
                     .transition(.opacity)
+            case .appIcon:
+                EmptyView()
             }
         }
         .frame(width: leadingSize, height: leadingSize)
         .clipShape(RoundedRectangle(cornerRadius: metrics.bannerCorner.radius, style: .continuous))
         .accessibilityHidden(true)
+    }
+}
+
+/// `success`: a white check mark; `attention`: an exclamation mark in the system orange;
+/// `info`: nothing.
+struct NoticeStateGlyph: View {
+    let state: NoticeState
+    let size: CGFloat
+
+    var body: some View {
+        switch state {
+        case .info:
+            EmptyView()
+        case .success:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: size, weight: .semibold))
+                .foregroundStyle(.white)
+                .accessibilityLabel(Text("Done"))
+        case .attention:
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(.system(size: size, weight: .semibold))
+                .foregroundStyle(Color(nsColor: .systemOrange))
+                .accessibilityLabel(Text("Needs attention"))
+        }
     }
 }
 

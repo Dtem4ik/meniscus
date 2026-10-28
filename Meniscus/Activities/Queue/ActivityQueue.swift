@@ -23,27 +23,40 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
         case deviceLowBattery
         /// A new track started playing.
         case trackChange
+        /// A notice from another app, script or shortcut.
+        case externalBanner
+        /// Another app's running tasks, one per source.
+        case externalActivity
 
         /// Shown as a mini banner below the notch rather than on its sides.
         var isBanner: Bool {
             switch self {
-            case .bluetoothDevice, .trackChange: true
+            case .bluetoothDevice, .trackChange, .externalBanner: true
             default: false
             }
         }
     }
 
-    /// Higher wins. Short activities outrank music; when they end, music comes back.
+    /// Higher wins. Short activities outrank music; when they end, music comes back. The order
+    /// is described in docs/external-api.md (section 6).
     nonisolated enum Priority: Int, Comparable, Sendable {
         /// Reminders that can wait, like files on the shelf.
         case background = 0
+        /// A running external task's indicator, behind its own banners.
+        case externalActivity = 44
+        /// External `info` and `success` notices.
+        case external = 45
         /// Lasting activities, like music.
         case ongoing = 50
-        /// Short confirmations, like a saved quick capture.
+        /// Music's own short notices, like a track change.
         case confirmation = 55
-        case inputSource = 60
-        case charging = 70
-        case deviceLowBattery = 75
+        case charging = 60
+        /// External notices in the `attention` state.
+        case externalAttention = 65
+        /// Direct feedback to the user's own action: keyboard layout, "Saved", a device the user
+        /// just connected.
+        case directFeedback = 70
+        case deviceLowBattery = 78
         case lowBattery = 80
         case meeting = 90
         /// The user is doing something with the notch right now, like dragging a file to it.
@@ -60,10 +73,22 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
     var updatedAt: Date
     /// Transient activities disappear on their own; `nil` means until removed.
     var expiresAt: Date?
+    /// Set for notices whose time starts when they are first shown, not when posted (external
+    /// banners): the queue sets `expiresAt` then. Until shown, `showBy` limits the wait.
+    var displayDuration: TimeInterval? = nil
+    /// A notice never shown by this date is dropped.
+    var showBy: Date? = nil
+    /// Notices that wait in line show oldest first among equal priorities (banners of one
+    /// source, one after another); everything else shows newest first.
+    var waitsInLine = false
+
+    /// Waiting for its first showing: its clock hasn't started.
+    var isWaiting: Bool { displayDuration != nil && expiresAt == nil }
 
     func isExpired(at date: Date) -> Bool {
-        guard let expiresAt else { return false }
-        return expiresAt <= date
+        if let expiresAt { return expiresAt <= date }
+        if isWaiting, let showBy { return showBy <= date }
+        return false
     }
 }
 
@@ -89,19 +114,32 @@ nonisolated struct ActivityQueue: Equatable, Sendable {
         activities.removeAll { $0.isExpired(at: date) }
     }
 
-    /// The activity to show: highest priority, then most recently updated.
+    /// The activity to show: highest priority, then most recently updated (oldest first for
+    /// notices that wait in line).
     func current(at date: Date) -> LiveActivity? {
         activities
             .filter { !$0.isExpired(at: date) }
             .max { lhs, rhs in
                 if lhs.priority != rhs.priority { return lhs.priority < rhs.priority }
+                if lhs.waitsInLine, rhs.waitsInLine { return lhs.updatedAt > rhs.updatedAt }
                 return lhs.updatedAt < rhs.updatedAt
             }
+    }
+
+    /// Starts the clock of a notice that waited: it is shown from `date`.
+    mutating func startClock(of id: LiveActivity.ID, at date: Date) {
+        guard let index = activities.firstIndex(where: { $0.id == id }),
+              activities[index].isWaiting, let duration = activities[index].displayDuration else { return }
+        activities[index].expiresAt = date.addingTimeInterval(duration)
     }
 
     /// The next moment `current(at:)` can change by itself. Schedule one wake-up for it
     /// instead of polling.
     func nextExpiration(after date: Date) -> Date? {
-        activities.compactMap(\.expiresAt).filter { $0 > date }.min()
+        activities.compactMap { $0.expiresAt ?? ($0.isWaiting ? $0.showBy : nil) }.filter { $0 > date }.min()
+    }
+
+    func contains(id: LiveActivity.ID) -> Bool {
+        activities.contains { $0.id == id }
     }
 }

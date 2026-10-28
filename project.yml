@@ -49,6 +49,11 @@ targets:
         NSHumanReadableCopyright: Copyright © 2026 Meniscus contributors. MIT License.
         NSCalendarsFullAccessUsageDescription: Meniscus shows your next calendar event in the notch. Events stay on your Mac.
         NSBluetoothAlwaysUsageDescription: Meniscus shows in the notch when your Bluetooth headphones and speakers connect, with their battery. Nothing leaves your Mac.
+        # meniscus://v1/notify links (docs/external-api.md); off until turned on in Settings.
+        CFBundleURLTypes:
+          - CFBundleURLName: io.github.dtem4ik.meniscus
+            CFBundleURLSchemes:
+              - meniscus
     settings:
       base:
         PRODUCT_NAME: Meniscus
@@ -56,6 +61,14 @@ targets:
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
         # The adapter build phase reads the submodule and writes into the app bundle.
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+    dependencies:
+      # The command line tool ships inside the app, in Contents/Helpers.
+      - target: meniscus-cli
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
     postBuildScripts:
       - name: Build mediaremote-adapter
         script: '"$SRCROOT/scripts/build-mediaremote-adapter.sh"'
@@ -63,6 +76,22 @@ targets:
     scheme:
       testTargets:
         - MeniscusTests
+
+  meniscus-cli:
+    type: tool
+    platform: macOS
+    sources:
+      - path: CLI
+    settings:
+      base:
+        PRODUCT_NAME: meniscus
+        # The binary is `meniscus`; its module must not collide with the app's `Meniscus` on a
+        # case-insensitive disk.
+        PRODUCT_MODULE_NAME: MeniscusCLI
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.dtem4ik.meniscus.cli
+        SKIP_INSTALL: YES
+        # A small single-threaded tool: everything runs on the main thread.
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
 
   MeniscusTests:
     type: bundle.unit-test

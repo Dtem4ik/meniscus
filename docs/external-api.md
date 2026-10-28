@@ -183,7 +183,8 @@ Today's values and the proposed ones:
 | `charging` | 70 | 60 |
 | `trackChange` (`confirmation`) | 55 | 55 |
 | `nowPlaying` (`ongoing`) | 50 | 50 |
-| **external `info`, `success`, activity indicator** | — | 45 |
+| **external `info`, `success`** | — | 45 |
+| **external activity indicator** | — | 44 (behind its own banners) |
 | `shelf` (`background`) | 0 | 0 |
 
 The changes to built-in order are that direct feedback moves above charging, and confirmations
@@ -356,8 +357,10 @@ chain may end at `launchd`; their activities then show the neutral icon (section
 
 ### Texts
 
-The adapter's texts are in the app's string catalog and follow the user's language, like the
-rest of Meniscus (the CLI reads them from the app bundle it ships in):
+The mapping runs in the app: `meniscus hook claude-code` forwards only the hook's event name,
+session id, notification type and the last part of `cwd`, never the prompt, Claude's answer or
+full paths. So the adapter's texts are in the app's string catalog and follow the user's
+language, like the rest of Meniscus:
 
 | English | Russian |
 | --- | --- |
