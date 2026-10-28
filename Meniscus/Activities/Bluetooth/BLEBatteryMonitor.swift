@@ -112,8 +112,11 @@ nonisolated final class BLEBatteryMonitor: NSObject, @unchecked Sendable {
     }
 }
 
-extension BLEBatteryMonitor: CBCentralManagerDelegate {
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+// The target's default isolation is the main actor, and members of an extension don't take
+// `nonisolated` from the class: without it here, CoreBluetooth calling these on the monitor's
+// queue trips Swift's isolation check and stops the app.
+nonisolated extension BLEBatteryMonitor: CBCentralManagerDelegate {
+    nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
         Logger.bluetooth.notice("CoreBluetooth state: \(self.stateName(central.state), privacy: .public)")
         if central.state == .poweredOn {
             attachConnectedPeripherals()
@@ -122,23 +125,23 @@ extension BLEBatteryMonitor: CBCentralManagerDelegate {
         }
     }
 
-    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+    nonisolated func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.discoverServices([Self.batteryService])
     }
 
-    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: (any Error)?) {
+    nonisolated func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: (any Error)?) {
         notes[peripheral.identifier] = "couldn't join the connection: \(error?.localizedDescription ?? "unknown error")"
         peripherals[peripheral.identifier] = nil
     }
 
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
+    nonisolated func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
         peripherals[peripheral.identifier] = nil
         levels[peripheral.identifier] = nil
     }
 }
 
-extension BLEBatteryMonitor: CBPeripheralDelegate {
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
+nonisolated extension BLEBatteryMonitor: CBPeripheralDelegate {
+    nonisolated func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
         guard let service = peripheral.services?.first(where: { $0.uuid == Self.batteryService }) else {
             notes[peripheral.identifier] = "no Battery Service: \(error?.localizedDescription ?? "not offered to apps")"
             return
@@ -146,7 +149,7 @@ extension BLEBatteryMonitor: CBPeripheralDelegate {
         peripheral.discoverCharacteristics([Self.batteryLevel], for: service)
     }
 
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
+    nonisolated func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
         guard let characteristic = service.characteristics?.first(where: { $0.uuid == Self.batteryLevel }) else {
             notes[peripheral.identifier] = "no Battery Level: \(error?.localizedDescription ?? "not offered")"
             return
@@ -157,7 +160,7 @@ extension BLEBatteryMonitor: CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
+    nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
         guard characteristic.uuid == Self.batteryLevel else { return }
         guard error == nil, let byte = characteristic.value?.first, byte <= 100 else {
             notes[peripheral.identifier] = "reading failed: \(error?.localizedDescription ?? "no value")"

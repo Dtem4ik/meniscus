@@ -1,3 +1,4 @@
+import CoreBluetooth
 import Foundation
 import Testing
 @testable import Meniscus
@@ -304,5 +305,21 @@ struct SystemProfilerSectionsTests {
         #expect(mouse.contains("(no battery keys)"))
         #expect(!mouse.contains("ABCDEF123456"))
         #expect(!mouse.contains("AA:BB"))
+    }
+}
+
+struct BLEBatteryMonitorIsolationTests {
+    /// CoreBluetooth calls the delegate on the monitor's own queue. A delegate method that
+    /// ended up on the main actor would stop the app there (it did, at launch).
+    @Test func delegateRunsOffTheMainThread() async {
+        let monitor = BLEBatteryMonitor()
+        let central = CBCentralManager(delegate: nil, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: false])
+        let ran = await withCheckedContinuation { continuation in
+            DispatchQueue(label: "test.ble").async {
+                monitor.centralManagerDidUpdateState(central)
+                continuation.resume(returning: true)
+            }
+        }
+        #expect(ran)
     }
 }
