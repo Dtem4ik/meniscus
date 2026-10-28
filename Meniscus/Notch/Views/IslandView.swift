@@ -11,7 +11,7 @@ struct IslandView: View {
         ZStack(alignment: .top) {
             shape
                 .fill(.black)
-                .shadow(color: .black.opacity(context.isExpanded ? 0.35 : 0), radius: 18, y: 8)
+                .shadow(color: .black.opacity(context.isExpanded ? 0.35 : context.phase == .banner ? 0.25 : 0), radius: 18, y: 8)
 
             IslandContentLayer(
                 context: context,
@@ -29,6 +29,16 @@ struct IslandView: View {
                     }
             }
             .mask { shape }
+
+            if context.phase == .banner, let activity = context.compactActivity, let banner = MiniBanner.for(activity) {
+                MiniBannerView(banner: banner, metrics: layout.metrics)
+                    .frame(width: layout.bannerWidth, height: layout.metrics.bannerContentHeight)
+                    .padding(.top, layout.notchHeight)
+                    .offset(x: layout.centerOffset)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .transition(context.reduceMotion ? .opacity : .contentReveal)
+                    .mask { shape }
+            }
 
             if context.phase == .compact, let activity = context.compactActivity {
                 CompactActivityView(activity: activity, layout: layout, wing: context.compactWing)

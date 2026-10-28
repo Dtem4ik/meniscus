@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 /// A third-party Bluetooth device the island tells about. Apple's own devices (AirPods, Beats,
 /// Magic Mouse, Keyboard and Trackpad) are left out: macOS shows its own window for them.
@@ -101,5 +102,40 @@ nonisolated struct DeviceBatteryWarnings: Equatable, Sendable {
         done.formUnion(reached)
         warned[device] = done
         return lowest
+    }
+}
+
+/// When a connected device's battery is read: it is often not ready at the moment of
+/// connection, so again after each of these delays (from the connection) until it is.
+nonisolated enum BatteryRetry {
+    static let delays: [Duration] = [.seconds(2), .seconds(5), .seconds(10)]
+}
+
+extension Logger {
+    /// Bluetooth devices and what each battery source returned. In Console, filter by subsystem
+    /// `io.github.dtem4ik.meniscus` and category `bluetooth`.
+    nonisolated static let bluetooth = Logger(subsystem: "io.github.dtem4ik.meniscus", category: "bluetooth")
+}
+
+extension MiniBanner {
+    /// A device connecting (its battery ring when known) or disconnecting.
+    static func bluetooth(_ device: BluetoothDevice, isConnected: Bool) -> MiniBanner {
+        MiniBanner(
+            leading: .symbol(device.kind.symbol),
+            title: device.name.isEmpty ? String(localized: "Bluetooth device") : device.name,
+            subtitle: isConnected ? nil : String(localized: "Disconnected"),
+            trailing: isConnected ? device.battery?.lowest.map { .battery($0) } : nil
+        )
+    }
+
+    /// The banner a live activity shows, for the activities shown as one.
+    static func `for`(_ activity: LiveActivity) -> MiniBanner? {
+        switch activity.kind {
+        case .bluetoothDevice:
+            guard let shown = ActivityServices.shared.bluetoothDevice else { return nil }
+            return .bluetooth(shown.device, isConnected: shown.isConnected)
+        default:
+            return nil
+        }
     }
 }

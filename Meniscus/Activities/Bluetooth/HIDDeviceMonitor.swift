@@ -23,8 +23,6 @@ final class HIDDeviceMonitor {
 
     /// `kIOMessageServicePropertyChange`, a C macro Swift doesn't import.
     nonisolated static let servicePropertyChange: UInt32 = 0xE000_000A
-    /// Low Energy devices publish their battery a moment after they connect.
-    static let batteryDelay: Duration = .seconds(2)
 
     private struct Service {
         var device: BluetoothDevice
@@ -97,13 +95,9 @@ final class HIDDeviceMonitor {
             // Not news, but a low battery still is.
             if device.battery != nil { onEvent?(.battery(device)) }
         } else {
+            Logger.bluetooth.notice("IOKit BatteryPercent at connection for \(device.kind.rawValue, privacy: .public): \(device.battery?.main.map(String.init) ?? "none", privacy: .public)")
             onEvent?(.connected(device))
-            if device.battery == nil {
-                Task { [weak self] in
-                    try? await Task.sleep(for: Self.batteryDelay)
-                    self?.serviceChanged(id: id)
-                }
-            }
+            if device.battery == nil { readBatteryUntilFound(device, entryID: id) }
         }
     }
 
@@ -126,6 +120,38 @@ final class HIDDeviceMonitor {
         guard level != service.device.battery?.main else { return }
         service.device.battery = DeviceBattery(main: level)
         services[id] = service
+        onEvent?(.battery(service.device))
+    }
+
+    /// Low Energy devices often publish their battery a few seconds after they connect, and some
+    /// only through Bluetooth's own report: tries the registry, then `system_profiler`, on the
+    /// retry schedule until one has it.
+    private func readBatteryUntilFound(_ device: BluetoothDevice, entryID: UInt64) {
+        Task { [weak self] in
+            let start = ContinuousClock.now
+            for delay in BatteryRetry.delays {
+                try? await Task.sleep(until: start + delay)
+                guard let self, let service = self.services[entryID] else { return }
+                if let level = HIDServiceInfo.batteryPercent(of: service.entry) {
+                    Logger.bluetooth.notice("IOKit BatteryPercent after \(delay, privacy: .public) for \(device.kind.rawValue, privacy: .public): \(level, privacy: .public)")
+                    self.report(level, entryID: entryID)
+                    return
+                }
+                Logger.bluetooth.notice("IOKit BatteryPercent after \(delay, privacy: .public) for \(device.kind.rawValue, privacy: .public): none")
+                let battery = await SystemProfilerBattery.read(address: device.id, name: device.name)
+                Logger.bluetooth.notice("system_profiler after \(delay, privacy: .public) for \(device.kind.rawValue, privacy: .public): \(battery.map { String(describing: $0) } ?? "no battery", privacy: .public)")
+                if let level = battery?.lowest {
+                    self.report(level, entryID: entryID)
+                    return
+                }
+            }
+        }
+    }
+
+    private func report(_ level: Int, entryID: UInt64) {
+        guard var service = services[entryID] else { return }
+        service.device.battery = DeviceBattery(main: level)
+        services[entryID] = service
         onEvent?(.battery(service.device))
     }
 
@@ -228,7 +254,7 @@ nonisolated struct HIDServiceInfo: Equatable, Sendable {
         guard !AppleDevice.isApple(vendorID: vendorID, source: vendorIDSource), !AppleDevice.hasAppleName(name) else {
             return nil
         }
-        let id = address.map(AudioBatteryReader.normalized).flatMap { $0.isEmpty ? nil : $0 } ?? name
+        let id = address.map(SystemProfilerBattery.normalized).flatMap { $0.isEmpty ? nil : $0 } ?? name
         return BluetoothDevice(id: id, name: name, kind: kind, battery: battery.map { DeviceBattery(main: $0) })
     }
 

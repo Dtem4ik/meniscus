@@ -1,5 +1,6 @@
 import Foundation
 import IOBluetooth
+import OSLog
 
 /// Bluetooth headphones and speakers connecting and disconnecting, through IOBluetooth's public
 /// notifications. Mice, keyboards and gamepads come from `HIDDeviceMonitor` instead.
@@ -18,8 +19,6 @@ final class AudioDeviceMonitor: NSObject {
 
     /// The Bluetooth major class of audio devices.
     nonisolated static let audioMajorClass: UInt32 = 0x04
-    /// The battery shows up in the system's report a moment after the connection.
-    static let batteryDelay: Duration = .seconds(1)
 
     func start() {
         guard connectNotification == nil else { return }
@@ -60,13 +59,20 @@ final class AudioDeviceMonitor: NSObject {
 
         batteryTasks[device.id]?.cancel()
         batteryTasks[device.id] = Task { [weak self] in
-            try? await Task.sleep(for: Self.batteryDelay)
-            guard !Task.isCancelled else { return }
-            let battery = await AudioBatteryReader.read(address: device.id, name: device.name)
-            guard !Task.isCancelled, let battery, let self else { return }
-            var reported = device
-            reported.battery = battery
-            self.onEvent?(.battery(reported))
+            let start = ContinuousClock.now
+            for delay in BatteryRetry.delays {
+                try? await Task.sleep(until: start + delay)
+                guard !Task.isCancelled else { return }
+                let battery = await SystemProfilerBattery.read(address: device.id, name: device.name)
+                Logger.bluetooth.notice("system_profiler after \(delay, privacy: .public) for \(device.kind.rawValue, privacy: .public): \(battery.map { String(describing: $0) } ?? "no battery", privacy: .public)")
+                guard !Task.isCancelled else { return }
+                if let battery, let self {
+                    var reported = device
+                    reported.battery = battery
+                    self.onEvent?(.battery(reported))
+                    return
+                }
+            }
         }
     }
 
@@ -85,7 +91,7 @@ final class AudioDeviceMonitor: NSObject {
         guard !AppleDevice.isApple(vendorID: vendor.id, source: vendor.source), !AppleDevice.hasAppleName(name) else {
             return nil
         }
-        let address = device.addressString ?? ""
+        let address = SystemProfilerBattery.normalized(device.addressString ?? "")
         return BluetoothDevice(
             id: address.isEmpty ? name : address,
             name: name,

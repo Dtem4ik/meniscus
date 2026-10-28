@@ -206,7 +206,6 @@ struct CompactWingTests {
         "EN", "РУ", "УК", "DE",                        // keyboard layout
         "Saved", "Сохранено",                          // quick capture
         "12",                                          // shelf
-        "Off", "Откл.", "On", "Вкл.", "Logitech",      // Bluetooth devices
     ])
     func valueFitsItsSide(text: String) {
         let layout = layout()
@@ -257,6 +256,7 @@ struct NoActivityHangsTests {
         #expect(services.center.current?.kind == .bluetoothDevice)
         #expect(services.center.current?.expiresAt != nil)
         #expect(services.bluetoothDevice?.device.kind == .mouse)
+        #expect(ActivityServices.bannerDuration <= 3)
         services.simulateDeviceLowBattery()
         #expect(services.center.current?.kind == .deviceLowBattery)
         #expect(services.center.current?.expiresAt != nil)

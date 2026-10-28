@@ -30,7 +30,10 @@ final class NotchState {
 
     var isExpanded: Bool { phase == .expanded }
     /// Where the island returns when it isn't expanded.
-    var restingPhase: IslandPhase { compactActivity == nil ? .collapsed : .compact }
+    var restingPhase: IslandPhase {
+        guard let compactActivity else { return .collapsed }
+        return compactActivity.kind.isBanner ? .banner : .compact
+    }
     var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content, compactWing: compactWing) }
 }
 

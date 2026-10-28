@@ -36,14 +36,12 @@ final class ActivityServices {
     static let inputSourceActivityDuration: TimeInterval = 1.2
     static let captureSavedActivityDuration: TimeInterval = 1.6
     static let meetingActivityDuration: TimeInterval = 5
-    static let bluetoothDeviceActivityDuration: TimeInterval = 4
-    /// A battery reading later than this after the connection doesn't reopen the notice.
-    static let bluetoothBatteryWindow: TimeInterval = 8
+    /// How long a mini banner stays before the island folds back.
+    static let bannerDuration: TimeInterval = 3
 
     @ObservationIgnored private let logger = Logger.power
     @ObservationIgnored private var lowBatteryWarnings = LowBatteryWarnings()
     @ObservationIgnored private var settings: AppSettings = .shared
-    @ObservationIgnored private var bluetoothConnectedAt: [String: Date] = [:]
     @ObservationIgnored private var deviceBatteryWarnings = DeviceBatteryWarnings()
 
     init() {
@@ -115,13 +113,31 @@ final class ActivityServices {
 
     /// Developer menu: a mouse connecting, its battery a moment later, like the real thing.
     func simulateBluetoothDevice() {
-        let mouse = BluetoothDevice(id: "simulated-mouse", name: String(localized: "Wireless Mouse"), kind: .mouse)
-        handle(.connected(mouse))
+        handle(.connected(Self.simulatedMouse))
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(1.5))
-            var withBattery = mouse
-            withBattery.battery = DeviceBattery(main: 64)
-            self?.handle(.battery(withBattery))
+            self?.simulatedBatteryArrived(level: 64)
+        }
+    }
+
+    /// The simulated mouse's battery, as if it was read after the connection.
+    func simulatedBatteryArrived(level: Int) {
+        var device = Self.simulatedMouse
+        device.battery = DeviceBattery(main: level)
+        handle(.battery(device))
+    }
+
+    private static var simulatedMouse: BluetoothDevice {
+        BluetoothDevice(id: "simulated-mouse", name: String(localized: "Wireless Mouse"), kind: .mouse)
+    }
+
+    /// Developer menu: every battery value each source reports, per device, for the clipboard.
+    func copyBluetoothDiagnostics() {
+        Task {
+            let report = await BluetoothDiagnostics.report()
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(report, forType: .string)
+            Logger.bluetooth.notice("Bluetooth diagnostics copied")
         }
     }
 
@@ -162,30 +178,32 @@ final class ActivityServices {
     }
 
     private func handle(_ event: BluetoothDeviceEvent) {
-        let date = Date()
         switch event {
         case .connected(let device):
-            bluetoothConnectedAt[device.id] = date
             showBluetoothDevice(device, isConnected: true)
             checkDeviceBattery(device)
         case .disconnected(let device):
-            bluetoothConnectedAt[device.id] = nil
             showBluetoothDevice(device, isConnected: false)
         case .battery(let device):
-            // A reading right after the connection completes its notice; later ones only warn.
-            if let connectedAt = bluetoothConnectedAt[device.id],
-               date.timeIntervalSince(connectedAt) < Self.bluetoothBatteryWindow,
-               bluetoothDevice?.device.id == device.id, bluetoothDevice?.isConnected == true {
-                showBluetoothDevice(device, isConnected: true)
+            // Fills in the ring while the banner is still up; never brings it back.
+            if isShowingBanner(for: device) {
+                bluetoothDevice = (device, true)
             }
             checkDeviceBattery(device)
         }
     }
 
+    private func isShowingBanner(for device: BluetoothDevice) -> Bool {
+        center.current?.id == ActivityID.bluetoothDevice
+            && bluetoothDevice?.device.id == device.id
+            && bluetoothDevice?.isConnected == true
+    }
+
     private func showBluetoothDevice(_ device: BluetoothDevice, isConnected: Bool) {
+        Logger.bluetooth.notice("\(device.kind.rawValue, privacy: .public) \(isConnected ? "connected" : "disconnected", privacy: .public), battery \(device.battery?.lowest.map(String.init) ?? "unknown", privacy: .public)")
         guard settings.showBluetoothDevices else { return }
         bluetoothDevice = (device, isConnected)
-        center.postTransient(id: ActivityID.bluetoothDevice, kind: .bluetoothDevice, duration: Self.bluetoothDeviceActivityDuration, priority: .confirmation)
+        center.postTransient(id: ActivityID.bluetoothDevice, kind: .bluetoothDevice, duration: Self.bannerDuration, priority: .confirmation)
     }
 
     private func checkDeviceBattery(_ device: BluetoothDevice) {

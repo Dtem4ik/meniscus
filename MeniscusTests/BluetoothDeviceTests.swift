@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Meniscus
 
-struct AudioBatteryReaderTests {
+struct SystemProfilerBatteryTests {
     /// The shape of `system_profiler SPBluetoothDataType -json`, trimmed.
     private let report = Data("""
     {
@@ -34,30 +34,30 @@ struct AudioBatteryReaderTests {
     """.utf8)
 
     @Test func readsBudsAndCaseByAddress() {
-        let battery = AudioBatteryReader.parse(report, address: "aa-bb-cc-dd-ee-01", name: "")
+        let battery = SystemProfilerBattery.parse(report, address: "aa-bb-cc-dd-ee-01", name: "")
         #expect(battery == DeviceBattery(left: 80, right: 75, case: 60))
         #expect(battery?.lowest == 75)
     }
 
     @Test func readsASingleLevel() {
-        let battery = AudioBatteryReader.parse(report, address: "AA:BB:CC:DD:EE:02", name: "Studio Headphones")
+        let battery = SystemProfilerBattery.parse(report, address: "AA:BB:CC:DD:EE:02", name: "Studio Headphones")
         #expect(battery?.lowest == 45)
     }
 
     @Test func fallsBackToTheName() {
-        #expect(AudioBatteryReader.parse(report, address: "", name: "Studio Buds")?.left == 80)
+        #expect(SystemProfilerBattery.parse(report, address: "", name: "Studio Buds")?.left == 80)
     }
 
     @Test func noBatteryMeansNothing() {
-        #expect(AudioBatteryReader.parse(report, address: "AA:BB:CC:DD:EE:03", name: "Desk Speaker") == nil)
-        #expect(AudioBatteryReader.parse(report, address: "11:22:33:44:55:66", name: "Unknown") == nil)
-        #expect(AudioBatteryReader.parse(Data("not json".utf8), address: "", name: "") == nil)
+        #expect(SystemProfilerBattery.parse(report, address: "AA:BB:CC:DD:EE:03", name: "Desk Speaker") == nil)
+        #expect(SystemProfilerBattery.parse(report, address: "11:22:33:44:55:66", name: "Unknown") == nil)
+        #expect(SystemProfilerBattery.parse(Data("not json".utf8), address: "", name: "") == nil)
     }
 
     @Test func readsLevels() {
-        #expect(AudioBatteryReader.level("80%") == 80)
-        #expect(AudioBatteryReader.level("150%") == nil)
-        #expect(AudioBatteryReader.level(nil) == nil)
+        #expect(SystemProfilerBattery.level("80%") == 80)
+        #expect(SystemProfilerBattery.level("150%") == nil)
+        #expect(SystemProfilerBattery.level(nil) == nil)
     }
 
     @Test func oneBudOutOfTheCase() {
@@ -141,11 +141,95 @@ struct DeviceBatteryWarningsTests {
 }
 
 @MainActor
-struct BluetoothActivityTests {
-    @Test func namesShortenToTheFirstWordThenOn() {
-        #expect(CompactText.deviceNames("Logitech MX Keys") == ["Logitech MX Keys", "Logitech", String(localized: "On")])
-        #expect(CompactText.deviceNames("Keychron").count == 2)
-        #expect(CompactText.deviceNames("").count == 1)
+struct MiniBannerTests {
+    private let mouse = BluetoothDevice(id: "a", name: "MX Master 3S", kind: .mouse, battery: DeviceBattery(main: 75))
+
+    @Test func connectionShowsTheFullNameAndTheBatteryRing() {
+        let banner = MiniBanner.bluetooth(mouse, isConnected: true)
+        #expect(banner.leading == .symbol("computermouse.fill"))
+        #expect(banner.title == "MX Master 3S")
+        #expect(banner.subtitle == nil)
+        #expect(banner.trailing == .battery(75))
+    }
+
+    @Test func noBatteryNoRing() {
+        var device = mouse
+        device.battery = nil
+        #expect(MiniBanner.bluetooth(device, isConnected: true).trailing == nil)
+    }
+
+    @Test func headphonesShowTheLowerEarbud() {
+        let buds = BluetoothDevice(id: "b", name: "MAJOR V", kind: .headphones, battery: DeviceBattery(left: 81, right: 79, case: 40))
+        #expect(MiniBanner.bluetooth(buds, isConnected: true).trailing == .battery(79))
+    }
+
+    @Test func disconnectionSaysSoWithoutARing() {
+        let banner = MiniBanner.bluetooth(mouse, isConnected: false)
+        #expect(banner.title == "MX Master 3S")
+        #expect(banner.subtitle == String(localized: "Disconnected"))
+        #expect(banner.trailing == nil)
+    }
+
+    @Test func ringColors() {
+        #expect(BatteryRingStyle.tone(level: 81) == .normal)
+        #expect(BatteryRingStyle.tone(level: 20) == .normal)
+        #expect(BatteryRingStyle.tone(level: 19) == .low)
+        #expect(BatteryRingStyle.tone(level: 10) == .low)
+        #expect(BatteryRingStyle.tone(level: 9) == .critical)
+    }
+
+    @Test func aLateBatteryNeverReopensTheBanner() {
+        let services = ActivityServices()
+        services.simulateBluetoothDevice()
+        services.center.remove(id: ActivityID.bluetoothDevice)
+        services.simulatedBatteryArrived(level: 64)
+        #expect(services.center.current == nil)
+    }
+}
+
+struct BannerLayoutTests {
+    private func layout() -> IslandLayout {
+        IslandLayout(geometry: NotchGeometry(
+            kind: .hardware,
+            screenFrame: CGRect(x: 0, y: 0, width: 1512, height: 982),
+            notchRect: CGRect(x: 661, y: 950, width: 190, height: 32),
+            backingScale: 2
+        ))
+    }
+
+    @Test func smallerThanTheOpenIslandAndClearOfTheNotch() {
+        let layout = layout()
+        let banner = layout.shape(for: .banner)
+        let player = layout.shape(for: .expanded, content: .nowPlaying)
+        #expect(banner.height < player.height)
+        #expect(banner.height > layout.shape(for: .compact).height)
+        #expect(banner.width >= layout.geometry.notchRect.width + 2 * layout.metrics.bannerMinimumWingWidth)
+        let rect = layout.interactiveScreenRect(for: .banner)
+        #expect(abs(rect.midX - layout.geometry.notchRect.midX) < 0.01)
+    }
+
+    @Test func bannerActivitiesRestInTheBanner() {
+        let state = NotchState(layout: layout())
+        state.compactActivity = LiveActivity(id: "x", kind: .bluetoothDevice, priority: .confirmation, updatedAt: .now, expiresAt: nil)
+        #expect(state.restingPhase == .banner)
+        state.compactActivity = LiveActivity(id: "y", kind: .charging, priority: .charging, updatedAt: .now, expiresAt: nil)
+        #expect(state.restingPhase == .compact)
+        state.compactActivity = nil
+        #expect(state.restingPhase == .collapsed)
+    }
+}
+
+struct SystemProfilerLeniencyTests {
+    @Test func readsAnyBatteryLevelKey() {
+        let data = Data("""
+        {"SPBluetoothDataType":[{"device_connected":[
+          {"MX Master 3S":{"device_address":"AA:BB:CC:DD:EE:05","device_batteryLevel":"75%","device_minorType":"Mouse"}},
+          {"MAJOR V":{"device_address":"AA:BB:CC:DD:EE:06","device_batteryLevelMain":81,"device_minorType":"Headphones"}}
+        ]}]}
+        """.utf8)
+        #expect(SystemProfilerBattery.parse(data, address: "aa-bb-cc-dd-ee-05", name: "")?.lowest == 75)
+        #expect(SystemProfilerBattery.parse(data, address: "", name: "MAJOR V")?.lowest == 81)
+        #expect(SystemProfilerBattery.parse(data, address: "", name: "") == nil)
     }
 }
 
@@ -161,5 +245,23 @@ struct MainThreadTests {
             }
         }
         #expect(ran)
+    }
+}
+
+struct BluetoothDiagnosticsTests {
+    @Test func listsBatteryKeysAndMasksAddresses() {
+        let data = Data("""
+        {"SPBluetoothDataType":[{"device_connected":[
+          {"MX Master 3S":{"device_address":"AA:BB:CC:DD:EE:05","device_batteryLevelMain":"75%","device_minorType":"Mouse","device_vendorID":"0x046D"}},
+          {"Speaker":{"device_address":"AA:BB:CC:DD:EE:07","device_minorType":"Speaker"}}
+        ]}]}
+        """.utf8)
+        let lines = BluetoothDiagnostics.systemProfilerLines(data)
+        #expect(lines.count == 2)
+        let mouse = lines.first { $0.hasPrefix("MX Master 3S") } ?? ""
+        #expect(mouse.contains("device_batteryLevelMain=75%"))
+        #expect(mouse.contains("…EE:05"))
+        #expect(!mouse.contains("AA:BB"))
+        #expect(lines.contains { $0.hasPrefix("Speaker") && $0.contains("no battery keys") })
     }
 }

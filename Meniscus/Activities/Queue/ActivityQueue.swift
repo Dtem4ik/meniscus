@@ -21,6 +21,14 @@ nonisolated struct LiveActivity: Identifiable, Equatable, Sendable {
         case bluetoothDevice
         /// A third-party Bluetooth device's battery fell to a warning threshold.
         case deviceLowBattery
+
+        /// Shown as a mini banner below the notch rather than on its sides.
+        var isBanner: Bool {
+            switch self {
+            case .bluetoothDevice: true
+            default: false
+            }
+        }
     }
 
     /// Higher wins. Short activities outrank music; when they end, music comes back.

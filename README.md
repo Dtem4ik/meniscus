@@ -208,8 +208,11 @@ briefly checks the pointer and the drag pasteboard, and stops as soon as it is r
 ## Live activities
 
 Short notices in the closed notch, each with its own switch in **Settings → Live Activities**
-(all on by default). Every one follows the same pattern: a symbol on the left, a short value on
-the right, both sides as wide as the wider one needs, the notch centered between them.
+(all on by default). Most follow the same pattern: a symbol on the left, a short value on
+the right, both sides as wide as the wider one needs, the notch centered between them. Notices
+with more to say use a mini banner instead: the island opens a little way down for about three
+seconds (a symbol or picture, a title and an optional second line, an optional indicator on the
+right), then folds back.
 
 | Activity | Shows | When |
 | --- | --- | --- |
@@ -218,7 +221,7 @@ the right, both sides as wide as the wider one needs, the notch centered between
 | Charging | Bolt, percent | When a charger is connected, for 4 seconds. |
 | Keyboard layout | Keyboard, EN / РУ / DE… | For about a second after the input source changes (read a moment after the system's notification, shown only for a real change). |
 | Quick capture saved | Check mark, "Saved" | After a quick capture is saved. |
-| Bluetooth device | Headphones, speaker, mouse, keyboard or gamepad symbol; the battery (the lower earbud for headphones) or the name; "Off" | For 4 seconds when a third-party Bluetooth device connects or disconnects. AirPods, Beats and Magic devices are left to macOS's own window. |
+| Bluetooth device | A mini banner: the device's symbol, its full name and a battery ring (green, yellow below 20%, red below 10%) when the battery is known; "Disconnected" under the name when it leaves | For 3 seconds when a third-party Bluetooth device connects or disconnects. AirPods, Beats and Magic devices are left to macOS's own window. |
 | Bluetooth device low battery | The device's symbol in yellow or red, percent | At 20% and 10%, each once until the device is charged above 25%, for 4 seconds. |
 
 The most important one shows: meeting, then low battery, then charging, then a Bluetooth
@@ -228,12 +231,15 @@ source notification, IOBluetooth and IOKit device notifications.
 
 Bluetooth devices come from two public sources: IOBluetooth notifications for headphones and
 speakers, and IOKit matching notifications for mice, keyboards and gamepads (classic and Low
-Energy). Apple's devices are recognized by their vendor ID and name and skipped. The battery of
-mice, keyboards and gamepads is the `BatteryPercent` their driver publishes in the I/O Registry,
-read when they connect, when the driver reports a change and after the Mac wakes; devices that
-don't publish it show their name. Headphones' battery comes from `system_profiler
-SPBluetoothDataType`, the public tool behind System Information, run once right after they
-connect; macOS has no public API for it.
+Energy). Apple's devices are recognized by their vendor ID and name and skipped. A device's
+battery is often not ready when it connects, so it is read 2, 5 and 10 seconds after the
+connection until one source has it: the `BatteryPercent` the HID driver publishes in the I/O
+Registry (mice, keyboards, gamepads), then `system_profiler SPBluetoothDataType`, the public tool
+behind System Information. A battery that arrives while the banner is up fills in its ring; one
+that arrives later doesn't bring the banner back. Mice and keyboards are read again when their
+driver reports a change and after the Mac wakes; nothing polls. Each source's result is logged
+under the `bluetooth` category, and **Settings → Developer → Bluetooth Diagnostics** copies every
+value each source reports, per device, to the clipboard.
 
 Live activities stay hidden while an app is in full screen on the island's screen (seen from
 window frames, which need no permission). macOS doesn't tell apps when the screen is being

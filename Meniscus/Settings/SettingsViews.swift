@@ -193,6 +193,8 @@ struct DeveloperSettingsView: View {
                 Button("Simulate Upcoming Meeting") { ActivityServices.shared.calendar.simulateStartingSoon() }
                 Button("Simulate Bluetooth Device") { ActivityServices.shared.simulateBluetoothDevice() }
                 Button("Simulate Device Low Battery") { ActivityServices.shared.simulateDeviceLowBattery() }
+                Button("Bluetooth Diagnostics") { ActivityServices.shared.copyBluetoothDiagnostics() }
+                    .help(Text("Copies every battery value each source reports, per device, to the clipboard."))
             }
             Section {
                 Button {
