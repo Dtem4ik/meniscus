@@ -48,7 +48,7 @@ targets:
         LSUIElement: true
         NSHumanReadableCopyright: Copyright © 2026 Meniscus contributors. MIT License.
         NSCalendarsFullAccessUsageDescription: Meniscus shows your next calendar event in the notch. Events stay on your Mac.
-        NSBluetoothAlwaysUsageDescription: Meniscus shows in the notch when headphones connect, with their battery. Nothing leaves your Mac.
+        NSBluetoothAlwaysUsageDescription: Meniscus shows in the notch when your Bluetooth headphones and speakers connect, with their battery. Nothing leaves your Mac.
     settings:
       base:
         PRODUCT_NAME: Meniscus

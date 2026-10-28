@@ -13,7 +13,8 @@ final class ActivityServices {
     let nowPlaying = NowPlayingService()
     let inputSource = InputSourceMonitor()
     let presentation = PresentationGuard()
-    let headphones = HeadphonesMonitor()
+    let audioDevices = AudioDeviceMonitor()
+    let hidDevices = HIDDeviceMonitor()
 
     /// Battery level shown by the charging activity.
     private(set) var chargingLevel: Int?
@@ -24,8 +25,10 @@ final class ActivityServices {
     /// The event the meeting reminder is about, and whether it is about to start or starting.
     private(set) var meetingEvent: CalendarEventSnapshot?
     private(set) var meetingMoment: MeetingReminder.Moment = .soon
-    /// The headphones that just connected or disconnected.
-    private(set) var headphonesEvent: HeadphonesEvent?
+    /// The third-party Bluetooth device that just connected or disconnected.
+    private(set) var bluetoothDevice: (device: BluetoothDevice, isConnected: Bool)?
+    /// The Bluetooth device whose battery is low, with the level in `battery.main`.
+    private(set) var deviceLowBattery: BluetoothDevice?
 
     /// How long the charging activity stays in the notch after the charger is connected.
     static let chargingActivityDuration: TimeInterval = 4
@@ -33,19 +36,21 @@ final class ActivityServices {
     static let inputSourceActivityDuration: TimeInterval = 1.2
     static let captureSavedActivityDuration: TimeInterval = 1.6
     static let meetingActivityDuration: TimeInterval = 5
-    static let headphonesActivityDuration: TimeInterval = 4
-    /// A battery reading later than this after the connection is old news and is dropped.
-    static let headphonesBatteryWindow: TimeInterval = 8
+    static let bluetoothDeviceActivityDuration: TimeInterval = 4
+    /// A battery reading later than this after the connection doesn't reopen the notice.
+    static let bluetoothBatteryWindow: TimeInterval = 8
 
     @ObservationIgnored private let logger = Logger.power
     @ObservationIgnored private var lowBatteryWarnings = LowBatteryWarnings()
     @ObservationIgnored private var settings: AppSettings = .shared
-    @ObservationIgnored private var headphonesConnectedAt: Date?
+    @ObservationIgnored private var bluetoothConnectedAt: [String: Date] = [:]
+    @ObservationIgnored private var deviceBatteryWarnings = DeviceBatteryWarnings()
 
     init() {
         // Wired here rather than in start(), so the Developer simulations (and tests) work too.
         calendar.onMeetingMoment = { [weak self] event, moment in self?.showMeeting(event, moment) }
-        headphones.onEvent = { [weak self] event in self?.showHeadphones(event) }
+        audioDevices.onEvent = { [weak self] event in self?.handle(event) }
+        hidDevices.onEvent = { [weak self] event in self?.handle(event) }
     }
 
     func start(settings: AppSettings) {
@@ -57,7 +62,7 @@ final class ActivityServices {
         updateCalendar(settings: settings)
         inputSource.onChange = { [weak self] label in self?.showInputSource(label) }
         updateInputSource(settings: settings)
-        updateHeadphones(settings: settings)
+        updateBluetoothDevices(settings: settings)
         presentation.start()
 
         nowPlaying.onChange = { [weak self] info in
@@ -95,27 +100,34 @@ final class ActivityServices {
         if settings.showInputSource { inputSource.start() } else { inputSource.stop() }
     }
 
-    /// Bluetooth is asked for only while the headphones activity is on.
-    func updateHeadphones(settings: AppSettings) {
-        if settings.showHeadphones {
-            headphones.start()
+    /// Bluetooth devices are watched only while one of their activities is on.
+    func updateBluetoothDevices(settings: AppSettings) {
+        if settings.showBluetoothDevices || settings.showDeviceLowBattery {
+            audioDevices.start()
+            hidDevices.start()
         } else {
-            headphones.stop()
-            center.remove(id: ActivityID.headphones)
+            audioDevices.stop()
+            hidDevices.stop()
+        }
+        if !settings.showBluetoothDevices { center.remove(id: ActivityID.bluetoothDevice) }
+        if !settings.showDeviceLowBattery { center.remove(id: ActivityID.deviceLowBattery) }
+    }
+
+    /// Developer menu: a mouse connecting, its battery a moment later, like the real thing.
+    func simulateBluetoothDevice() {
+        let mouse = BluetoothDevice(id: "simulated-mouse", name: String(localized: "Wireless Mouse"), kind: .mouse)
+        handle(.connected(mouse))
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1.5))
+            var withBattery = mouse
+            withBattery.battery = DeviceBattery(main: 64)
+            self?.handle(.battery(withBattery))
         }
     }
 
-    /// Developer menu: AirPods Pro connecting, then their battery a moment later, like the real
-    /// thing.
-    func simulateHeadphones() {
-        let event = HeadphonesEvent(name: "AirPods Pro", address: "", isConnected: true)
-        showHeadphones(event)
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(1.5))
-            var withBattery = event
-            withBattery.battery = HeadphonesBattery(left: 80, right: 75, case: 60)
-            self?.showHeadphones(withBattery)
-        }
+    /// Developer menu: a keyboard warning about its battery.
+    func simulateDeviceLowBattery() {
+        showDeviceLowBattery(BluetoothDevice(id: "simulated-keyboard", name: String(localized: "Wireless Keyboard"), kind: .keyboard), level: 10)
     }
 
     /// Shown after a quick capture is saved.
@@ -149,19 +161,47 @@ final class ActivityServices {
         playHaptic()
     }
 
-    private func showHeadphones(_ event: HeadphonesEvent) {
-        guard settings.showHeadphones else { return }
+    private func handle(_ event: BluetoothDeviceEvent) {
         let date = Date()
-        if event.isConnected, event.battery != nil {
-            // The battery comes in after the connection; late readings would just repeat it.
-            guard let connectedAt = headphonesConnectedAt,
-                  date.timeIntervalSince(connectedAt) < Self.headphonesBatteryWindow,
-                  headphonesEvent?.address == event.address else { return }
-        } else {
-            headphonesConnectedAt = event.isConnected ? date : nil
+        switch event {
+        case .connected(let device):
+            bluetoothConnectedAt[device.id] = date
+            showBluetoothDevice(device, isConnected: true)
+            checkDeviceBattery(device)
+        case .disconnected(let device):
+            bluetoothConnectedAt[device.id] = nil
+            showBluetoothDevice(device, isConnected: false)
+        case .battery(let device):
+            // A reading right after the connection completes its notice; later ones only warn.
+            if let connectedAt = bluetoothConnectedAt[device.id],
+               date.timeIntervalSince(connectedAt) < Self.bluetoothBatteryWindow,
+               bluetoothDevice?.device.id == device.id, bluetoothDevice?.isConnected == true {
+                showBluetoothDevice(device, isConnected: true)
+            }
+            checkDeviceBattery(device)
         }
-        headphonesEvent = event
-        center.postTransient(id: ActivityID.headphones, kind: .headphones, duration: Self.headphonesActivityDuration, priority: .confirmation)
+    }
+
+    private func showBluetoothDevice(_ device: BluetoothDevice, isConnected: Bool) {
+        guard settings.showBluetoothDevices else { return }
+        bluetoothDevice = (device, isConnected)
+        center.postTransient(id: ActivityID.bluetoothDevice, kind: .bluetoothDevice, duration: Self.bluetoothDeviceActivityDuration, priority: .confirmation)
+    }
+
+    private func checkDeviceBattery(_ device: BluetoothDevice) {
+        guard let level = device.battery?.lowest,
+              deviceBatteryWarnings.check(device: device.id, level: level) != nil,
+              settings.showDeviceLowBattery else { return }
+        logger.notice("Low battery warning for a Bluetooth device at \(level, privacy: .public)%")
+        showDeviceLowBattery(device, level: level)
+    }
+
+    private func showDeviceLowBattery(_ device: BluetoothDevice, level: Int) {
+        var device = device
+        device.battery = DeviceBattery(main: level)
+        deviceLowBattery = device
+        center.postTransient(id: ActivityID.deviceLowBattery, kind: .deviceLowBattery, duration: Self.lowBatteryActivityDuration, priority: .deviceLowBattery)
+        playHaptic()
     }
 
     private func showInputSource(_ label: String) {
@@ -208,7 +248,8 @@ nonisolated enum ActivityID {
     static let meeting = "meeting"
     static let inputSource = "input-source"
     static let captureSaved = "capture-saved"
-    static let headphones = "headphones"
+    static let bluetoothDevice = "bluetooth-device"
+    static let deviceLowBattery = "device-low-battery"
 }
 
 extension Logger {

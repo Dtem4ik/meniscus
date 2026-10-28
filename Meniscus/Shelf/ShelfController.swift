@@ -113,7 +113,7 @@ final class ShelfController {
                 queue: .main
             )
             source.setEventHandler { [weak self] in
-                MainActor.assumeIsolated { self?.scheduleRefresh() }
+                MainThread.run { self?.scheduleRefresh() }
             }
             source.setCancelHandler { Darwin.close(descriptor) }
             source.resume()

@@ -1,37 +1,21 @@
 import Foundation
 
-/// Battery levels the system reports for headphones, 0...100. AirPods report each bud and the
-/// case (the case only while a bud is in it); other headphones report one level.
-nonisolated struct HeadphonesBattery: Equatable, Sendable {
-    var left: Int?
-    var right: Int?
-    var `case`: Int?
-    var main: Int?
-
-    var isEmpty: Bool { left == nil && right == nil && self.case == nil && main == nil }
-
-    /// The level the closed notch shows: the lower bud, or the single level.
-    var lowest: Int? {
-        [left, right].compactMap { $0 }.min() ?? main
-    }
-}
-
 /// Reads battery levels from `system_profiler SPBluetoothDataType -json`, a public tool that
-/// prints what System Information shows. Run once per connection, never polled.
-nonisolated enum HeadphonesBatteryReader {
+/// prints what System Information shows. Run once per headphones connection, never polled.
+nonisolated enum AudioBatteryReader {
     static let toolURL = URL(filePath: "/usr/sbin/system_profiler")
     /// The tool is stopped if it takes longer; the activity then keeps showing the name.
     static let timeout: TimeInterval = 6
 
     @concurrent
-    static func read(address: String, name: String) async -> HeadphonesBattery? {
+    static func read(address: String, name: String) async -> DeviceBattery? {
         guard let data = await run() else { return nil }
         return parse(data, address: address, name: name)
     }
 
     /// Finds the device by address (or by name when the address is missing) and reads its
     /// battery keys. Pure, so it is unit tested with a sample of the tool's output.
-    static func parse(_ data: Data, address: String, name: String) -> HeadphonesBattery? {
+    static func parse(_ data: Data, address: String, name: String) -> DeviceBattery? {
         guard let root = try? JSONSerialization.jsonObject(with: data) else { return nil }
         let wanted = normalized(address)
         var byName: [String: Any]?
@@ -44,7 +28,7 @@ nonisolated enum HeadphonesBatteryReader {
             }
         }
         guard let info = found ?? byName else { return nil }
-        let battery = HeadphonesBattery(
+        let battery = DeviceBattery(
             left: level(info["device_batteryLevelLeft"]),
             right: level(info["device_batteryLevelRight"]),
             case: level(info["device_batteryLevelCase"]),

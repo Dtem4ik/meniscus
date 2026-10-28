@@ -112,6 +112,6 @@ private nonisolated func hotKeyEventHandler(_ call: EventHandlerCallRef?, _ even
     )
     guard status == 0 else { return status }
     let id = hotKeyID.id
-    MainActor.assumeIsolated { HotKeyCenter.shared.handle(id: id) }
+    MainThread.run { HotKeyCenter.shared.handle(id: id) }
     return 0
 }

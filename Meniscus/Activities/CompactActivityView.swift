@@ -73,10 +73,13 @@ struct CompactSlot: View {
             CompactSymbol(name: "keyboard")
         case .captureSaved:
             CompactSymbol(name: "checkmark.circle.fill", color: .green)
-        case .headphones:
-            let event = ActivityServices.shared.headphonesEvent
-            CompactSymbol(name: event?.symbol ?? "headphones", color: event?.isConnected == false ? .white.opacity(0.5) : .white)
+        case .bluetoothDevice:
+            let shown = ActivityServices.shared.bluetoothDevice
+            CompactSymbol(name: shown?.device.kind.symbol ?? "headphones", color: shown?.isConnected == false ? .white.opacity(0.5) : .white)
                 .contentTransition(.symbolEffect(.replace))
+        case .deviceLowBattery:
+            let device = ActivityServices.shared.deviceLowBattery
+            CompactSymbol(name: device?.kind.symbol ?? "battery.25percent", color: BatteryWarningStyle.color(level: device?.battery?.main ?? 0))
         }
     }
 
@@ -121,27 +124,34 @@ struct CompactSlot: View {
                 CompactValue(text: String(localized: "Saved"))
                 CompactValue(text: "✓")
             }
-        case .headphones:
-            HeadphonesValue(event: ActivityServices.shared.headphonesEvent)
+        case .bluetoothDevice:
+            let shown = ActivityServices.shared.bluetoothDevice
+            BluetoothDeviceValue(device: shown?.device, isConnected: shown?.isConnected ?? false)
+        case .deviceLowBattery:
+            let device = ActivityServices.shared.deviceLowBattery
+            let level = device?.battery?.main ?? 0
+            CompactValue(text: CompactText.percent(level), color: BatteryWarningStyle.color(level: level))
+                .accessibilityLabel(Text(device?.name ?? ""))
         }
     }
 }
 
-/// The lower bud's battery once it is read; until then, or if the system doesn't report it, the
-/// name, shortened rather than cut.
-private struct HeadphonesValue: View {
-    let event: HeadphonesEvent?
+/// The battery once it is read (the lower earbud for headphones); until then, or if the system
+/// doesn't report it, the name, shortened rather than cut.
+private struct BluetoothDeviceValue: View {
+    let device: BluetoothDevice?
+    let isConnected: Bool
 
     var body: some View {
         Group {
-            if let event {
-                if !event.isConnected {
+            if let device {
+                if !isConnected {
                     CompactValue(text: String(localized: "Off"), color: .white.opacity(0.6))
-                } else if let level = event.battery?.lowest {
-                    CompactValue(text: CompactText.percent(level), color: level <= 10 ? .red : .white)
+                } else if let level = device.battery?.lowest {
+                    CompactValue(text: CompactText.percent(level), color: level <= 20 ? BatteryWarningStyle.color(level: level) : .white)
                 } else {
                     ViewThatFits(in: .horizontal) {
-                        ForEach(CompactText.headphonesNames(event.name), id: \.self) { name in
+                        ForEach(CompactText.deviceNames(device.name), id: \.self) { name in
                             CompactValue(text: name)
                         }
                     }
@@ -149,7 +159,7 @@ private struct HeadphonesValue: View {
             }
         }
         .contentTransition(.opacity)
-        .accessibilityLabel(Text(event?.name ?? ""))
+        .accessibilityLabel(Text(device?.name ?? ""))
     }
 }
 
@@ -181,11 +191,12 @@ enum CompactText {
         String(localized: "\(minutes) min")
     }
 
-    /// The device name, then shorter forms to fall back on: the family ("AirPods"), then "On".
-    static func headphonesNames(_ name: String) -> [String] {
+    /// The device name, then shorter forms to fall back on: its first word ("Logitech"), then "On".
+    static func deviceNames(_ name: String) -> [String] {
         var names = [String]()
-        if !name.isEmpty { names.append(name) }
-        if let family = HeadphonesSymbol.family(for: name), family != name { names.append(family) }
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        if !trimmed.isEmpty { names.append(trimmed) }
+        if let first = trimmed.split(separator: " ").first.map(String.init), first != trimmed { names.append(first) }
         names.append(String(localized: "On"))
         return names
     }

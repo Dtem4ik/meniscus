@@ -26,7 +26,7 @@ final class InputSourceMonitor {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.inputSourceChanged() }
+            MainThread.run { self?.inputSourceChanged() }
         }
     }
 

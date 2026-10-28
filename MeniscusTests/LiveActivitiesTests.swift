@@ -177,7 +177,8 @@ struct LiveActivitySettingsTests {
         #expect(settings.showCharging)
         #expect(settings.showInputSource)
         #expect(settings.showCaptureConfirmation)
-        #expect(settings.showHeadphones)
+        #expect(settings.showBluetoothDevices)
+        #expect(settings.showDeviceLowBattery)
         #expect(settings.hideFromScreenCapture)
     }
 }
@@ -205,7 +206,7 @@ struct CompactWingTests {
         "EN", "РУ", "УК", "DE",                        // keyboard layout
         "Saved", "Сохранено",                          // quick capture
         "12",                                          // shelf
-        "Off", "Откл.", "On", "Вкл.", "AirPods",       // headphones
+        "Off", "Откл.", "On", "Вкл.", "Logitech",      // Bluetooth devices
     ])
     func valueFitsItsSide(text: String) {
         let layout = layout()
@@ -250,12 +251,15 @@ struct NoActivityHangsTests {
         }
     }
 
-    @Test func headphonesSimulationEndsByItself() {
+    @Test func bluetoothSimulationsEndByThemselves() {
         let services = ActivityServices()
-        services.simulateHeadphones()
-        #expect(services.center.current?.kind == .headphones)
+        services.simulateBluetoothDevice()
+        #expect(services.center.current?.kind == .bluetoothDevice)
         #expect(services.center.current?.expiresAt != nil)
-        #expect(services.headphonesEvent?.symbol == "airpodspro")
+        #expect(services.bluetoothDevice?.device.kind == .mouse)
+        services.simulateDeviceLowBattery()
+        #expect(services.center.current?.kind == .deviceLowBattery)
+        #expect(services.center.current?.expiresAt != nil)
     }
 
     @Test func lowerActivitiesShowAfterAHigherOneEnds() async throws {

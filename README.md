@@ -218,16 +218,22 @@ the right, both sides as wide as the wider one needs, the notch centered between
 | Charging | Bolt, percent | When a charger is connected, for 4 seconds. |
 | Keyboard layout | Keyboard, EN / РУ / DE… | For about a second after the input source changes (read a moment after the system's notification, shown only for a real change). |
 | Quick capture saved | Check mark, "Saved" | After a quick capture is saved. |
-| Headphones | AirPods / AirPods Pro / AirPods Max / headphones symbol, the lower bud's battery (or the name), "Off" | For 4 seconds when Bluetooth headphones connect or disconnect. |
+| Bluetooth device | Headphones, speaker, mouse, keyboard or gamepad symbol; the battery (the lower earbud for headphones) or the name; "Off" | For 4 seconds when a third-party Bluetooth device connects or disconnects. AirPods, Beats and Magic devices are left to macOS's own window. |
+| Bluetooth device low battery | The device's symbol in yellow or red, percent | At 20% and 10%, each once until the device is charged above 25%, for 4 seconds. |
 
-The most important one shows: meeting, then low battery, then charging, then the keyboard
-layout, then the rest. Short activities show over music and then give the notch back to it.
+The most important one shows: meeting, then low battery, then charging, then a Bluetooth
+device's low battery, then the keyboard layout, then the rest. Short activities show over music and then give the notch back to it.
 Everything is event driven: calendar timers, IOKit power notifications, the system's input
-source notification and IOBluetooth connect and disconnect notifications.
+source notification, IOBluetooth and IOKit device notifications.
 
-Headphones' battery comes from `system_profiler SPBluetoothDataType`, the public tool behind
-System Information, run once right after they connect. macOS has no public API for the battery
-of individual AirPods; when the tool doesn't report it, the notch shows the symbol and the name.
+Bluetooth devices come from two public sources: IOBluetooth notifications for headphones and
+speakers, and IOKit matching notifications for mice, keyboards and gamepads (classic and Low
+Energy). Apple's devices are recognized by their vendor ID and name and skipped. The battery of
+mice, keyboards and gamepads is the `BatteryPercent` their driver publishes in the I/O Registry,
+read when they connect, when the driver reports a change and after the Mac wakes; devices that
+don't publish it show their name. Headphones' battery comes from `system_profiler
+SPBluetoothDataType`, the public tool behind System Information, run once right after they
+connect; macOS has no public API for it.
 
 Live activities stay hidden while an app is in full screen on the island's screen (seen from
 window frames, which need no permission). macOS doesn't tell apps when the screen is being
@@ -247,7 +253,7 @@ Meniscus asks for a permission only when you turn on a feature that needs it.
 | Permission | Asked for by | Why |
 | --- | --- | --- |
 | Calendars | Upcoming event in the island (stage 1) | Reads your next event with EventKit. Nothing leaves your Mac. |
-| Bluetooth | Headphones live activity | Notices headphones connecting and disconnecting with IOBluetooth. Nothing leaves your Mac. |
+| Bluetooth | Bluetooth device live activities | Notices headphones and speakers connecting and disconnecting with IOBluetooth. Mice, keyboards and gamepads need no permission. Nothing leaves your Mac. |
 | Accessibility | Not needed | No current or planned feature needs it. The capture hotkey uses the system hotkey API, which works without Accessibility access. If that ever changes, it will be listed here first. |
 
 ## Roadmap

@@ -69,7 +69,7 @@ final class CalendarService {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
+            MainThread.run { self?.refresh() }
         }
         refresh()
     }
