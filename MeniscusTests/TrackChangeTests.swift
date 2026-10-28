@@ -94,11 +94,29 @@ struct TrackBannerTests {
 
     @Test func cornersAreConcentricWithTheIsland() {
         let metrics = IslandMetrics.standard
-        #expect(IslandMetrics.concentricRadius(outer: 22, inset: 14) == 8)
-        #expect(IslandMetrics.concentricRadius(outer: 10, inset: 14) == 4)
-        #expect(metrics.bannerLeadingCornerRadius == metrics.bannerBottomRadius - metrics.bannerHorizontalPadding)
-        #expect(metrics.playerArtworkCornerRadius == metrics.expandedBottomRadius - metrics.playerHorizontalPadding)
-        #expect(metrics.bannerLeadingFallbackSize < metrics.bannerContentHeight)
+        for corner in [metrics.bannerCorner, metrics.playerCorner] {
+            // Radius plus inset is the island's radius: the curves share a center.
+            #expect(corner.radius > 0)
+        }
+        #expect(metrics.bannerCorner.radius + metrics.bannerCorner.inset == metrics.bannerBottomRadius)
+        #expect(metrics.playerCorner.radius + metrics.playerCorner.inset == metrics.expandedBottomRadius)
+        // Never rounder than the cap, never closer than the minimum inset.
+        #expect(metrics.bannerCorner.radius <= metrics.bannerLeadingSize * metrics.elementMaximumCornerFraction)
+        #expect(metrics.playerCorner.radius <= metrics.playerArtworkSize * metrics.elementMaximumCornerFraction)
+        #expect(metrics.bannerCorner.inset >= metrics.bannerMinimumInset)
+        #expect(metrics.playerCorner.inset >= metrics.playerMinimumInset)
+        // The tile sits as far from the bottom as from the side.
+        #expect(abs((metrics.bannerContentHeight - metrics.bannerLeadingSize) / 2 - metrics.bannerCorner.inset) <= 0.5)
+    }
+
+    @Test func aCappedRadiusMovesTheElementIn() {
+        let small = ConcentricCorner(outer: 30, size: 44, minimumInset: 8, maximumFraction: 0.24)
+        #expect(small.inset == 19.5)
+        #expect(small.radius == 10.5)
+        #expect(small.radius <= 44 * 0.24)
+        let uncapped = ConcentricCorner(outer: 12, size: 44, minimumInset: 8, maximumFraction: 0.24)
+        #expect(uncapped.radius == 4)
+        #expect(uncapped.inset == 8)
     }
 
     @Test func bannerKindRestsInTheBanner() {

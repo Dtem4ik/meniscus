@@ -13,7 +13,7 @@ struct NowPlayingView: View {
                 HStack(alignment: .top, spacing: 12) {
                     PlayerArtwork(image: service.artwork)
                         .frame(width: metrics.playerArtworkSize, height: metrics.playerArtworkSize)
-                        .clipShape(RoundedRectangle(cornerRadius: metrics.playerArtworkCornerRadius, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: metrics.playerCorner.radius, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(info.title)

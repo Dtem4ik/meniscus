@@ -28,10 +28,7 @@ struct MiniBanner: Equatable {
 struct MiniBannerView: View {
     let banner: MiniBanner
     let metrics: IslandMetrics
-    /// The title and second line together: the tile on the left is as tall as both.
-    @State private var textHeight: CGFloat?
-
-    private var leadingSize: CGFloat { textHeight ?? metrics.bannerLeadingFallbackSize }
+    private var leadingSize: CGFloat { metrics.bannerLeadingSize }
 
     var body: some View {
         HStack(spacing: metrics.bannerSpacing) {
@@ -49,8 +46,6 @@ struct MiniBannerView: View {
             }
             .lineLimit(1)
             .truncationMode(.tail)
-            .fixedSize(horizontal: false, vertical: true)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height.rounded(.up) } action: { textHeight = $0 }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             if case .battery(let level) = banner.trailing {
@@ -66,8 +61,8 @@ struct MiniBannerView: View {
     }
 
     /// One square tile for every kind of leading content, framed before it is clipped (artwork
-    /// fills past its frame), with the island's concentric corner radius: artwork and the
-    /// placeholder note are rounded alike.
+    /// fills past its frame), with its corner concentric with the island's (`bannerCorner`):
+    /// artwork and the placeholder note are rounded alike.
     private var leadingTile: some View {
         ZStack {
             Color.white.opacity(0.1)
@@ -89,7 +84,7 @@ struct MiniBannerView: View {
             }
         }
         .frame(width: leadingSize, height: leadingSize)
-        .clipShape(RoundedRectangle(cornerRadius: metrics.bannerLeadingCornerRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: metrics.bannerCorner.radius, style: .continuous))
         .accessibilityHidden(true)
     }
 }
