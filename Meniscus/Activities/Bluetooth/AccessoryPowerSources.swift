@@ -11,7 +11,7 @@ nonisolated enum AccessoryPowerSources {
     @concurrent
     static func level(named name: String) async -> Int? {
         guard !name.isEmpty, let output = await report() else { return nil }
-        return parse(output).first { $0.name == name }?.level
+        return parse(output).first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.level
     }
 
     /// Lines like ` -MX Master 3S (id=1234567)	75%; discharging; (no estimate) present: true`.

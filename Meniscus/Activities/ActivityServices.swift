@@ -209,7 +209,8 @@ final class ActivityServices {
 
     /// CoreBluetooth reports by name, when the device sends its level.
     private func bleLevelArrived(name: String, level: Int) {
-        guard var device = connectedDevices[name], device.battery?.lowest != level else { return }
+        let known = connectedDevices[name] ?? connectedDevices.first { $0.key.caseInsensitiveCompare(name) == .orderedSame }?.value
+        guard var device = known, device.battery?.lowest != level else { return }
         device.battery = DeviceBattery(main: level)
         handle(.battery(device))
     }

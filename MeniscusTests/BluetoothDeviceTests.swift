@@ -274,6 +274,7 @@ struct AccessoryPowerSourcesTests {
         #expect(entries.map(\.name) == ["MX Master 3S", "MAJOR V"])
         #expect(entries.map(\.level) == [75, 81])
         #expect(AccessoryPowerSources.parse("Now drawing from 'AC Power'").isEmpty)
+        #expect(AccessoryPowerSources.parse(output).first { $0.name.caseInsensitiveCompare("Major V") == .orderedSame }?.level == 81)
     }
 }
 
@@ -298,7 +299,7 @@ struct SystemProfilerSectionsTests {
     @Test func diagnosticsShowRawKeysOfConnectedDevices() {
         let lines = BluetoothDiagnostics.systemProfilerLines(data)
         let connected = lines.firstIndex(of: "Connected now:") ?? -1
-        let paired = lines.firstIndex(of: "Paired, not connected:") ?? -1
+        let paired = lines.firstIndex { $0.hasPrefix("Paired, not connected: 1") } ?? -1
         #expect(connected >= 0 && paired > connected)
         let mouse = lines.first { $0.contains("MX Master 3S") } ?? ""
         #expect(mouse.contains("device_minorType=Mouse"))

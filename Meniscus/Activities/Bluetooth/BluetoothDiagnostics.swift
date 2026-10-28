@@ -42,9 +42,12 @@ nonisolated enum BluetoothDiagnostics {
         var lines = ["Connected now:"]
         let connected = devices.filter(\.isConnected)
         lines += connected.isEmpty ? ["  (none)"] : connected.map { "  \($0.name): " + fields($0.info, all: true) }
-        lines.append("Paired, not connected:")
+        // Paired devices often carry people's names and have no live battery: only those that
+        // report one are listed, the rest are counted.
         let paired = devices.filter { !$0.isConnected }
-        lines += paired.isEmpty ? ["  (none)"] : paired.map { "  \($0.name): " + fields($0.info, all: false) }
+        let withBattery = paired.filter { $0.info.keys.contains { $0.lowercased().contains("battery") } }
+        lines.append("Paired, not connected: \(paired.count), \(paired.count - withBattery.count) without battery keys")
+        lines += withBattery.map { "  \($0.name): " + fields($0.info, all: false) }
         return lines
     }
 

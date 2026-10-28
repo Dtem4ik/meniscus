@@ -51,7 +51,7 @@ nonisolated final class BLEBatteryMonitor: NSObject, @unchecked Sendable {
 
     /// The last level a device with this name reported, if any.
     func level(named name: String) -> Int? {
-        queue.sync { levels.values.first { $0.name == name }?.level }
+        queue.sync { levels.values.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.level }
     }
 
     /// For the diagnostics: CoreBluetooth's state and every device it found, after giving them
@@ -164,6 +164,13 @@ nonisolated extension BLEBatteryMonitor: CBPeripheralDelegate {
         guard characteristic.uuid == Self.batteryLevel else { return }
         guard error == nil, let byte = characteristic.value?.first, byte <= 100 else {
             notes[peripheral.identifier] = "reading failed: \(error?.localizedDescription ?? "no value")"
+            return
+        }
+        // Some headphones offer the Battery Service but always report 0; a device at 0% couldn't
+        // answer at all, so it means "unknown" and other sources are asked instead.
+        guard byte > 0 else {
+            notes[peripheral.identifier] = "reports 0%, ignored as unknown"
+            levels[peripheral.identifier] = nil
             return
         }
         report(peripheral, level: Int(byte))
