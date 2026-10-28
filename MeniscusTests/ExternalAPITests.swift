@@ -59,11 +59,22 @@ struct APIRequestTests {
     }
 }
 
+/// `#expect` can't call a mutating method on a local value, so the tests use a reference.
+private final class Order {
+    var value = EventOrder()
+    func accept(source: String, id: String, at: Date, rank: Int, now: Date) -> Bool {
+        value.accept(source: source, id: id, at: at, rank: rank, now: now)
+    }
+    func markEnded(source: String, id: String, now: Date) {
+        value.markEnded(source: source, id: id, now: now)
+    }
+}
+
 struct EventOrderTests {
     private let now = Date(timeIntervalSince1970: 1_700_000_000)
 
     @Test func aLateStartAfterItsEndIsIgnored() {
-        var order = EventOrder()
+        let order = Order()
         // The hooks ran start (t=1) then end (t=2), but end arrived first.
         #expect(order.accept(source: "s", id: "a", at: now.addingTimeInterval(2), rank: 2, now: now))
         #expect(!order.accept(source: "s", id: "a", at: now.addingTimeInterval(1), rank: 0, now: now))
@@ -72,28 +83,28 @@ struct EventOrderTests {
     }
 
     @Test func atEqualTimesEndWins() {
-        var order = EventOrder()
+        let order = Order()
         #expect(order.accept(source: "s", id: "a", at: now, rank: 2, now: now))
         #expect(!order.accept(source: "s", id: "a", at: now, rank: 0, now: now))
         #expect(!order.accept(source: "s", id: "a", at: now, rank: 1, now: now))
     }
 
     @Test func sourcesAndIdsAreSeparate() {
-        var order = EventOrder()
+        let order = Order()
         #expect(order.accept(source: "s", id: "a", at: now, rank: 2, now: now))
         #expect(order.accept(source: "s", id: "b", at: now.addingTimeInterval(-1), rank: 0, now: now))
         #expect(order.accept(source: "t", id: "a", at: now.addingTimeInterval(-1), rank: 0, now: now))
     }
 
     @Test func endedIdsAreForgottenAfterTenMinutes() {
-        var order = EventOrder()
+        let order = Order()
         #expect(order.accept(source: "s", id: "a", at: now, rank: 2, now: now))
         let later = now.addingTimeInterval(EventOrder.endedMemory + 1)
         #expect(order.accept(source: "s", id: "a", at: now.addingTimeInterval(-5), rank: 0, now: later))
     }
 
     @Test func aTimedOutActivityIgnoresLateEvents() {
-        var order = EventOrder()
+        let order = Order()
         #expect(order.accept(source: "s", id: "a", at: now, rank: 0, now: now))
         order.markEnded(source: "s", id: "a", now: now.addingTimeInterval(60))
         #expect(!order.accept(source: "s", id: "a", at: now.addingTimeInterval(30), rank: 1, now: now.addingTimeInterval(61)))
