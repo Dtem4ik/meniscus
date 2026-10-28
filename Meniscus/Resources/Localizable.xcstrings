@@ -421,6 +421,16 @@
         }
       }
     },
+    "Connected": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключено"
+          }
+        }
+      }
+    },
     "Copied": {
       "localizations": {
         "ru": {

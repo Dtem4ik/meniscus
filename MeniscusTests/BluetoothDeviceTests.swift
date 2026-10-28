@@ -148,7 +148,7 @@ struct MiniBannerTests {
         let banner = MiniBanner.bluetooth(mouse, isConnected: true)
         #expect(banner.leading == .symbol("computermouse.fill"))
         #expect(banner.title == "MX Master 3S")
-        #expect(banner.subtitle == nil)
+        #expect(banner.subtitle == String(localized: "Connected"))
         #expect(banner.trailing == .battery(75))
     }
 
@@ -208,6 +208,16 @@ struct BannerLayoutTests {
         #expect(abs(rect.midX - layout.geometry.notchRect.midX) < 0.01)
     }
 
+    @Test func widthFollowsTheContent() {
+        let layout = layout()
+        let narrow = layout.bannerWidth(contentWidth: 120)
+        let wide = layout.bannerWidth(contentWidth: 300)
+        #expect(narrow == layout.minimumBannerWidth)
+        #expect(wide > narrow)
+        #expect(layout.bannerWidth(contentWidth: 2000) == layout.metrics.bannerMaximumWidth)
+        #expect(layout.shape(for: .banner, bannerWidth: wide).width == wide)
+    }
+
     @Test func bannerActivitiesRestInTheBanner() {
         let state = NotchState(layout: layout())
         state.compactActivity = LiveActivity(id: "x", kind: .bluetoothDevice, priority: .confirmation, updatedAt: .now, expiresAt: nil)
@@ -248,20 +258,48 @@ struct MainThreadTests {
     }
 }
 
-struct BluetoothDiagnosticsTests {
-    @Test func listsBatteryKeysAndMasksAddresses() {
-        let data = Data("""
-        {"SPBluetoothDataType":[{"device_connected":[
-          {"MX Master 3S":{"device_address":"AA:BB:CC:DD:EE:05","device_batteryLevelMain":"75%","device_minorType":"Mouse","device_vendorID":"0x046D"}},
-          {"Speaker":{"device_address":"AA:BB:CC:DD:EE:07","device_minorType":"Speaker"}}
-        ]}]}
-        """.utf8)
+struct AccessoryPowerSourcesTests {
+    @Test func readsAccessoriesAndSkipsTheMac() {
+        let output = """
+        Now drawing from 'AC Power'
+         -InternalBattery-0 (id=4653155)	100%; charged; 0:00 remaining present: true
+         -MX Master 3S (id=11796480)	75%; discharging; (no estimate) present: true
+         -MAJOR V (id=11862016)	81%; discharging; (no estimate) present: true
+        """
+        let entries = AccessoryPowerSources.parse(output)
+        #expect(entries.map(\.name) == ["MX Master 3S", "MAJOR V"])
+        #expect(entries.map(\.level) == [75, 81])
+        #expect(AccessoryPowerSources.parse("Now drawing from 'AC Power'").isEmpty)
+    }
+}
+
+struct SystemProfilerSectionsTests {
+    private let data = Data("""
+    {"SPBluetoothDataType":[{
+      "device_connected":[{"MX Master 3S":{"device_address":"AA:BB:CC:DD:EE:05","device_minorType":"Mouse","device_serialNumber":"ABCDEF123456"}}],
+      "device_not_connected":[{"Old Mouse":{"device_address":"AA:BB:CC:DD:EE:09","device_batteryLevelMain":"50%","device_minorType":"Mouse"}}]
+    }]}
+    """.utf8)
+
+    @Test func tellsConnectedFromPaired() {
+        let devices = SystemProfilerBattery.devices(in: data)
+        #expect(devices.first { $0.name == "MX Master 3S" }?.isConnected == true)
+        #expect(devices.first { $0.name == "Old Mouse" }?.isConnected == false)
+    }
+
+    @Test func aPairedDevicesOldLevelIsNotUsed() {
+        #expect(SystemProfilerBattery.parse(data, address: "AA:BB:CC:DD:EE:09", name: "Old Mouse") == nil)
+    }
+
+    @Test func diagnosticsShowRawKeysOfConnectedDevices() {
         let lines = BluetoothDiagnostics.systemProfilerLines(data)
-        #expect(lines.count == 2)
-        let mouse = lines.first { $0.hasPrefix("MX Master 3S") } ?? ""
-        #expect(mouse.contains("device_batteryLevelMain=75%"))
-        #expect(mouse.contains("…EE:05"))
+        let connected = lines.firstIndex(of: "Connected now:") ?? -1
+        let paired = lines.firstIndex(of: "Paired, not connected:") ?? -1
+        #expect(connected >= 0 && paired > connected)
+        let mouse = lines.first { $0.contains("MX Master 3S") } ?? ""
+        #expect(mouse.contains("device_minorType=Mouse"))
+        #expect(mouse.contains("(no battery keys)"))
+        #expect(!mouse.contains("ABCDEF123456"))
         #expect(!mouse.contains("AA:BB"))
-        #expect(lines.contains { $0.hasPrefix("Speaker") && $0.contains("no battery keys") })
     }
 }

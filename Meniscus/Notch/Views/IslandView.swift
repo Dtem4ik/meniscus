@@ -32,7 +32,7 @@ struct IslandView: View {
 
             if context.phase == .banner, let activity = context.compactActivity, let banner = MiniBanner.for(activity) {
                 MiniBannerView(banner: banner, metrics: layout.metrics)
-                    .frame(width: layout.bannerWidth, height: layout.metrics.bannerContentHeight)
+                    .frame(width: context.bannerWidth, height: layout.metrics.bannerContentHeight)
                     .padding(.top, layout.notchHeight)
                     .offset(x: layout.centerOffset)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

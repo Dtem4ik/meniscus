@@ -123,7 +123,7 @@ extension MiniBanner {
         MiniBanner(
             leading: .symbol(device.kind.symbol),
             title: device.name.isEmpty ? String(localized: "Bluetooth device") : device.name,
-            subtitle: isConnected ? nil : String(localized: "Disconnected"),
+            subtitle: isConnected ? String(localized: "Connected") : String(localized: "Disconnected"),
             trailing: isConnected ? device.battery?.lowest.map { .battery($0) } : nil
         )
     }
@@ -137,5 +137,26 @@ extension MiniBanner {
         default:
             return nil
         }
+    }
+}
+
+/// The battery sources after IOKit, tried in order on each retry: CoreBluetooth's last Battery
+/// Level for the device, `pmset -g accps`, then `system_profiler`. Each result is logged.
+enum BatterySources {
+    static func read(for device: BluetoothDevice, ble: BLEBatteryMonitor, attempt: Duration) async -> DeviceBattery? {
+        let kind = device.kind.rawValue
+        if let level = ble.level(named: device.name) {
+            Logger.bluetooth.notice("CoreBluetooth after \(attempt, privacy: .public) for \(kind, privacy: .public): \(level, privacy: .public)%")
+            return DeviceBattery(main: level)
+        }
+        Logger.bluetooth.notice("CoreBluetooth after \(attempt, privacy: .public) for \(kind, privacy: .public): none")
+        if let level = await AccessoryPowerSources.level(named: device.name) {
+            Logger.bluetooth.notice("pmset after \(attempt, privacy: .public) for \(kind, privacy: .public): \(level, privacy: .public)%")
+            return DeviceBattery(main: level)
+        }
+        Logger.bluetooth.notice("pmset after \(attempt, privacy: .public) for \(kind, privacy: .public): none")
+        let battery = await SystemProfilerBattery.read(address: device.id, name: device.name)
+        Logger.bluetooth.notice("system_profiler after \(attempt, privacy: .public) for \(kind, privacy: .public): \(battery.map { String(describing: $0) } ?? "none", privacy: .public)")
+        return battery
     }
 }

@@ -38,35 +38,50 @@ nonisolated enum SystemProfilerBattery {
         return battery
     }
 
-    /// Each device the report lists: its name and its properties.
-    static func devices(in data: Data) -> [(name: String, info: [String: Any])] {
+    /// A device in the report: under `device_connected` or `device_not_connected` (paired, not
+    /// connected now).
+    struct Device {
+        var name: String
+        var info: [String: Any]
+        var isConnected: Bool
+    }
+
+    /// Each device the report lists.
+    static func devices(in data: Data) -> [Device] {
         guard let root = try? JSONSerialization.jsonObject(with: data) else { return [] }
-        var devices: [(String, [String: Any])] = []
-        visitDevices(in: root) { devices.append(($0, $1)) }
+        var devices: [Device] = []
+        visitDevices(in: root, connected: nil) { devices.append(Device(name: $0, info: $1, isConnected: $2 ?? false)) }
         return devices
     }
 
     private static let batteryPrefix = "device_batteryLevel"
 
+    /// Connected devices only: a paired device that isn't connected has no live level.
     private static func device(in data: Data, address: String, name: String) -> [String: Any]? {
         let wanted = normalized(address)
-        let all = devices(in: data)
+        let all = devices(in: data).filter(\.isConnected)
         if !wanted.isEmpty, let match = all.first(where: { normalized($0.info["device_address"] as? String ?? "") == wanted }) {
             return match.info
         }
         return name.isEmpty ? nil : all.first { $0.name == name }?.info
     }
 
-    /// Devices appear as one-key dictionaries, `{ "Headphones": { ... } }`, inside lists.
-    private static func visitDevices(in value: Any, _ visit: (String, [String: Any]) -> Void) {
+    /// Devices appear as one-key dictionaries, `{ "Headphones": { ... } }`, in the lists under
+    /// `device_connected` and `device_not_connected`.
+    private static func visitDevices(in value: Any, connected: Bool?, _ visit: (String, [String: Any], Bool?) -> Void) {
         if let list = value as? [Any] {
-            list.forEach { visitDevices(in: $0, visit) }
+            list.forEach { visitDevices(in: $0, connected: connected, visit) }
         } else if let dictionary = value as? [String: Any] {
             for (key, child) in dictionary {
                 if let info = child as? [String: Any], info["device_address"] != nil || info["device_minorType"] != nil {
-                    visit(key, info)
+                    visit(key, info, connected)
                 } else {
-                    visitDevices(in: child, visit)
+                    let section: Bool? = switch key {
+                    case "device_connected": true
+                    case "device_not_connected": false
+                    default: connected
+                    }
+                    visitDevices(in: child, connected: section, visit)
                 }
             }
         }

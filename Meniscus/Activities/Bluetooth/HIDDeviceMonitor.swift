@@ -11,6 +11,8 @@ import OSLog
 /// when it tells IOKit something changed, and after the Mac wakes. Nothing polls.
 final class HIDDeviceMonitor {
     var onEvent: ((BluetoothDeviceEvent) -> Void)?
+    /// Asked for the battery when the registry doesn't have it.
+    var ble: BLEBatteryMonitor?
 
     private var port: IONotificationPortRef?
     private var matchedIterator: io_iterator_t = 0
@@ -92,8 +94,8 @@ final class HIDDeviceMonitor {
         services[id] = Service(device: device, entry: entry, interest: interest)
         guard isNewDevice else { return }
         if isBaseline {
-            // Not news, but a low battery still is.
-            if device.battery != nil { onEvent?(.battery(device)) }
+            // Not news, but known from now on, and a low battery still is news.
+            onEvent?(.battery(device))
         } else {
             Logger.bluetooth.notice("IOKit BatteryPercent at connection for \(device.kind.rawValue, privacy: .public): \(device.battery?.main.map(String.init) ?? "none", privacy: .public)")
             onEvent?(.connected(device))
@@ -124,8 +126,8 @@ final class HIDDeviceMonitor {
     }
 
     /// Low Energy devices often publish their battery a few seconds after they connect, and some
-    /// only through Bluetooth's own report: tries the registry, then `system_profiler`, on the
-    /// retry schedule until one has it.
+    /// never in the registry: tries the registry, then the other sources (`BatterySources`), on
+    /// the retry schedule until one has it.
     private func readBatteryUntilFound(_ device: BluetoothDevice, entryID: UInt64) {
         Task { [weak self] in
             let start = ContinuousClock.now
@@ -138,9 +140,8 @@ final class HIDDeviceMonitor {
                     return
                 }
                 Logger.bluetooth.notice("IOKit BatteryPercent after \(delay, privacy: .public) for \(device.kind.rawValue, privacy: .public): none")
-                let battery = await SystemProfilerBattery.read(address: device.id, name: device.name)
-                Logger.bluetooth.notice("system_profiler after \(delay, privacy: .public) for \(device.kind.rawValue, privacy: .public): \(battery.map { String(describing: $0) } ?? "no battery", privacy: .public)")
-                if let level = battery?.lowest {
+                guard let ble = self.ble else { return }
+                if let level = await BatterySources.read(for: device, ble: ble, attempt: delay)?.lowest {
                     self.report(level, entryID: entryID)
                     return
                 }

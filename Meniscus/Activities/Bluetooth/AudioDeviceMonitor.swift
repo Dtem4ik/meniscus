@@ -9,6 +9,8 @@ import OSLog
 /// are nonisolated: they read what they need from the device there and hand it to the main actor.
 final class AudioDeviceMonitor: NSObject {
     var onEvent: ((BluetoothDeviceEvent) -> Void)?
+    /// Asked for the battery after the connection.
+    var ble: BLEBatteryMonitor?
 
     private var connectNotification: IOBluetoothUserNotification?
     private let disconnectNotifications = NotificationBag()
@@ -54,7 +56,11 @@ final class AudioDeviceMonitor: NSObject {
     }
 
     private func connected(_ device: BluetoothDevice) {
-        guard Date() >= announcesAfter else { return }
+        guard Date() >= announcesAfter else {
+            // Already connected at start: not news, but known from now on.
+            onEvent?(.battery(device))
+            return
+        }
         onEvent?(.connected(device))
 
         batteryTasks[device.id]?.cancel()
@@ -63,8 +69,8 @@ final class AudioDeviceMonitor: NSObject {
             for delay in BatteryRetry.delays {
                 try? await Task.sleep(until: start + delay)
                 guard !Task.isCancelled else { return }
-                let battery = await SystemProfilerBattery.read(address: device.id, name: device.name)
-                Logger.bluetooth.notice("system_profiler after \(delay, privacy: .public) for \(device.kind.rawValue, privacy: .public): \(battery.map { String(describing: $0) } ?? "no battery", privacy: .public)")
+                guard let ble = self?.ble else { return }
+                let battery = await BatterySources.read(for: device, ble: ble, attempt: delay)
                 guard !Task.isCancelled else { return }
                 if let battery, let self {
                     var reported = device

@@ -15,6 +15,7 @@ final class ActivityServices {
     let presentation = PresentationGuard()
     let audioDevices = AudioDeviceMonitor()
     let hidDevices = HIDDeviceMonitor()
+    let bleBattery = BLEBatteryMonitor()
 
     /// Battery level shown by the charging activity.
     private(set) var chargingLevel: Int?
@@ -43,12 +44,17 @@ final class ActivityServices {
     @ObservationIgnored private var lowBatteryWarnings = LowBatteryWarnings()
     @ObservationIgnored private var settings: AppSettings = .shared
     @ObservationIgnored private var deviceBatteryWarnings = DeviceBatteryWarnings()
+    /// Connected devices by name, for battery levels that arrive by name (CoreBluetooth).
+    @ObservationIgnored private var connectedDevices: [String: BluetoothDevice] = [:]
 
     init() {
         // Wired here rather than in start(), so the Developer simulations (and tests) work too.
         calendar.onMeetingMoment = { [weak self] event, moment in self?.showMeeting(event, moment) }
         audioDevices.onEvent = { [weak self] event in self?.handle(event) }
         hidDevices.onEvent = { [weak self] event in self?.handle(event) }
+        audioDevices.ble = bleBattery
+        hidDevices.ble = bleBattery
+        bleBattery.onLevel = { [weak self] name, level in self?.bleLevelArrived(name: name, level: level) }
     }
 
     func start(settings: AppSettings) {
@@ -101,11 +107,14 @@ final class ActivityServices {
     /// Bluetooth devices are watched only while one of their activities is on.
     func updateBluetoothDevices(settings: AppSettings) {
         if settings.showBluetoothDevices || settings.showDeviceLowBattery {
+            bleBattery.start()
             audioDevices.start()
             hidDevices.start()
         } else {
             audioDevices.stop()
             hidDevices.stop()
+            bleBattery.stop()
+            connectedDevices.removeAll()
         }
         if !settings.showBluetoothDevices { center.remove(id: ActivityID.bluetoothDevice) }
         if !settings.showDeviceLowBattery { center.remove(id: ActivityID.deviceLowBattery) }
@@ -134,7 +143,7 @@ final class ActivityServices {
     /// Developer menu: every battery value each source reports, per device, for the clipboard.
     func copyBluetoothDiagnostics() {
         Task {
-            let report = await BluetoothDiagnostics.report()
+            let report = await BluetoothDiagnostics.report(ble: bleBattery)
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(report, forType: .string)
             Logger.bluetooth.notice("Bluetooth diagnostics copied")
@@ -180,17 +189,29 @@ final class ActivityServices {
     private func handle(_ event: BluetoothDeviceEvent) {
         switch event {
         case .connected(let device):
+            connectedDevices[device.name] = device
+            // A device that just connected may offer the Battery Service.
+            bleBattery.refresh()
             showBluetoothDevice(device, isConnected: true)
             checkDeviceBattery(device)
         case .disconnected(let device):
+            connectedDevices[device.name] = nil
             showBluetoothDevice(device, isConnected: false)
         case .battery(let device):
+            connectedDevices[device.name] = device
             // Fills in the ring while the banner is still up; never brings it back.
             if isShowingBanner(for: device) {
                 bluetoothDevice = (device, true)
             }
             checkDeviceBattery(device)
         }
+    }
+
+    /// CoreBluetooth reports by name, when the device sends its level.
+    private func bleLevelArrived(name: String, level: Int) {
+        guard var device = connectedDevices[name], device.battery?.lowest != level else { return }
+        device.battery = DeviceBattery(main: level)
+        handle(.battery(device))
     }
 
     private func isShowingBanner(for device: BluetoothDevice) -> Bool {

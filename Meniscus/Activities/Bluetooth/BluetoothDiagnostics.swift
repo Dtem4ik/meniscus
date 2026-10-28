@@ -6,13 +6,24 @@ import IOKit.hid
 /// only when asked. Bluetooth addresses are shortened to their last two bytes.
 nonisolated enum BluetoothDiagnostics {
     @concurrent
-    static func report() async -> String {
+    static func report(ble: BLEBatteryMonitor) async -> String {
         var lines = ["Meniscus Bluetooth diagnostics", ""]
         lines.append("IOKit HID devices on Bluetooth:")
         lines += hidDevices().map { "  " + $0 }
         lines.append("")
         lines.append("IOKit entries with BatteryPercent (like ioreg -r -k BatteryPercent):")
         lines += registryBatteries().map { "  " + $0 }
+        lines.append("")
+        lines.append("CoreBluetooth, GATT Battery Service 180F / Battery Level 2A19:")
+        lines += await ble.diagnosticLines().map { "  " + $0 }
+        lines.append("")
+        lines.append("pmset -g accps (accessory power sources):")
+        if let output = await AccessoryPowerSources.report() {
+            let entries = AccessoryPowerSources.parse(output)
+            lines += entries.isEmpty ? ["  (no accessories)"] : entries.map { "  \($0.name): \($0.level)%" }
+        } else {
+            lines.append("  (failed or timed out)")
+        }
         lines.append("")
         lines.append("system_profiler SPBluetoothDataType:")
         if let data = await SystemProfilerBattery.report() {
@@ -23,22 +34,30 @@ nonisolated enum BluetoothDiagnostics {
         return lines.joined(separator: "\n")
     }
 
-    /// One line per device in the tool's report, with its battery keys. Pure, so it is tested.
+    /// Connected devices with every key the tool reports for them, then paired devices that
+    /// aren't connected with just their battery keys. Pure, so it is tested.
     static func systemProfilerLines(_ data: Data) -> [String] {
         let devices = SystemProfilerBattery.devices(in: data)
         guard !devices.isEmpty else { return ["(no devices)"] }
-        return devices.map { device in
-            let (name, info) = device
-            let battery = info.keys.filter { $0.hasPrefix("device_battery") }.sorted().map { key in
-                "\(key)=" + (info[key].map { value in "\(value)" } ?? "")
-            }
-            let fields = [
-                "address \(masked(info["device_address"] as? String))",
-                "type \(info["device_minorType"] as? String ?? "?")",
-                "vendor \(info["device_vendorID"] as? String ?? "?")",
-            ] + (battery.isEmpty ? ["no battery keys"] : battery)
-            return "\(name): " + fields.joined(separator: ", ")
+        var lines = ["Connected now:"]
+        let connected = devices.filter(\.isConnected)
+        lines += connected.isEmpty ? ["  (none)"] : connected.map { "  \($0.name): " + fields($0.info, all: true) }
+        lines.append("Paired, not connected:")
+        let paired = devices.filter { !$0.isConnected }
+        lines += paired.isEmpty ? ["  (none)"] : paired.map { "  \($0.name): " + fields($0.info, all: false) }
+        return lines
+    }
+
+    /// `key=value` pairs, sorted; the address masked. `all` false keeps the type and battery keys.
+    private static func fields(_ info: [String: Any], all: Bool) -> String {
+        let keys = info.keys.sorted().filter { all || $0.hasPrefix("device_battery") || $0 == "device_minorType" }
+        let pairs = keys.map { key -> String in
+            let isIdentifier = key == "device_address" || key.lowercased().contains("serial")
+            let value = isIdentifier ? masked(info[key].map { value in "\(value)" }) : info[key].map { value in "\(value)" } ?? ""
+            return "\(key)=\(value)"
         }
+        let battery = info.keys.contains { $0.hasPrefix("device_battery") } ? "" : " (no battery keys)"
+        return pairs.joined(separator: ", ") + battery
     }
 
     /// `aa-bb-cc-dd-ee-ff` → `…EE:FF`.

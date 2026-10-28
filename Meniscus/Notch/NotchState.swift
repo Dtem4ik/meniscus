@@ -21,6 +21,8 @@ final class NotchState {
     var homeContentSize: CGSize?
     /// Each side of the compact island, measured from the activity's content.
     var compactWing: CGFloat?
+    /// The mini banner's width, measured from its content.
+    var bannerWidth: CGFloat?
     /// The live activity shown while not expanded; `nil` leaves the plain notch.
     var compactActivity: LiveActivity?
 
@@ -34,7 +36,7 @@ final class NotchState {
         guard let compactActivity else { return .collapsed }
         return compactActivity.kind.isBanner ? .banner : .compact
     }
-    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content, compactWing: compactWing) }
+    var currentShape: IslandShapeSpec { layout.shape(for: phase, content: content, compactWing: compactWing, bannerWidth: bannerWidth) }
 }
 
 /// What views inside the island can ask the controller to do.
