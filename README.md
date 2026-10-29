@@ -9,8 +9,23 @@ and moves as if Apple had built it into macOS.
 <!-- Screenshot: collapsed notch and expanded island, Light and Dark Mode -->
 <!-- GIF: notch → island morph at 120 Hz -->
 
-**Status:** early development. Stage 0, the window, the shape and the motion, is done. See the
-[roadmap](#roadmap).
+**Status:** 0.1, the first release. Everything below works on macOS 27; next come new
+features (see [what's next](#whats-next)). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
+## Features
+
+- **The island.** A black, notch-perfect island that opens with a spring when you rest the
+  pointer on the notch: time, date, your next calendar event and up to five modes.
+- **Now Playing** for any app, with artwork, progress and controls, and a banner when the track
+  changes.
+- **Live activities** in the closed notch: an upcoming meeting with Join, low battery, charging,
+  keyboard layout, Bluetooth devices with their battery, a saved quick capture.
+- **Modes:** one button that opens links, apps, files and Shortcuts.
+- **Quick capture** into Obsidian (or any folder of Markdown notes) with a hotkey.
+- **File shelf:** drag files to the notch, keep them there, drag them out, Quick Look, AirDrop.
+- **External notices:** a command line tool, links and Shortcuts let scripts, apps and Claude
+  Code show notices and running tasks in the island.
+- **English and Russian**, following the system language.
 
 ## Principles
 
@@ -34,8 +49,12 @@ Every push is built by GitHub Actions. To try the latest build:
 
 1. Open the [Actions tab](../../actions), pick the latest green **CI** run and download the
    `Meniscus-<commit>` artifact (you need to be signed in to GitHub).
-2. Unzip it until you get `Meniscus.app` and move it to `/Applications`.
+2. Unzip it until you get `Meniscus.app` and move it to `/Applications`. Keep only one copy:
+   macOS runs apps from Downloads from a temporary location, and an older copy can answer
+   instead of the new one.
 3. Remove the quarantine flag (see below) and open it.
+4. Optional: **Settings → Live Activities → Install Command Line Tool** for the `meniscus` tool
+   (see [External notices](#external-notices)). Install it again after moving the app.
 
 ### First launch of an unsigned build
 
@@ -52,6 +71,9 @@ Builds are ad-hoc signed, not notarized, so Gatekeeper blocks them on first laun
   **Open Anyway** next to the message about Meniscus.
 
 Only do this for builds you downloaded from this repository.
+
+Because builds aren't signed with a developer team, Meniscus's own Shortcuts actions can't run on
+macOS 27 (see [External notices](#external-notices) for the way around it).
 
 ## Build from source
 
@@ -88,6 +110,9 @@ xcodebuild test -project Meniscus.xcodeproj -scheme Meniscus -destination 'platf
   away to close it.
 - The menu bar icon (a drop) opens Settings and the Developer menu, with a left or a right click.
   You can hide the icon in Settings; opening Meniscus again then shows Settings.
+- Settings has a tab for each part: General (open at login, menu bar icon, hiding from
+  screenshots, the shelf), Live Activities (every activity's switch and external notices),
+  Music, Calendar, Modes, Capture, Shelf and Developer.
 
 ### Developer menu
 
@@ -98,23 +123,35 @@ Settings → Developer):
 - **Outline Computed Notch**: draws a red line 1 pt outside the computed notch. On a correct
   geometry it hugs the hardware notch evenly on all three sides.
 - **Use Virtual Notch**: draws the virtual notch even on a screen with a camera housing.
+- **Open or Close Island**: keeps the island open without hovering, to inspect it.
 - **Copy Geometry Report**: copies the screen numbers behind the notch, for bug reports.
-- **Simulate Charging**: plays the charging activity without plugging in a cable.
+- **Simulate …**: plays any live activity or notice without its real cause: charging, low
+  battery, a meeting, a Bluetooth device, a track change, external notices and tasks.
+- **Bluetooth Diagnostics**: copies what every battery source reports, per device.
 
 ### Logs
 
 Meniscus logs through the unified logging system. To send logs with a bug report, open Console,
-start streaming, and filter by subsystem `io.github.dtem4ik.meniscus` (category `power` for
-charging), or run:
+start streaming, and filter by subsystem `io.github.dtem4ik.meniscus`, or run:
 
 ```sh
 log stream --predicate 'subsystem == "io.github.dtem4ik.meniscus"' --level info
 ```
-- **Open or Close Island**: keeps the island open without hovering, to inspect it.
+
+Categories: `power` (charging and battery), `bluetooth` (devices and their battery sources) and
+`api` (external notices).
 
 All motion parameters (springs, delays, the content reveal) are in
 [`Meniscus/Notch/Motion.swift`](Meniscus/Notch/Motion.swift); sizes are in
 [`Meniscus/Notch/Geometry/IslandLayout.swift`](Meniscus/Notch/Geometry/IslandLayout.swift).
+
+## Now Playing
+
+The island shows what any app is playing, with the system's artwork and play/pause, next and
+previous; the playing app's icon switches to it. It uses the bundled
+[mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because macOS has no
+public API for this. If a macOS update breaks it, the activity just doesn't appear and
+Settings → General says why. Details in [docs/now-playing.md](docs/now-playing.md).
 
 ## Modes
 
@@ -309,19 +346,21 @@ Meniscus asks for a permission only when you turn on a feature that needs it.
 
 | Permission | Asked for by | Why |
 | --- | --- | --- |
-| Calendars | Upcoming event in the island (stage 1) | Reads your next event with EventKit. Nothing leaves your Mac. |
+| Calendars | The next event in the island, meeting reminders | Reads your next event with EventKit. Nothing leaves your Mac. |
 | None | External notices | The command line tool, Shortcuts and links need no permission. |
 | Bluetooth | Bluetooth device live activities | Notices headphones and speakers connecting with IOBluetooth and reads Low Energy devices' battery with CoreBluetooth. Nothing leaves your Mac. |
 | Accessibility | Not needed | No current or planned feature needs it. The capture hotkey uses the system hotkey API, which works without Accessibility access. If that ever changes, it will be listed here first. |
 
-## Roadmap
+## What's next
 
-0. ✅ Skeleton: notch-perfect black island with a spring morph and Liquid Glass controls.
-1. Clock, date, next calendar event; charging live activity.
-2. Now Playing for any app, with artwork and controls.
-3. Modes: one button that opens a named set of links, apps, files and Shortcuts.
-4. Quick capture into Obsidian: a note per thought in an inbox folder, or a line in one note.
-5. File shelf: drop files on the notch, drag them out, Quick Look, AirDrop.
+The plan lives in [issues](../../issues). Next up:
+
+- [Handy integration](../../issues/15): dictation state in the island, starting with a general
+  "microphone in use" activity.
+- Signing with a developer team and notarization, so builds open without the quarantine step and
+  Shortcuts actions work.
+- More live activities from [#3](../../issues/3): volume and brightness, a screenshot
+  confirmation with a thumbnail.
 
 ## Project layout
 
@@ -329,15 +368,17 @@ Meniscus asks for a permission only when you turn on a feature that needs it.
 Meniscus/
   App/          App entry point, app delegate, menu bar menu
   Notch/        Panel, geometry, shape, styles and Motion.swift
-  Activities/   Live activities (stage 1+)
-  Modes/        Modes and launcher (stage 3)
-  Capture/      Obsidian quick capture (stage 4)
-  Shelf/        File shelf (stage 5)
+  Activities/   Live activities, Now Playing, calendar, Bluetooth devices
+  Modes/        Modes and launcher
+  Capture/      Obsidian quick capture
+  Shelf/        File shelf
   Settings/     Settings window and preferences
   ExternalAPI/  External notices: CLI socket, links, Shortcuts, Claude Code
   Shared/       Small helpers used across features
 CLI/            The meniscus command line tool, shipped in the app
 MeniscusTests/  Unit tests (Swift Testing)
+docs/           Design notes: external API, Now Playing
+scripts/        Build helpers (run.sh, the Now Playing adapter, localization check)
 project.yml     XcodeGen project definition
 ```
 
@@ -346,14 +387,6 @@ project.yml     XcodeGen project definition
 Issues and pull requests are welcome. Please keep commits small and use
 [Conventional Commits](https://www.conventionalcommits.org/). Never commit keys, tokens, personal
 paths or links; personal configuration belongs in `~/Library/Application Support/Meniscus/`.
-
-## Now Playing
-
-The island shows what any app is playing, with the system's artwork and play/pause, next and
-previous; the playing app's icon switches to it. It uses the bundled
-[mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because macOS has no
-public API for this. If a macOS update breaks it, the activity just doesn't appear and
-Settings → General says why. Details in [docs/now-playing.md](docs/now-playing.md).
 
 ## Third-party software
 
