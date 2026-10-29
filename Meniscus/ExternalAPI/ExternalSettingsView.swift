@@ -28,7 +28,7 @@ struct ExternalNoticesSettingsSection: View {
         } header: {
             Text("External Notices")
         } footer: {
-            Text("Other apps, scripts and Shortcuts can show short notices and running tasks here, in the island's own style. Links can come from any web page, so they only show text and are off until you turn them on. The command line tool installs as ~/.local/bin/meniscus, no administrator rights needed.")
+            Text("Other apps, scripts and Shortcuts can show short notices and running tasks here, in the island's own style. Links can come from any web page, so they only show text and are off until you turn them on. The command line tool installs as ~/.local/bin/meniscus, no administrator rights needed. In Shortcuts, use Run Shell Script with ~/.local/bin/meniscus: Meniscus's own actions need a build signed by a developer team.")
                 .foregroundStyle(.secondary)
         }
 

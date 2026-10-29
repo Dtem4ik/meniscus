@@ -287,6 +287,12 @@ Notch Activity**, with the same fields as the CLI. Intents run inside Meniscus, 
 Siri and Spotlight on this Mac can call them. Rate limit per source as for the CLI, the source being
 Shortcuts. Actions on click: open a URL or a file.
 
+On macOS 27, `linkd` runs App Intents only for apps signed with a team identifier
+(`requiresValidatedBundle`); ad-hoc signed builds are rejected before the intent runs. Until
+Meniscus is signed with a developer team, Shortcuts users call the CLI from **Run Shell Script**
+instead. Its source then resolves to unknown (the shell runs under a Shortcuts helper, not an app),
+so banners show the neutral icon.
+
 ## 8. Claude Code
 
 Checked against the current hooks reference and agent view documentation (October 2026).
