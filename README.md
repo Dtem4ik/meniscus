@@ -287,6 +287,12 @@ the number of sessions when several run); when it finishes, a short "Claude fini
 Quick answers stay silent; "Claude is waiting for you" shows when it needs a permission.
 
 **Shortcuts.** Actions **Show Notice in Notch**, **Start**, **Update** and **End Notch Activity**.
+On macOS 27 Shortcuts runs an app's actions only when the app is signed with a developer team;
+builds from this repository are signed ad hoc, so these actions show up but fail with "couldn't
+communicate with the app". Until Meniscus is signed, use the **Run Shell Script** action with the
+command line tool instead, for example
+`~/.local/bin/meniscus notify "Backup finished" --state success` (the banner shows the neutral
+icon).
 
 **Links.** `meniscus://v1/notify?title=…&state=success` shows a notice with text only. Any web
 page can open such a link, so links are off until you turn them on in Settings, and they're

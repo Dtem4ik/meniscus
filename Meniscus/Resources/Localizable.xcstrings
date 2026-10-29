@@ -1381,12 +1381,12 @@
         }
       }
     },
-    "Other apps, scripts and Shortcuts can show short notices and running tasks here, in the island's own style. Links can come from any web page, so they only show text and are off until you turn them on. The command line tool installs as ~/.local/bin/meniscus, no administrator rights needed.": {
+    "Other apps, scripts and Shortcuts can show short notices and running tasks here, in the island's own style. Links can come from any web page, so they only show text and are off until you turn them on. The command line tool installs as ~/.local/bin/meniscus, no administrator rights needed. In Shortcuts, use Run Shell Script with ~/.local/bin/meniscus: Meniscus's own actions need a build signed by a developer team.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Другие приложения, скрипты и «Команды» могут показывать здесь короткие уведомления и идущие задачи в стиле острова. Ссылку может открыть любая веб-страница, поэтому ссылки показывают только текст и выключены, пока вы их не включите. Инструмент командной строки устанавливается как ~/.local/bin/meniscus, права администратора не нужны."
+            "value": "Другие приложения, скрипты и «Команды» могут показывать здесь короткие уведомления и идущие задачи в стиле острова. Ссылку может открыть любая веб-страница, поэтому ссылки показывают только текст и выключены, пока вы их не включите. Инструмент командной строки устанавливается как ~/.local/bin/meniscus, права администратора не нужны. В «Командах» используйте действие «Запустить shell-скрипт» с ~/.local/bin/meniscus: собственным действиям Meniscus нужна сборка, подписанная командой разработчика."
           }
         }
       }
