@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        }
+      }
+    },
     "%@ has no name.": {
       "localizations": {
         "ru": {
@@ -17,6 +27,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@: идентификатор «%@» уже занят."
+          }
+        }
+      }
+    },
+    "%@ · %lld more": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · ещё %lld"
           }
         }
       }
@@ -191,6 +211,26 @@
         }
       }
     },
+    "Attention": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Внимание"
+          }
+        }
+      }
+    },
+    "Backup started": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервное копирование началось"
+          }
+        }
+      }
+    },
     "Bluetooth Diagnostics": {
       "localizations": {
         "ru": {
@@ -227,6 +267,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bluetooth-устройства"
+          }
+        }
+      }
+    },
+    "Build finished": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сборка завершена"
           }
         }
       }
@@ -401,6 +451,46 @@
         }
       }
     },
+    "Claude finished": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude закончил"
+          }
+        }
+      }
+    },
+    "Claude is waiting for you": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude ждёт вас"
+          }
+        }
+      }
+    },
+    "Claude is working": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude работает"
+          }
+        }
+      }
+    },
+    "Claude stopped": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude остановился"
+          }
+        }
+      }
+    },
     "Clear": {
       "localizations": {
         "ru": {
@@ -417,6 +507,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Очистить полку"
+          }
+        }
+      }
+    },
+    "Command line tool and Shortcuts": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Командная строка и «Команды»"
           }
         }
       }
@@ -451,6 +551,16 @@
         }
       }
     },
+    "Copy Claude Code Hooks": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать хуки Claude Code"
+          }
+        }
+      }
+    },
     "Copy Geometry Report": {
       "localizations": {
         "ru": {
@@ -467,6 +577,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Скопировать путь"
+          }
+        }
+      }
+    },
+    "Couldn't install: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось установить: %@"
           }
         }
       }
@@ -497,6 +617,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Отключено"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
           }
         }
       }
@@ -571,6 +701,46 @@
         }
       }
     },
+    "End Notch Activity": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершить задачу в вырезе"
+          }
+        }
+      }
+    },
+    "Export finished": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт завершён"
+          }
+        }
+      }
+    },
+    "Exporting": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт"
+          }
+        }
+      }
+    },
+    "External Notices": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Внешние уведомления"
+          }
+        }
+      }
+    },
     "File or Folder": {
       "localizations": {
         "ru": {
@@ -601,12 +771,32 @@
         }
       }
     },
+    "Forget": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Забыть"
+          }
+        }
+      }
+    },
     "General": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Основные"
+          }
+        }
+      }
+    },
+    "Get Notch API Version": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Узнать версию API выреза"
           }
         }
       }
@@ -641,6 +831,16 @@
         }
       }
     },
+    "ID": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID"
+          }
+        }
+      }
+    },
     "Icon": {
       "localizations": {
         "ru": {
@@ -651,12 +851,42 @@
         }
       }
     },
+    "Info": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Информация"
+          }
+        }
+      }
+    },
     "Input": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Входные данные"
+          }
+        }
+      }
+    },
+    "Install Command Line Tool": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установить инструмент командной строки"
+          }
+        }
+      }
+    },
+    "Installed as ~/.local/bin/meniscus. If your shell can't find it, add this line to ~/.zshrc: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установлено как ~/.local/bin/meniscus. Если оболочка его не находит, добавьте в ~/.zshrc строку: %@"
           }
         }
       }
@@ -691,6 +921,26 @@
         }
       }
     },
+    "Last seen %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последний раз: %@"
+          }
+        }
+      }
+    },
+    "Late start": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поздний старт"
+          }
+        }
+      }
+    },
     "License": {
       "localizations": {
         "ru": {
@@ -707,6 +957,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ссылка"
+          }
+        }
+      }
+    },
+    "Links": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылки"
+          }
+        }
+      }
+    },
+    "Links (meniscus://)": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылки (meniscus://)"
           }
         }
       }
@@ -857,6 +1127,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Название"
+          }
+        }
+      }
+    },
+    "Needs attention": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Требует внимания"
           }
         }
       }
@@ -1031,6 +1311,16 @@
         }
       }
     },
+    "Open on Click": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть по клику"
+          }
+        }
+      }
+    },
     "Open or Close Island": {
       "localizations": {
         "ru": {
@@ -1087,6 +1377,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Другие"
+          }
+        }
+      }
+    },
+    "Other apps, scripts and Shortcuts can show short notices and running tasks here, in the island's own style. Links can come from any web page, so they only show text and are off until you turn them on. The command line tool installs as ~/.local/bin/meniscus, no administrator rights needed.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другие приложения, скрипты и «Команды» могут показывать здесь короткие уведомления и идущие задачи в стиле острова. Ссылку может открыть любая веб-страница, поэтому ссылки показывают только текст и выключены, пока вы их не включите. Инструмент командной строки устанавливается как ~/.local/bin/meniscus, права администратора не нужны."
           }
         }
       }
@@ -1151,6 +1451,16 @@
         }
       }
     },
+    "Project %lld": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проект %lld"
+          }
+        }
+      }
+    },
     "Quick Capture": {
       "localizations": {
         "ru": {
@@ -1177,6 +1487,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Быстрая запись сохранена"
+          }
+        }
+      }
+    },
+    "Quietly": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без уведомления"
           }
         }
       }
@@ -1231,6 +1551,26 @@
         }
       }
     },
+    "Render finished": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рендеринг завершён"
+          }
+        }
+      }
+    },
+    "Rendering": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рендеринг"
+          }
+        }
+      }
+    },
     "Revert": {
       "localizations": {
         "ru": {
@@ -1247,6 +1587,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Запустить быструю команду"
+          }
+        }
+      }
+    },
+    "Running": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выполняется"
           }
         }
       }
@@ -1381,12 +1731,32 @@
         }
       }
     },
+    "Shortcuts": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Команды"
+          }
+        }
+      }
+    },
     "Show Calendar": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Показать календарь"
+          }
+        }
+      }
+    },
+    "Show Notice in Notch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать уведомление в вырезе"
           }
         }
       }
@@ -1421,6 +1791,16 @@
         }
       }
     },
+    "Show running tasks after %lld s": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать задачи через %lld с"
+          }
+        }
+      }
+    },
     "Show the next calendar event": {
       "localizations": {
         "ru": {
@@ -1437,6 +1817,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показывать, что играет"
+          }
+        }
+      }
+    },
+    "Shows a short notice in the notch for a few seconds.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывает короткое уведомление в вырезе на несколько секунд."
+          }
+        }
+      }
+    },
+    "Shows that a task is running, once it has run for a while. End it with End Notch Activity and the same ID.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывает, что задача выполняется, если она идёт дольше нескольких секунд. Завершите её действием «Завершить задачу в вырезе» с тем же ID."
           }
         }
       }
@@ -1491,12 +1891,62 @@
         }
       }
     },
+    "Simulate External Notices": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать внешние уведомления"
+          }
+        }
+      }
+    },
+    "Simulate Late Start": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать поздний старт"
+          }
+        }
+      }
+    },
+    "Simulate Long Task": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать долгую задачу"
+          }
+        }
+      }
+    },
     "Simulate Low Battery": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Имитировать низкий заряд"
+          }
+        }
+      }
+    },
+    "Simulate Parallel Tasks": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать параллельные задачи"
+          }
+        }
+      }
+    },
+    "Simulate Short Task": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имитировать короткую задачу"
           }
         }
       }
@@ -1551,6 +2001,16 @@
         }
       }
     },
+    "Sources": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Источники"
+          }
+        }
+      }
+    },
     "Space": {
       "localizations": {
         "ru": {
@@ -1561,12 +2021,62 @@
         }
       }
     },
+    "Start Notch Activity": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать задачу в вырезе"
+          }
+        }
+      }
+    },
+    "State": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Состояние"
+          }
+        }
+      }
+    },
     "Stored in config.json. Edits made in a text editor show up here automatically.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
             "value": "Хранится в config.json. Изменения, сделанные в текстовом редакторе, появляются здесь автоматически."
+          }
+        }
+      }
+    },
+    "Subtitle": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подзаголовок"
+          }
+        }
+      }
+    },
+    "Success": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Успех"
+          }
+        }
+      }
+    },
+    "Tests failed": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тесты не прошли"
           }
         }
       }
@@ -1661,6 +2171,16 @@
         }
       }
     },
+    "Title": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заголовок"
+          }
+        }
+      }
+    },
     "To open Settings, open Meniscus again from the Applications folder or Spotlight.": {
       "localizations": {
         "ru": {
@@ -1701,6 +2221,16 @@
         }
       }
     },
+    "Unknown": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неизвестно"
+          }
+        }
+      }
+    },
     "Unknown action type “%@”. Use one of: %@.": {
       "localizations": {
         "ru": {
@@ -1717,6 +2247,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Скорые встречи"
+          }
+        }
+      }
+    },
+    "Update Notch Activity": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновить задачу в вырезе"
           }
         }
       }
@@ -1807,6 +2347,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "сейчас"
+          }
+        }
+      }
+    },
+    "~/.local/bin/meniscus already exists and isn't a link to Meniscus, so it was left as it is. Use Copy Path instead.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~/.local/bin/meniscus уже существует и не является ссылкой на Meniscus, поэтому файл оставлен как есть. Используйте «Скопировать путь»."
           }
         }
       }

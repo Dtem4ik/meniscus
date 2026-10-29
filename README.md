@@ -225,8 +225,10 @@ right), then folds back.
 | Bluetooth device low battery | The device's symbol in yellow or red, percent | At 20% and 10%, each once until the device is charged above 25%, for 4 seconds. |
 | Track change | A mini banner: the artwork, the title and the artist, no controls | For about 3 seconds when a new track starts playing, then the compact view with the equalizer comes back. Not when the same track resumes after a pause, and not while the island is open. Quick skips update the banner and restart its time instead of closing and reopening it. |
 
-The most important one shows: meeting, then low battery, then charging, then a Bluetooth
-device's low battery, then the keyboard layout, then the rest. Short activities show over music and then give the notch back to it.
+The most important one shows: a meeting, then low battery (the Mac's, then a Bluetooth
+device's), then direct feedback to your own action (keyboard layout, "Saved", a device you just
+connected), then external notices that need attention, then charging and music, then the rest.
+Short activities show over music and then give the notch back to it.
 Everything is event driven: calendar timers, IOKit power notifications, the system's input
 source notification, IOBluetooth and IOKit device notifications.
 
@@ -257,6 +259,39 @@ shared, so **Settings → General → Hide from screenshots and screen sharing**
 screenshots, recordings and screen sharing where the system honors it; turn it off to take a
 screenshot of the island.
 
+## External notices
+
+Other apps, scripts, Shortcuts and agents such as Claude Code can show short notices and running
+tasks in the island, in its own style: a mini banner for a notice, the source's icon and a quiet
+indicator for a task that runs longer than 10 seconds. Callers choose the text and one of three
+states (`info`, `success`, `attention`); never the look, the color or how long it shows. The full
+design is in [docs/external-api.md](docs/external-api.md).
+
+**Command line.** **Settings → Live Activities → Install Command Line Tool** links the bundled
+tool as `~/.local/bin/meniscus` (no administrator rights; add `~/.local/bin` to `PATH` if your
+shell can't find it):
+
+```sh
+meniscus notify "Build finished" --subtitle api --state success
+meniscus activity start  --id build-42 "Building api"
+meniscus activity end    --id build-42 --state success "Build finished"
+```
+
+The tool talks to Meniscus over a Unix socket only you can open, answers within half a second and
+never fails the command that runs it. A click on its banner brings the app it ran in forward, or
+opens the `--open` link or file.
+
+**Claude Code.** **Copy Claude Code Hooks** copies the hook settings for `~/.claude/settings.json`.
+While Claude works on a longer task, the island shows the terminal's icon and an indicator (with
+the number of sessions when several run); when it finishes, a short "Claude finished" banner.
+Quick answers stay silent; "Claude is waiting for you" shows when it needs a permission.
+
+**Shortcuts.** Actions **Show Notice in Notch**, **Start**, **Update** and **End Notch Activity**.
+
+**Links.** `meniscus://v1/notify?title=…&state=success` shows a notice with text only. Any web
+page can open such a link, so links are off until you turn them on in Settings, and they're
+limited and deduplicated.
+
 ## Languages
 
 English and Russian, following the system language. Strings live in
@@ -269,6 +304,7 @@ Meniscus asks for a permission only when you turn on a feature that needs it.
 | Permission | Asked for by | Why |
 | --- | --- | --- |
 | Calendars | Upcoming event in the island (stage 1) | Reads your next event with EventKit. Nothing leaves your Mac. |
+| None | External notices | The command line tool, Shortcuts and links need no permission. |
 | Bluetooth | Bluetooth device live activities | Notices headphones and speakers connecting with IOBluetooth and reads Low Energy devices' battery with CoreBluetooth. Nothing leaves your Mac. |
 | Accessibility | Not needed | No current or planned feature needs it. The capture hotkey uses the system hotkey API, which works without Accessibility access. If that ever changes, it will be listed here first. |
 
@@ -292,7 +328,9 @@ Meniscus/
   Capture/      Obsidian quick capture (stage 4)
   Shelf/        File shelf (stage 5)
   Settings/     Settings window and preferences
+  ExternalAPI/  External notices: CLI socket, links, Shortcuts, Claude Code
   Shared/       Small helpers used across features
+CLI/            The meniscus command line tool, shipped in the app
 MeniscusTests/  Unit tests (Swift Testing)
 project.yml     XcodeGen project definition
 ```

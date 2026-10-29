@@ -35,6 +35,10 @@ nonisolated enum SettingsKey {
     static let showBluetoothDevices = "activities.bluetoothDevices"
     static let showDeviceLowBattery = "activities.deviceLowBattery"
     static let showTrackChange = "activities.trackChange"
+    static let externalCLI = "external.cli"
+    static let externalLinks = "external.links"
+    static let externalIndicatorDelay = "external.indicatorDelay"
+    static let externalSources = "external.sources"
     static let hideFromScreenCapture = "hideFromScreenCapture"
     static let slowAnimations = "developer.slowAnimations"
     static let showGeometryOverlay = "developer.showGeometryOverlay"
@@ -98,6 +102,18 @@ final class AppSettings {
     var showTrackChange: Bool {
         didSet { defaults.set(showTrackChange, forKey: SettingsKey.showTrackChange) }
     }
+    /// The command line tool and Shortcuts may show notices.
+    var externalCLI: Bool {
+        didSet { defaults.set(externalCLI, forKey: SettingsKey.externalCLI) }
+    }
+    /// `meniscus://` links may show notices; off by default, since any web page can open one.
+    var externalLinks: Bool {
+        didSet { defaults.set(externalLinks, forKey: SettingsKey.externalLinks) }
+    }
+    /// How long an external task runs before its indicator appears, in seconds.
+    var externalIndicatorDelay: Double {
+        didSet { defaults.set(externalIndicatorDelay, forKey: SettingsKey.externalIndicatorDelay) }
+    }
     /// Leaves the island out of screenshots, recordings and screen sharing, where the system
     /// honors it. macOS can't tell apps when the screen is being shared, so this is the way to
     /// keep live activities out of a presentation.
@@ -131,6 +147,9 @@ final class AppSettings {
             SettingsKey.showBluetoothDevices: true,
             SettingsKey.showDeviceLowBattery: true,
             SettingsKey.showTrackChange: true,
+            SettingsKey.externalCLI: true,
+            SettingsKey.externalLinks: false,
+            SettingsKey.externalIndicatorDelay: 10.0,
             SettingsKey.hideFromScreenCapture: true,
         ])
         displayPreference = defaults.string(forKey: SettingsKey.displayPreference)
@@ -149,6 +168,9 @@ final class AppSettings {
         showBluetoothDevices = defaults.bool(forKey: SettingsKey.showBluetoothDevices)
         showDeviceLowBattery = defaults.bool(forKey: SettingsKey.showDeviceLowBattery)
         showTrackChange = defaults.bool(forKey: SettingsKey.showTrackChange)
+        externalCLI = defaults.bool(forKey: SettingsKey.externalCLI)
+        externalLinks = defaults.bool(forKey: SettingsKey.externalLinks)
+        externalIndicatorDelay = defaults.double(forKey: SettingsKey.externalIndicatorDelay)
         hideFromScreenCapture = defaults.bool(forKey: SettingsKey.hideFromScreenCapture)
         slowAnimations = defaults.bool(forKey: SettingsKey.slowAnimations)
         showGeometryOverlay = defaults.bool(forKey: SettingsKey.showGeometryOverlay)

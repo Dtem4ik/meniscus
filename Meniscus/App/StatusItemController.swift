@@ -79,6 +79,15 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         developer.addItem(item(String(localized: "Simulate Track Change")) {
             ActivityServices.shared.simulateTrackChange()
         })
+        developer.addItem(item(String(localized: "Simulate External Notices")) {
+            ActivityServices.shared.external.simulateNotices()
+        })
+        developer.addItem(item(String(localized: "Simulate Long Task")) {
+            ActivityServices.shared.external.simulateActivity(long: true)
+        })
+        developer.addItem(item(String(localized: "Simulate Parallel Tasks")) {
+            ActivityServices.shared.external.simulateParallelActivities()
+        })
         developer.addItem(item(String(localized: "Bluetooth Diagnostics")) {
             ActivityServices.shared.copyBluetoothDiagnostics()
         })
