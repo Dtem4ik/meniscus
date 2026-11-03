@@ -6,15 +6,9 @@ All notable changes to Meniscus. The format follows
 
 ## [Unreleased]
 
-### Added
+## [0.1.0] — 2026-11-03
 
-- Multi-line quick capture: Shift+Return inserts a new line at the cursor; Return saves the
-  note. The field keeps its original single-line height, grows with the text, and scrolls for
-  longer notes. Escape closes the field and preserves the draft.
-
-## [0.1.0] — 2026-10-29
-
-The first release.
+The first public GitHub release.
 
 ### The island
 
@@ -45,6 +39,9 @@ The first release.
 - Modes: links (including `obsidian://` and `claude://`), apps, files and folders, Shortcuts and
   quick capture, edited in Settings or in `config.json`.
 - Quick capture into Obsidian or any folder of Markdown notes, with a hotkey.
+- Multi-line quick capture: Shift+Return inserts a new line at the cursor; Return saves the
+  note. The field keeps its original single-line height, grows with the text, and scrolls for
+  longer notes. Escape closes the field and preserves the draft.
 - File shelf: drop files on the notch, Quick Look, AirDrop, drag them back out.
 
 ### External notices

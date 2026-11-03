@@ -9,7 +9,7 @@ and moves as if Apple had built it into macOS.
 <!-- Screenshot: collapsed notch and expanded island, Light and Dark Mode -->
 <!-- GIF: notch → island morph at 120 Hz -->
 
-**Status:** 0.1, the first release. Everything below works on macOS 27; next come new
+**Status:** 0.1.0, the first public release. Everything below works on macOS 27; next come new
 features (see [what's next](#whats-next)). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
@@ -44,6 +44,15 @@ features (see [what's next](#whats-next)). Changes are listed in [CHANGELOG.md](
 - Apple silicon is the priority. Intel Macs running macOS 26 should work but aren't tested.
 
 ## Install a build
+
+### Releases
+
+Download `Meniscus-v0.1.0.zip` from the [latest release](https://github.com/Dtem4ik/meniscus/releases/latest),
+unzip it and move `Meniscus.app` to `/Applications`. Follow the first-launch instructions below:
+release builds are ad-hoc signed and are not notarized. Optional SHA-256 checksums are attached
+to the release as `SHA256SUMS.txt`.
+
+### Development builds
 
 Every push is built by GitHub Actions. To try the latest build:
 
