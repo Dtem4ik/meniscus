@@ -123,6 +123,7 @@ final class NotchWindowController {
         observeShelfSetting()
         observeActivities()
         observeContent()
+        observeCaptureHeight()
         observeTrack()
         refreshGeometry()
     }
@@ -255,7 +256,8 @@ final class NotchWindowController {
         self.screen = screen
         ActivityServices.shared.presentation.refresh()
         let geometry = NotchGeometry(screen: screen, forceVirtual: settings.forceVirtualNotch)
-        let layout = IslandLayout(geometry: geometry)
+        var layout = IslandLayout(geometry: geometry)
+        layout.metrics.captureContentHeight = CaptureController.shared.editorHeight
         logger.debug("Notch geometry: \(String(describing: geometry.notchRect)), kind: \(geometry.kind.rawValue)")
 
         if layout != state.layout {
@@ -332,6 +334,21 @@ final class NotchWindowController {
         guard let track, track != lastTrack else { return }
         lastTrack = track
         pageMemory.request(.nowPlaying)
+    }
+
+    private func observeCaptureHeight() {
+        let height = withObservationTracking {
+            CaptureController.shared.editorHeight
+        } onChange: { [weak self] in
+            Task { @MainActor in self?.observeCaptureHeight() }
+        }
+        guard state.layout.metrics.captureContentHeight != height else { return }
+        withAnimation(currentMotion().expand) {
+            state.layout.metrics.captureContentHeight = height
+        }
+        guard state.content == .capture else { return }
+        let rect = state.layout.interactiveScreenRect(for: .expanded, content: .capture)
+        container.interactiveRect = rect.offsetBy(dx: -panel.frame.minX, dy: -panel.frame.minY)
     }
 
     private func observeContent() {

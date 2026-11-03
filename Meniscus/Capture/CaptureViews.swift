@@ -2,13 +2,11 @@ import AppKit
 import Carbon.HIToolbox
 import SwiftUI
 
-/// The capture field in the island: just the text. Return saves, Escape closes; after saving a
+/// The capture field in the island: Return saves, Shift-Return adds a line, Escape closes; after saving a
 /// short "Saved" shows and the island closes.
 struct CaptureField: View {
     @Bindable var capture: CaptureController
     var onFinish: () -> Void
-
-    @FocusState private var isFocused: Bool
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -18,17 +16,19 @@ struct CaptureField: View {
                     .transition(.opacity)
             } else if capture.settings.isConfigured {
                 HStack(spacing: 8) {
-                    TextField(
-                        "Capture",
-                        text: $capture.draft,
-                        prompt: Text("Capture a thought…").foregroundStyle(.white.opacity(0.4))
-                    )
-                    .labelsHidden()
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 15))
-                    .foregroundStyle(.white)
-                    .focused($isFocused)
-                    .onSubmit(submit)
+                    CaptureTextEditor(text: $capture.draft, onSubmit: submit, onCancel: onFinish,
+                                      onHeightChange: { height in
+                                          if capture.editorHeight != height { capture.editorHeight = height }
+                                      })
+                        .frame(height: max(CaptureEditorMetrics.minimumTextHeight, capture.editorHeight - CaptureEditorMetrics.verticalPadding))
+                        .overlay(alignment: .topLeading) {
+                            if capture.draft.isEmpty {
+                                Text("Capture a thought…")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(.white.opacity(0.4))
+                                    .allowsHitTesting(false)
+                            }
+                        }
                     status
                 }
                 .transition(.opacity)
@@ -47,7 +47,6 @@ struct CaptureField: View {
         .padding(.horizontal, 22)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .animation(Motion.trackChange, value: capture.status)
-        .onAppear { isFocused = true }
         .onExitCommand(perform: onFinish)
     }
 
