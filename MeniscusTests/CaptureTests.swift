@@ -82,7 +82,8 @@ struct InboxWriterTests {
 struct HotKeyTests {
     @Test func defaultHotKeyIsControlOptionSpace() {
         let hotKey = HotKey.defaultCapture
-        #expect(hotKey.displayString == "⌃⌥Space")
+        #expect(hotKey.keyCode == UInt32(kVK_Space))
+        #expect(hotKey.displayString == "⌃⌥" + String(localized: "Space"))
         #expect(hotKey.carbonModifiers == UInt32(controlKey | optionKey))
         #expect(hotKey.isValid)
     }
