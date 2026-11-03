@@ -196,7 +196,9 @@ Links open in the app that owns them. The Claude desktop app
 
 Press **⌃⌥Space** (change it in Settings → Capture), choose **Quick Capture** in the menu bar or
 use a mode with the Quick Capture action. Type a thought and press Return: a short "Saved" shows
-and the island closes. Escape or a click elsewhere closes the field and keeps what you typed.
+and the island closes. **Shift+Return** adds a new line at the cursor. The field starts compact,
+grows with your text and scrolls for longer notes. Escape or a click elsewhere closes the field
+and keeps what you typed.
 
 By default each capture becomes a note of its own in a folder you choose, named after the date,
 the time and its first words, such as `2026-10-27 21-45 Call the bank.md`, with your text inside.

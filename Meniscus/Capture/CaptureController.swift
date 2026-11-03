@@ -16,6 +16,8 @@ final class CaptureController {
 
     /// True while the island shows the capture field.
     private(set) var isActive = false
+    /// Height below the notch, measured from the native editor and bounded for scrolling.
+    var editorHeight: CGFloat = CaptureEditorMetrics.minimumHeight
     var draft = ""
     private(set) var status: Status = .idle
 

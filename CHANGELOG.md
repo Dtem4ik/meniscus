@@ -4,6 +4,14 @@ All notable changes to Meniscus. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Multi-line quick capture: Shift+Return inserts a new line at the cursor; Return saves the
+  note. The field keeps its original single-line height, grows with the text, and scrolls for
+  longer notes. Escape closes the field and preserves the draft.
+
 ## [0.1.0] — 2026-10-29
 
 The first release.
@@ -54,4 +62,5 @@ The first release.
 - Now Playing depends on mediaremote-adapter; a macOS update may break it until the adapter is
   updated.
 
+[Unreleased]: https://github.com/Dtem4ik/meniscus/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Dtem4ik/meniscus/releases/tag/v0.1.0

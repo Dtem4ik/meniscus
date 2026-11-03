@@ -1,3 +1,4 @@
+import AppKit
 import Carbon.HIToolbox
 import Foundation
 import Testing
@@ -167,5 +168,87 @@ struct CaptureNoteTests {
     @Test func newNotesAreTheDefault() {
         let defaults = UserDefaults(suiteName: "meniscus-capture-\(UUID().uuidString)")!
         #expect(CaptureSettings(defaults: defaults).destination == .noteInFolder)
+    }
+}
+
+@MainActor
+struct CaptureEditorTests {
+    private func key(_ code: UInt16, modifiers: NSEvent.ModifierFlags = []) -> NSEvent {
+        NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: modifiers,
+                        timestamp: 0, windowNumber: 0, context: nil,
+                        characters: "\r", charactersIgnoringModifiers: "\r",
+                        isARepeat: false, keyCode: code)!
+    }
+
+    @Test func shiftReturnInsertsAtSelectionWithoutSaving() {
+        let editor = CaptureTextView()
+        editor.isRichText = false
+        editor.string = "FirstSecond"
+        editor.setSelectedRange(NSRange(location: 5, length: 0))
+        var saves = 0
+        editor.onSubmit = { saves += 1 }
+        editor.keyDown(with: key(UInt16(kVK_Return), modifiers: .shift))
+        #expect(editor.string == "First\nSecond")
+        #expect(saves == 0)
+    }
+
+    @Test func returnSavesWithoutInsertingNewline() {
+        let editor = CaptureTextView()
+        editor.string = "First\nSecond"
+        var saves = 0
+        editor.onSubmit = { saves += 1 }
+        editor.keyDown(with: key(UInt16(kVK_Return)))
+        #expect(editor.string == "First\nSecond")
+        #expect(saves == 1)
+    }
+}
+
+@MainActor
+struct CaptureEditorBehaviorTests {
+    @Test func shiftReturnReplacesSelection() {
+        let editor = CaptureTextView()
+        editor.isRichText = false
+        editor.string = "First replace Second"
+        editor.setSelectedRange(NSRange(location: 5, length: 9))
+        editor.keyDown(with: key(UInt16(kVK_Return), modifiers: .shift))
+        #expect(editor.string == "First\nSecond")
+    }
+
+    @Test func keypadEnterSavesAndEscapeClosesWithoutChangingDraft() {
+        let editor = CaptureTextView()
+        editor.string = "Keep this\nand this"
+        var saves = 0
+        var cancellations = 0
+        editor.onSubmit = { saves += 1 }
+        editor.onCancel = { cancellations += 1 }
+        editor.keyDown(with: key(UInt16(kVK_ANSI_KeypadEnter)))
+        editor.keyDown(with: key(UInt16(kVK_Escape)))
+        #expect(saves == 1)
+        #expect(cancellations == 1)
+        #expect(editor.string == "Keep this\nand this")
+    }
+
+    @Test func heightStartsCompactGrowsAndIsCappedForScrolling() {
+        let editor = CaptureTextView(frame: NSRect(x: 0, y: 0, width: 376, height: 20))
+        editor.font = .systemFont(ofSize: 15)
+        editor.textContainerInset = .zero
+        editor.textContainer?.lineFragmentPadding = 0
+        editor.textContainer?.containerSize = NSSize(width: 376, height: CGFloat.greatestFiniteMagnitude)
+        editor.string = "One line"
+        #expect(editor.captureHeight == 56)
+        editor.string = "First\nSecond\nThird"
+        #expect(editor.captureHeight > 56)
+        #expect(editor.captureHeight < 120)
+        editor.string = String(repeating: "Another line\n", count: 30)
+        #expect(editor.captureHeight == 120)
+        editor.string = ""
+        #expect(editor.captureHeight == 56)
+    }
+
+    private func key(_ code: UInt16, modifiers: NSEvent.ModifierFlags = []) -> NSEvent {
+        NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: modifiers,
+                        timestamp: 0, windowNumber: 0, context: nil,
+                        characters: code == UInt16(kVK_Escape) ? "\u{1b}" : "\r", charactersIgnoringModifiers: "\r",
+                        isARepeat: false, keyCode: code)!
     }
 }
